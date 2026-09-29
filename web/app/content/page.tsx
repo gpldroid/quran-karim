@@ -17,6 +17,5 @@ export default function ContentPage(){
   },[]);
   if(loading) return <main className="shell" dir="rtl"><article className="content-page"><p>جاري التحميل…</p></article></main>;
   if(!item) return <main className="shell" dir="rtl"><article className="content-page"><a className="back" href={BASE+"/"}>← العودة للرئيسية</a><h1>المحتوى غير موجود</h1></article></main>;
-  return <main className="shell" dir="rtl"><article className="content-page"><a className="back" href={BASE+"/"}>← العودة للرئيسية</a><span className="badge">{item.type}</span><h1>{item.title}</h1>{item.image_url&&<img src={item.image_url} alt={item.title}/>} {item.excerpt&&<p className="lead">{item.excerpt}</p>}<div className="body">{item.body?.split(/
-+/).map((p:string,i:number)=><p key={i}>{p}</p>)}</div></article></main>;
+  return <main className="shell" dir="rtl"><article className="content-page"><a className="back" href={BASE+"/"}>← العودة للرئيسية</a><span className="badge">{item.type}</span><h1>{item.title}</h1>{item.image_url&&<img src={item.image_url} alt={item.title}/>} {item.excerpt&&<p className="lead">{item.excerpt}</p>}<div className="body">{item.body?.split("\n").map((p:string,i:number)=><p key={i}>{p}</p>)}</div></article></main>;
 }
