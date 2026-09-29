@@ -46,13 +46,15 @@ jobs:
 
       - name: Build signed APK and AAB
         env:
-          ANDROID_KEYSTORE_PATH: ${{ runner.temp }}/wow-release.jks
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         working-directory: android
         run: |
           set -euo pipefail
+          export ANDROID_KEYSTORE_PATH="$RUNNER_TEMP/wow-release.jks"
+          test -f "$ANDROID_KEYSTORE_PATH"
+          test -s "$ANDROID_KEYSTORE_PATH"
           test -n "$ANDROID_KEYSTORE_PASSWORD"
           test -n "$ANDROID_KEY_ALIAS"
           test -n "$ANDROID_KEY_PASSWORD"
@@ -92,4 +94,4 @@ jobs:
         run: |
           set -e
           TAG="android-native-v1.1.${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG"             android/app/build/outputs/apk/debug/app-debug.apk             android/app/build/outputs/apk/release/app-release-unsigned.apk             android/app/build/outputs/bundle/release/app-release.aab             --repo "${GITHUB_REPOSITORY}"             --title "WOW Native Android v1.1.${GITHUB_RUN_NUMBER}"             --notes "Native Android/Gradle build. No Expo or EAS is used."
+          gh release create "$TAG"             android/app/build/outputs/apk/debug/app-debug.apk             android/app/build/outputs/apk/release/app-release.apk             android/app/build/outputs/bundle/release/app-release.aab             --repo "${GITHUB_REPOSITORY}"             --title "WOW Native Android v1.1.${GITHUB_RUN_NUMBER}"             --notes "Native Android/Gradle build. No Expo or EAS is used."
