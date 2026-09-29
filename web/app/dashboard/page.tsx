@@ -66,7 +66,7 @@ export default function Dashboard() {
       .on("postgres_changes", { event: "*", schema: "public", table: "content_items" }, () => load())
       .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => load())
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { if (supabase) supabase.removeChannel(channel); };
   }, []);
 
   const filtered = useMemo(() => {
