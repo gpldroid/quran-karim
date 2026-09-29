@@ -10,7 +10,8 @@ type Item = { id: string; type: ItemType; title: string; slug: string; excerpt: 
 type Settings = { id: boolean; site_name: string; site_description: string; logo_url: string | null; primary_color: string; maintenance_mode: boolean; contact_email: string | null };
 
 const emptyItem = { type: "article" as ItemType, title: "", slug: "", excerpt: "", body: "", image_url: "", published: false, featured: false, category_id: "" };
-const emptyCategory = { name: "", slug: "", description: "" };\nconst BASE = process.env.NEXT_PUBLIC_BASE_PATH || "/wow";
+const emptyCategory = { name: "", slug: "", description: "" };
+const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "/wow";
 
 export default function Dashboard() {
   const [tab, setTab] = useState("overview");
@@ -48,7 +49,15 @@ export default function Dashboard() {
     setLoading(false);
   }
 
-  useEffect(() => {\n    let mounted = true;\n    if (!supabase) { setLoading(false); return; }\n    supabase.auth.getUser().then(({ data }) => {\n      if (mounted && !data.user) window.location.href = BASE + "/";\n    });\n    load();\n    return () => { mounted = false; };\n  }, []);
+  useEffect(() => {
+    let mounted = true;
+    if (!supabase) { setLoading(false); return; }
+    supabase.auth.getUser().then(({ data }) => {
+      if (mounted && !data.user) window.location.href = BASE + "/";
+    });
+    load();
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     if (!supabase) return;
