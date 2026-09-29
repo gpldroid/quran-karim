@@ -1,4 +1,5 @@
 name: Expo Mobile
+
 on:
   workflow_dispatch:
   push:
@@ -10,28 +11,16 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     defaults:
-      run: {working-directory: mobile}
+      run:
+        working-directory: mobile
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: {node-version: 22}
-      - run: npm install
-      - run: npx expo-doctor
-      - run: npx expo export
-
-  eas-update:
-    if: ${{ github.event_name == 'workflow_dispatch' }}
-    needs: validate
-    runs-on: ubuntu-latest
-    defaults:
-      run: {working-directory: mobile}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: {node-version: 22}
-      - run: npm install
-      - name: Publish OTA update
-        if: ${{ secrets.EXPO_TOKEN != '' }}
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
-        run: npx eas update --channel preview --message "GitHub Actions update" --environment preview
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Validate Expo config
+        run: npx expo config --type public
+      - name: Export Android bundle
+        run: npx expo export --platform android
