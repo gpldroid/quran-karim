@@ -846,8 +846,8 @@
         document.addEventListener('DOMContentLoaded', () => {
             // Initialize routing first so every hash link remains usable even if a feature
             // initializer encounters an external API/audio error.
-            setupRouting();
             setupHashLinks();
+            setupRouting();
             try { document.getElementById('yearSpan').textContent = new Date().getFullYear(); } catch (e) {}
             try { checkCookieConsent(); } catch (e) { console.warn('Cookie consent:', e); }
             try { populateReciters(); } catch (e) { console.warn('Reciters:', e); }
@@ -860,29 +860,26 @@
         });
 
         function setupRouting() {
-            window.addEventListener('hashchange', handleRoute);
             handleRoute();
         }
 
         function setupHashLinks() {
+            const valid = new Set(['quran','radios','azkar','prayer-times','qibla','khatmah','about','contact','privacy','terms','faq']);
             document.addEventListener('click', (event) => {
-                const link = event.target.closest('a[href^="#"]');
-                if (!link) return;
-                const hash = link.getAttribute('href');
-                if (!hash || hash === '#') return;
-                const target = hash.slice(1);
-                const valid = ['quran','radios','azkar','prayer-times','qibla','khatmah','about','contact','privacy','terms','faq'];
-                if (!valid.includes(target)) return;
+                const target = event.target instanceof Element ? event.target.closest('a[href^="#"]') : null;
+                if (!target) return;
+                const href = target.getAttribute('href') || '';
+                const page = href.slice(1);
+                if (!page || !valid.has(page)) return;
                 event.preventDefault();
-                if (window.location.hash === hash) {
+                if (window.location.hash.slice(1) === page) {
                     handleRoute();
                 } else {
-                    history.pushState(null, '', hash);
-                    handleRoute();
+                    window.location.hash = page;
                 }
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
-            window.addEventListener('popstate', handleRoute);
+            window.addEventListener('hashchange', handleRoute);
         }
 
         function handleRoute() {
