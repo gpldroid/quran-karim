@@ -16,6 +16,9 @@ on:
       - "mobile/**"
       - ".github/workflows/android.yml"
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -40,7 +43,36 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Build Android with EAS
+      - name: Build Android with EAS and wait
         env:
           PROFILE: ${{ github.event_name == 'workflow_dispatch' && inputs.profile || 'preview' }}
-        run: eas build --platform android --profile "$PROFILE" --non-interactive --no-wait
+        run: eas build --platform android --profile "$PROFILE" --non-interactive --wait --json > eas-build.json
+
+      - name: Resolve completed EAS build
+        id: resolve
+        run: |
+          BUILD_ID=$(jq -r 'if type == "array" then .[0].id else .id end' eas-build.json)
+          test -n "$BUILD_ID" && test "$BUILD_ID" != "null"
+          echo "BUILD_ID=$BUILD_ID" >> "$GITHUB_OUTPUT"
+          eas build:view "$BUILD_ID" --json > eas-build-view.json
+          APK_URL=$(jq -r '.artifacts.buildUrl // .artifacts.applicationArchiveUrl // empty' eas-build-view.json)
+          test -n "$APK_URL"
+          echo "APK_URL=$APK_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Download final APK
+        run: |
+          curl -fL "${{ steps.resolve.outputs.APK_URL }}" -o wow.apk
+          test -s wow.apk
+          file wow.apk
+
+      - name: Publish stable GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BUILD_ID: ${{ steps.resolve.outputs.BUILD_ID }}
+        run: |
+          TAG="android-v1.0.${GITHUB_RUN_NUMBER}"
+          gh release create "$TAG" wow.apk \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "WOW Android v1.0.${GITHUB_RUN_NUMBER}" \
+            --notes "Android APK built from EAS. EAS build: $BUILD_ID" \
+            --latest
