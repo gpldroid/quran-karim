@@ -19,12 +19,17 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: android-eas-build
+  cancel-in-progress: false
+
 jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: mobile
+
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -51,28 +56,38 @@ jobs:
       - name: Resolve completed EAS build
         id: resolve
         run: |
+          set -e
           BUILD_ID=$(jq -r 'if type == "array" then .[0].id else .id end' eas-build.json)
           test -n "$BUILD_ID" && test "$BUILD_ID" != "null"
           echo "BUILD_ID=$BUILD_ID" >> "$GITHUB_OUTPUT"
           eas build:view "$BUILD_ID" --json > eas-build-view.json
-          APK_URL=$(jq -r '.artifacts.buildUrl // .artifacts.applicationArchiveUrl // empty' eas-build-view.json)
-          test -n "$APK_URL"
-          echo "APK_URL=$APK_URL" >> "$GITHUB_OUTPUT"
+          jq -e '(.status == "FINISHED") or (.status == "finished")' eas-build-view.json
 
-      - name: Download final APK
+      - name: Download final Android artifact from EAS
+        env:
+          BUILD_ID: ${{ steps.resolve.outputs.BUILD_ID }}
         run: |
-          curl -fL "${{ steps.resolve.outputs.APK_URL }}" -o wow.apk
+          set -e
+          eas build:download --build-id "$BUILD_ID" --non-interactive
+          APK=$(find . -maxdepth 2 -type f -name "*.apk" | head -n 1)
+          test -n "$APK"
+          cp "$APK" wow.apk
           test -s wow.apk
           file wow.apk
+
+      - name: Upload APK artifact to GitHub Actions
+        uses: actions/upload-artifact@v4
+        with:
+          name: wow-android-apk
+          path: mobile/wow.apk
+          if-no-files-found: error
+          retention-days: 30
 
       - name: Publish stable GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
           BUILD_ID: ${{ steps.resolve.outputs.BUILD_ID }}
         run: |
+          set -e
           TAG="android-v1.0.${GITHUB_RUN_NUMBER}"
-          gh release create "$TAG" wow.apk \
-            --repo "${GITHUB_REPOSITORY}" \
-            --title "WOW Android v1.0.${GITHUB_RUN_NUMBER}" \
-            --notes "Android APK built from EAS. EAS build: $BUILD_ID" \
-            --latest
+          gh release create "$TAG" wow.apk             --repo "${GITHUB_REPOSITORY}"             --title "WOW Android v1.0.${GITHUB_RUN_NUMBER}"             --notes "Android APK built from EAS. EAS build: $BUILD_ID"             --latest
