@@ -21,3 +21,129 @@
 .content-list article:hover,.content-row:hover{background:#0b1727}
 .dashboard-nav button:focus-visible,.dashboard button:focus-visible,.actions a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
 @media(max-width:700px){.dashboard{padding:18px 12px}.dashboard-header{padding-bottom:16px}.dashboard-header h1{font-size:1.55rem}.panel{padding:20px}.dashboard-nav{overflow-x:auto;flex-wrap:nowrap}.dashboard-nav button{white-space:nowrap}}
+
+
+/* WOW Dashboard — neumorphic layer
+   Inspired by open-source dashboard patterns from gisketch/neumorphism-ui-library
+   and TailAdmin; no source UI code is copied. */
+:root{
+  --neo-bg:#e8edf5;
+  --neo-surface:#e8edf5;
+  --neo-text:#1f2937;
+  --neo-muted:#64748b;
+  --neo-accent:#2563eb;
+  --neo-shadow-dark:#c5ccd8;
+  --neo-shadow-light:#ffffff;
+}
+body{background:var(--neo-bg);color:var(--neo-text)}
+.dashboard{max-width:1280px;padding:28px 22px}
+.dashboard-header{
+  background:var(--neo-surface);
+  border:0;
+  border-radius:24px;
+  padding:22px 24px;
+  box-shadow:12px 12px 28px var(--neo-shadow-dark),-12px -12px 28px var(--neo-shadow-light);
+}
+.dashboard-header h1{color:#172033;letter-spacing:-.02em}
+.dashboard-header span{color:var(--neo-muted)}
+.dashboard-nav{
+  position:sticky;top:10px;z-index:10;
+  border:0;margin:20px 0;
+  padding:10px;
+  border-radius:20px;
+  background:var(--neo-surface);
+  box-shadow:8px 8px 20px var(--neo-shadow-dark),-8px -8px 20px var(--neo-shadow-light);
+}
+.dashboard-nav button,.dashboard button{
+  border:0;
+  color:var(--neo-text);
+  background:var(--neo-surface);
+  border-radius:14px;
+  box-shadow:5px 5px 10px var(--neo-shadow-dark),-5px -5px 10px var(--neo-shadow-light);
+  transition:transform .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.dashboard-nav button:hover,.dashboard button:hover{
+  transform:translateY(-1px);
+}
+.dashboard-nav button:active,.dashboard button:active{
+  transform:translateY(1px);
+  box-shadow:inset 4px 4px 9px var(--neo-shadow-dark),inset -4px -4px 9px var(--neo-shadow-light);
+}
+.dashboard-nav button.active{
+  color:#fff;
+  background:var(--neo-accent);
+  border:0;
+  box-shadow:inset 3px 3px 7px rgba(0,0,0,.18),5px 5px 12px #b8c0ce;
+}
+.stats{gap:20px}
+.stats article,.panel,.content-card,.content-list article,.content-row{
+  border:0;
+  background:var(--neo-surface);
+  box-shadow:9px 9px 20px var(--neo-shadow-dark),-9px -9px 20px var(--neo-shadow-light);
+}
+.stats article{border-radius:20px;padding:24px}
+.stats article b{font-size:2.1rem;color:#172033}
+.stats article small{color:var(--neo-muted)}
+.panel{border-radius:22px;padding:26px}
+.check-grid p{
+  border:0;
+  background:var(--neo-surface);
+  border-radius:15px;
+  box-shadow:inset 4px 4px 9px var(--neo-shadow-dark),inset -4px -4px 9px var(--neo-shadow-light);
+}
+.editor-form input,.editor-form select,.editor-form textarea,.search,.auth-card input{
+  border:0;
+  color:var(--neo-text);
+  background:var(--neo-surface);
+  border-radius:14px;
+  box-shadow:inset 5px 5px 10px var(--neo-shadow-dark),inset -5px -5px 10px var(--neo-shadow-light);
+}
+.editor-form input:focus,.editor-form select:focus,.editor-form textarea:focus,.search:focus,.auth-card input:focus{
+  outline:2px solid #93c5fd;
+  outline-offset:2px;
+}
+.dashboard button.primary,.auth-card .primary{
+  color:#fff;
+  background:var(--neo-accent);
+  border:0;
+  border-radius:14px;
+  box-shadow:6px 6px 14px #b9c1ce,-5px -5px 12px #fff;
+}
+.actions a,.dashboard-header .actions a{
+  color:var(--neo-text);
+  background:var(--neo-surface);
+  border:0;
+  border-radius:14px;
+  box-shadow:5px 5px 10px var(--neo-shadow-dark),-5px -5px 10px var(--neo-shadow-light);
+}
+.content-list article{border-radius:16px}
+.content-row{border-bottom:0;margin-bottom:8px;padding:15px 17px;border-radius:15px}
+.content-row:hover,.content-list article:hover{background:#e3e8f0}
+.message{color:#1d4ed8}
+.auth-card{
+  border:0;
+  background:var(--neo-surface);
+  border-radius:28px;
+  box-shadow:14px 14px 30px var(--neo-shadow-dark),-14px -14px 30px var(--neo-shadow-light);
+}
+.auth-card h1{color:#172033}
+@media(max-width:700px){
+  .dashboard{padding:16px 12px}
+  .dashboard-header,.panel{border-radius:18px}
+  .dashboard-nav{top:6px}
+  .stats article{padding:20px}
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --neo-bg:#18202d;
+    --neo-surface:#18202d;
+    --neo-text:#e5e7eb;
+    --neo-muted:#9ca3af;
+    --neo-shadow-dark:#0e141e;
+    --neo-shadow-light:#222d3d;
+  }
+  body{background:var(--neo-bg);color:var(--neo-text)}
+  .dashboard-header h1,.stats article b,.auth-card h1{color:#f8fafc}
+  .content-row:hover,.content-list article:hover{background:#1b2635}
+  .dashboard button.primary,.auth-card .primary{box-shadow:6px 6px 14px #0d121a,-5px -5px 12px #253244}
+}
