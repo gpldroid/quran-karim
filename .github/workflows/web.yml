@@ -4,21 +4,17 @@ on:
   push:
     paths:
       - "web/**"
-      - "dashboard/**"
       - ".github/workflows/web.yml"
 jobs:
   validate:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        app: [web, dashboard]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
       - name: Install
-        working-directory: ${{ matrix.app }}
+        working-directory: web
         run: npm install
       - name: Build
         working-directory: ${{ matrix.app }}
