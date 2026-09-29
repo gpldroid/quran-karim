@@ -1138,25 +1138,29 @@
         }
 
         function initPrayerTimes() {
-            const times = [
-                { name: "الفجر", time: "05:12 AM" },
-                { name: "الشروق", time: "06:38 AM" },
-                { name: "الظهر", time: "12:30 PM" },
-                { name: "العصر", time: "03:45 PM" },
-                { name: "المغرب", time: "06:22 PM" },
-                { name: "العشاء", time: "07:42 PM" }
-            ];
-
-            const grid = document.getElementById('prayerTimesGrid');
-            grid.innerHTML = times.map(p => `
-                <div class="custom-card p-4 rounded-2xl text-center space-y-1">
-                    <span class="text-xs font-bold text-slate-500">${p.name}</span>
-                    <p class="text-sm font-extrabold text-emerald-700 dark:text-amber-400">${p.time}</p>
-                </div>
-            `).join('');
-
-            document.getElementById('headerHijriDate').innerHTML = `<i class="far fa-calendar-alt ml-1 text-amber-400"></i> 14 ربيع الأول 1448 هـ`;
-            document.getElementById('headerNextPrayer').innerHTML = `<i class="far fa-clock ml-1 text-amber-400"></i> المغرب: 06:22 PM`;
+            const renderTimes = (data) => {
+                const timings = data.timings || {};
+                const names = [['الفجر','Fajr'],['الشروق','Sunrise'],['الظهر','Dhuhr'],['العصر','Asr'],['المغرب','Maghrib'],['العشاء','Isha']];
+                const grid = document.getElementById('prayerTimesGrid');
+                grid.innerHTML = names.map(([name,key]) => {
+                    const value = timings[key] || '--:--';
+                    return `<div class="custom-card p-4 rounded-2xl text-center space-y-1"><span class="text-xs font-bold text-slate-500">${name}</span><p class="text-sm font-extrabold text-emerald-700 dark:text-amber-400">${value}</p></div>`;
+                }).join('');
+                const hijri = data.date?.hijri;
+                if (hijri) document.getElementById('headerHijriDate').innerHTML = `<i class="far fa-calendar-alt ml-1 text-amber-400"></i> ${hijri.day} ${hijri.month.ar} ${hijri.year} هـ`;
+                const now = new Date(), nowMinutes = now.getHours()*60 + now.getMinutes();
+                const candidates = names.filter(([,key])=>timings[key]).map(([name,key])=>{const parts=timings[key].split(':').map(Number);return {name,time:timings[key],minutes:parts[0]*60+parts[1]};});
+                const next = candidates.find(p=>p.minutes>nowMinutes)||candidates[0];
+                if (next) document.getElementById('headerNextPrayer').innerHTML = `<i class="far fa-clock ml-1 text-amber-400"></i> ${next.name}: ${next.time}`;
+            };
+            const loadForLocation = (latitude, longitude) => fetch(`https://api.aladhan.com/v1/timings?latitude=${latitude}&longitude=${longitude}&method=2`).then(response=>{if(!response.ok) throw new Error('Prayer API request failed');return response.json();}).then(payload=>{if(payload.code!==200||!payload.data) throw new Error('Invalid prayer API response');renderTimes(payload.data);});
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    position=>loadForLocation(position.coords.latitude,position.coords.longitude).catch(()=>loadForLocation(33.5731,-7.5898).catch(()=>{})),
+                    ()=>loadForLocation(33.5731,-7.5898).catch(()=>{}),
+                    {enableHighAccuracy:false,timeout:7000,maximumAge:3600000}
+                );
+            } else loadForLocation(33.5731,-7.5898).catch(()=>{});
         }
 
         function calculateKhatmah() {
@@ -1261,8 +1265,12 @@
 
         function handleFormSubmit(e) {
             e.preventDefault();
-            showToast('تم استلام رسالتك وتوجيهها للمطور عماد لمراني بنجاح.');
-            e.target.reset();
+            const form=e.target, data=new FormData(form);
+            const name=String(data.get('name')||'').trim(), email=String(data.get('email')||'').trim(), message=String(data.get('message')||'').trim();
+            const subject=encodeURIComponent(`رسالة من منصة القرآن الكريم - ${name||'زائر'}`);
+            const body=encodeURIComponent(`الاسم: ${name}\nالبريد: ${email}\n\n${message}`);
+            window.location.href=`mailto:info@larache.xyz?subject=${subject}&body=${body}`;
+            showToast('سيتم فتح تطبيق البريد لإرسال رسالتك.');
         }
 
         function showToast(msg) {
