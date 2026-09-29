@@ -40,6 +40,14 @@ as $$
   select role from public.profiles where id = auth.uid();
 $$;
 
+insert into public.profiles (id, display_name, role)
+select
+  u.id,
+  coalesce(u.raw_user_meta_data->>'display_name', split_part(u.email, '@', 1)),
+  case when row_number() over (order by u.created_at) = 1 then 'admin' else 'editor' end
+from auth.users u
+where not exists (select 1 from public.profiles p where p.id = u.id);
+
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),
   name text not null,
