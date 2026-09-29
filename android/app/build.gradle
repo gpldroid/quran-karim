@@ -14,12 +14,26 @@ android {
         versionName "1.1.0"
     }
 
+    signingConfigs {
+        release {
+            def keystorePath = System.getenv("ANDROID_KEYSTORE_PATH")
+            if (keystorePath == null || keystorePath.trim().isEmpty()) {
+                throw new GradleException("ANDROID_KEYSTORE_PATH is required for a signed release build")
+            }
+            storeFile file(keystorePath)
+            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+            keyAlias System.getenv("ANDROID_KEY_ALIAS")
+            keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+        }
+    }
+
     buildTypes {
         debug {
             applicationIdSuffix ".debug"
             versionNameSuffix "-debug"
         }
         release {
+            signingConfig signingConfigs.release
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro"
