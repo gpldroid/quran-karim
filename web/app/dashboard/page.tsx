@@ -48,7 +48,7 @@ export default function Dashboard() {
     setLoading(false);
   }
 
-  useEffect(() => {\n    let mounted = true;\n    if (!supabase) { setLoading(false); return; }\n    supabase.auth.getUser().then(({ data }) => {\n      if (mounted && !data.user) window.location.href = BASE + "/login/";\n    });\n    load();\n    return () => { mounted = false; };\n  }, []);
+  useEffect(() => {\n    let mounted = true;\n    if (!supabase) { setLoading(false); return; }\n    supabase.auth.getUser().then(({ data }) => {\n      if (mounted && !data.user) window.location.href = BASE + "/";\n    });\n    load();\n    return () => { mounted = false; };\n  }, []);
 
   useEffect(() => {
     if (!supabase) return;
@@ -111,7 +111,7 @@ export default function Dashboard() {
     setMessage(error?.message ?? "تم حفظ إعدادات المنصة."); setSaving(false);
   }
 
-  async function logout() { if (supabase) await supabase.auth.signOut(); location.href = BASE + "/login/"; }
+  async function logout() { if (supabase) await supabase.auth.signOut(); location.href = BASE + "/"; }
 
   const published = items.filter(x => x.published).length;
   const drafts = items.length - published;
