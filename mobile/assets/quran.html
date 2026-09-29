@@ -844,21 +844,45 @@
         const loader = document.getElementById('loader');
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('yearSpan').textContent = new Date().getFullYear();
-            checkCookieConsent();
-            populateReciters();
-            renderPlaylist(surahs);
-            loadSurah(0, false);
-            initRadios();
-            initAzkar();
-            initPrayerTimes();
+            // Initialize routing first so every hash link remains usable even if a feature
+            // initializer encounters an external API/audio error.
             setupRouting();
-            setupEventListeners();
+            setupHashLinks();
+            try { document.getElementById('yearSpan').textContent = new Date().getFullYear(); } catch (e) {}
+            try { checkCookieConsent(); } catch (e) { console.warn('Cookie consent:', e); }
+            try { populateReciters(); } catch (e) { console.warn('Reciters:', e); }
+            try { renderPlaylist(surahs); } catch (e) { console.warn('Playlist:', e); }
+            try { loadSurah(0, false); } catch (e) { console.warn('Surah:', e); }
+            try { initRadios(); } catch (e) { console.warn('Radios:', e); }
+            try { initAzkar(); } catch (e) { console.warn('Azkar:', e); }
+            try { initPrayerTimes(); } catch (e) { console.warn('Prayer times:', e); }
+            try { setupEventListeners(); } catch (e) { console.warn('Events:', e); }
         });
 
         function setupRouting() {
             window.addEventListener('hashchange', handleRoute);
             handleRoute();
+        }
+
+        function setupHashLinks() {
+            document.addEventListener('click', (event) => {
+                const link = event.target.closest('a[href^="#"]');
+                if (!link) return;
+                const hash = link.getAttribute('href');
+                if (!hash || hash === '#') return;
+                const target = hash.slice(1);
+                const valid = ['quran','radios','azkar','prayer-times','qibla','khatmah','about','contact','privacy','terms','faq'];
+                if (!valid.includes(target)) return;
+                event.preventDefault();
+                if (window.location.hash === hash) {
+                    handleRoute();
+                } else {
+                    history.pushState(null, '', hash);
+                    handleRoute();
+                }
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+            window.addEventListener('popstate', handleRoute);
         }
 
         function handleRoute() {
