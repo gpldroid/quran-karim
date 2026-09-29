@@ -47,3 +47,18 @@ with check (true);
 create index if not exists content_items_type_idx on public.content_items(type);
 create index if not exists content_items_published_idx on public.content_items(published);
 create index if not exists content_items_created_at_idx on public.content_items(created_at desc);
+
+do $$
+begin
+  if exists (select 1 from pg_publication where pubname = 'supabase_realtime')
+     and not exists (
+       select 1
+       from pg_publication_tables
+       where pubname = 'supabase_realtime'
+         and schemaname = 'public'
+         and tablename = 'content_items'
+     ) then
+    alter publication supabase_realtime add table public.content_items;
+  end if;
+end
+$$;
