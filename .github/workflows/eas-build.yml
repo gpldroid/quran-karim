@@ -11,10 +11,6 @@ on:
         options:
           - preview
           - production
-  push:
-    paths:
-      - "mobile/**"
-      - ".github/workflows/eas-build.yml"
 
 jobs:
   build:
