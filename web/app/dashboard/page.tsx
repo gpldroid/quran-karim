@@ -53,7 +53,7 @@ export default function Dashboard() {
     let mounted = true;
     if (!supabase) { setLoading(false); return; }
     supabase.auth.getUser().then(({ data }) => {
-      if (mounted && !data.user) window.location.href = BASE + "/";
+      if (mounted && !data.user) window.location.href = BASE + "/login/";
     });
     load();
     return () => { mounted = false; };
