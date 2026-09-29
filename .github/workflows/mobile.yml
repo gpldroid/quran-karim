@@ -1,0 +1,35 @@
+name: Expo Mobile
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "mobile/**"
+      - ".github/workflows/mobile.yml"
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run: {working-directory: mobile}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22, cache: npm, cache-dependency-path: mobile/package-lock.json}
+      - run: npm install
+      - run: npx expo-doctor
+      - run: npx expo export
+  eas-update:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    defaults:
+      run: {working-directory: mobile}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: 22}
+      - run: npm install
+      - name: Publish OTA update
+        if: ${{ secrets.EXPO_TOKEN != '' }}
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: npx eas update --channel preview --message "GitHub Actions update" --environment preview
