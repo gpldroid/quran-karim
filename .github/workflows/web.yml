@@ -28,7 +28,7 @@ jobs:
         with:
           node-version: 22
       - name: Install
-        run: npm ci
+        run: npm install
       - name: Build static site
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
