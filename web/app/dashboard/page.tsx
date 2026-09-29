@@ -50,6 +50,16 @@ export default function Dashboard() {
 
   useEffect(() => { load(); }, []);
 
+  useEffect(() => {
+    if (!supabase) return;
+    const channel = supabase
+      .channel("dashboard-content-sync")
+      .on("postgres_changes", { event: "*", schema: "public", table: "content_items" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "categories" }, () => load())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return q ? items.filter(x => (x.title + " " + x.slug).toLowerCase().includes(q)) : items;
