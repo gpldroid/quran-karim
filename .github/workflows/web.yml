@@ -46,6 +46,24 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_BASE_PATH: /wow
         run: npm run build
+      - name: Verify Supabase configuration is embedded
+        working-directory: .
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          set -e
+          test -d web/out
+          if ! grep -R -F -q -- "$SUPABASE_URL" web/out; then
+            echo "::error::Supabase URL was not embedded in the static build."
+            exit 1
+          fi
+          if ! grep -R -F -q -- "$SUPABASE_ANON_KEY" web/out; then
+            echo "::error::Supabase publishable key was not embedded in the static build."
+            exit 1
+          fi
+          echo "Supabase configuration: embedded in static build"
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
