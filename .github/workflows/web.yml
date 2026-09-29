@@ -29,6 +29,9 @@ jobs:
           node-version: 22
       - name: Install
         run: npm install
+      - name: Copy unified public shell
+        run: cp public/quran.html out/index.html
+
       - name: Verify Supabase configuration
         working-directory: .
         env:
