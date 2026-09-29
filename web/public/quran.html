@@ -835,6 +835,46 @@
                 justify-content: center;
             }
         }
+    
+        /* Modern privacy consent */
+        .privacy-consent {
+            position: fixed;
+            inset-inline: 16px;
+            bottom: 16px;
+            z-index: 5000;
+            max-width: 720px;
+            margin-inline: auto;
+            background: rgba(255,255,255,.98);
+            color: #263238;
+            border: 1px solid rgba(27,94,32,.16);
+            border-radius: 18px;
+            box-shadow: 0 16px 45px rgba(0,0,0,.18);
+            padding: 18px;
+            display: grid;
+            gap: 12px;
+            backdrop-filter: blur(12px);
+        }
+        .night-mode .privacy-consent {
+            background: rgba(35,35,35,.98);
+            color: #f1f5f9;
+            border-color: rgba(76,175,80,.25);
+        }
+        .privacy-consent[hidden] { display: none; }
+        .privacy-consent h2 { font-size: 1.05rem; margin: 0; }
+        .privacy-consent p { margin: 0; font-size: .92rem; line-height: 1.8; opacity: .9; }
+        .privacy-consent-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+        .privacy-consent button {
+            border: 0; border-radius: 12px; padding: 10px 16px; cursor: pointer;
+            font-weight: 700; font-size: .9rem;
+        }
+        .privacy-accept { background: var(--primary-color); color: #fff; }
+        .privacy-essential { background: #eef3ee; color: var(--primary-color); }
+        .night-mode .privacy-essential { background: #303830; color: #b9f6ca; }
+        @media (max-width: 520px) {
+            .privacy-consent { inset-inline: 10px; bottom: 10px; padding: 15px; }
+            .privacy-consent-actions button { flex: 1 1 100%; }
+        }
+
     </style>
 </head>
 <body>
@@ -851,9 +891,9 @@
             </button>
             
             <ul class="nav-links" id="navLinks">
-                <li><a href="https://gpldroid.github.io/tilawa/"><i class="fas fa-home"></i> الرئيسية</a></li>
-                <li><a href="about.html"><i class="fas fa-info-circle"></i> من نحن</a></li>
-                <li><a href="contact.html"><i class="fas fa-envelope"></i> اتصل بنا</a></li>
+                <li><a href="./index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+                <li><a href="./about.html"><i class="fas fa-info-circle"></i> من نحن</a></li>
+                <li><a href="./contact.html"><i class="fas fa-envelope"></i> اتصل بنا</a></li>
             </ul>
             
             <div class="header-controls">
@@ -1550,5 +1590,15 @@
             updateSurahInfo(0);
         });
     </script>
+
+    <section id="privacyConsent" class="privacy-consent" role="dialog" aria-labelledby="privacyConsentTitle" aria-describedby="privacyConsentText" hidden>
+        <h2 id="privacyConsentTitle">خصوصيتك مهمة</h2>
+        <p id="privacyConsentText">نستخدم التخزين المحلي وملفات تعريف الارتباط الضرورية لحفظ تفضيلاتك مثل الوضع الليلي وموضع القراءة. لا نستخدم ملفات تعريف ارتباط إعلانية أو أدوات تتبع.</p>
+        <div class="privacy-consent-actions">
+            <button type="button" class="privacy-accept" id="privacyAccept">السماح بالتفضيلات</button>
+            <button type="button" class="privacy-essential" id="privacyEssential">الأساسية فقط</button>
+        </div>
+    </section>
+
 </body>
 </html>
