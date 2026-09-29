@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+dist/
+.env
+.env.*
+!.env.example
+*.keystore
+*.jks
+.DS_Store
+.idea/
+.gradle/
+build/
+captures/
+local.properties
