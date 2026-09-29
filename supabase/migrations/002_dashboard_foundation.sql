@@ -105,6 +105,7 @@ on public.app_settings for update to authenticated
 using (public.current_user_role() = 'admin')
 with check (public.current_user_role() = 'admin');
 
+drop policy if exists "Authenticated users can manage content" on public.content_items;
 drop policy if exists "Editors can manage content" on public.content_items;
 create policy "Editors can manage content"
 on public.content_items for all to authenticated
