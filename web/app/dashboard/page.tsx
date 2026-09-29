@@ -10,7 +10,7 @@ type Item = { id: string; type: ItemType; title: string; slug: string; excerpt: 
 type Settings = { id: boolean; site_name: string; site_description: string; logo_url: string | null; primary_color: string; maintenance_mode: boolean; contact_email: string | null };
 
 const emptyItem = { type: "article" as ItemType, title: "", slug: "", excerpt: "", body: "", image_url: "", published: false, featured: false, category_id: "" };
-const emptyCategory = { name: "", slug: "", description: "" };
+const emptyCategory = { name: "", slug: "", description: "" };\nconst BASE = process.env.NEXT_PUBLIC_BASE_PATH || "/wow";
 
 export default function Dashboard() {
   const [tab, setTab] = useState("overview");
@@ -48,7 +48,7 @@ export default function Dashboard() {
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {\n    let mounted = true;\n    if (!supabase) { setLoading(false); return; }\n    supabase.auth.getUser().then(({ data }) => {\n      if (mounted && !data.user) window.location.href = BASE + "/login/";\n    });\n    load();\n    return () => { mounted = false; };\n  }, []);
 
   useEffect(() => {
     if (!supabase) return;
@@ -111,7 +111,7 @@ export default function Dashboard() {
     setMessage(error?.message ?? "تم حفظ إعدادات المنصة."); setSaving(false);
   }
 
-  async function logout() { if (supabase) await supabase.auth.signOut(); location.href = "/login"; }
+  async function logout() { if (supabase) await supabase.auth.signOut(); location.href = BASE + "/login/"; }
 
   const published = items.filter(x => x.published).length;
   const drafts = items.length - published;
@@ -120,7 +120,7 @@ export default function Dashboard() {
   return <main className="dashboard" dir="rtl">
     <header className="dashboard-header">
       <div><h1>WOW Dashboard</h1><span>{email || "لوحة الإدارة"} · {role === "admin" ? "مدير" : "محرر"}</span></div>
-      <div className="actions"><a href="/">الموقع</a><button onClick={logout}>تسجيل الخروج</button></div>
+      <div className="actions"><a href={BASE + "/"}>الموقع</a><button onClick={logout}>تسجيل الخروج</button></div>
     </header>
 
     <nav className="dashboard-nav" aria-label="أقسام لوحة التحكم">
@@ -148,7 +148,7 @@ export default function Dashboard() {
             <button className="primary" disabled={saving}>{saving ? "جارٍ الحفظ…" : editing ? "حفظ التعديلات" : "إضافة المحتوى"}</button>{message && <p className="message" role="status">{message}</p>}
           </form>
         </section>
-        <section className="panel"><div className="section-title"><h2>قائمة المحتوى</h2><button onClick={load}>تحديث</button></div><input className="search" placeholder="بحث بالعنوان أو Slug…" value={search} onChange={e => setSearch(e.target.value)}/><div className="content-list">{filtered.map(x => <article key={x.id}><div><strong>{x.title}</strong><small>{x.type} · {x.published ? "منشور" : "مسودة"}{x.featured ? " · مميز" : ""}</small></div><div className="actions"><a href={x.published ? `/content/${x.slug}` : "#"}>عرض</a><button onClick={() => editItem(x)}>تعديل</button><button onClick={() => removeItem(x.id)}>حذف</button></div></article>)}</div></section>
+        <section className="panel"><div className="section-title"><h2>قائمة المحتوى</h2><button onClick={load}>تحديث</button></div><input className="search" placeholder="بحث بالعنوان أو Slug…" value={search} onChange={e => setSearch(e.target.value)}/><div className="content-list">{filtered.map(x => <article key={x.id}><div><strong>{x.title}</strong><small>{x.type} · {x.published ? "منشور" : "مسودة"}{x.featured ? " · مميز" : ""}</small></div><div className="actions"><a href={x.published ? BASE + "/content/?slug=" + encodeURIComponent(x.slug) : "#"}>عرض</a><button onClick={() => editItem(x)}>تعديل</button><button onClick={() => removeItem(x.id)}>حذف</button></div></article>)}</div></section>
       </section>}
 
       {tab === "categories" && <section className="dashboard-grid">
