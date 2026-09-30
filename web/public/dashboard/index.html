@@ -5,67 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>WOW · لوحة التحكم</title>
 <meta name="robots" content="noindex,nofollow">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-/* GitHub Workspace — Device Flow, Repository → Branch → File → Edit → Commit */
-(function(){
-"use strict";
-(function(){
- const GH={token:sessionStorage.getItem("wow_github_token")||"",clientId:localStorage.getItem("wow_github_client_id")||"",repo:null,branch:null,file:null,sha:null,original:"",repos:[],branches:[],deviceTimer:null};
- const g=id=>document.getElementById(id);
- if(!g("githubClientId"))return;
- g("githubClientId").value=GH.clientId;
- const API="https://api.github.com";
- function ghHeaders(){const h={Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10"};if(GH.token)h.Authorization="Bearer "+GH.token;return h}
- async function ghFetch(url,opt={}){const r=await fetch(API+url,{...opt,headers:{...ghHeaders(),...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||("GitHub API "+r.status));return d}
- function ghStatus(m,cls="status"){g("githubWriteStatus").className=cls;g("githubWriteStatus").textContent=m}
- function clearDevice(){if(GH.deviceTimer){clearTimeout(GH.deviceTimer);GH.deviceTimer=null}}
- function showDevice(d){g("githubDeviceBox").classList.remove("hidden");g("githubDeviceCode").textContent=d.user_code||"—";g("githubDeviceLink").href=d.verification_uri||"https://github.com/login/device"}
- function hideDevice(){clearDevice();g("githubDeviceBox").classList.add("hidden")}
- function renderRepos(){const q=(g("githubRepoSearch").value||"").toLowerCase();const a=GH.repos.filter(r=>!q||r.full_name.toLowerCase().includes(q)||String(r.description||"").toLowerCase().includes(q));g("githubRepos").innerHTML=a.length?a.map(r=>'<button class="github-repo '+(GH.repo?.full_name===r.full_name?"active":"")+'" data-repo="'+esc2(r.full_name)+'"><strong>'+esc2(r.name)+'</strong><small>'+esc2(r.full_name)+(r.private?" · 🔒":"")+'</small></button>').join(""):'<div class="muted">لا توجد نتائج.</div>';g("githubRepos").querySelectorAll("[data-repo]").forEach(b=>b.onclick=()=>selectRepo(b.dataset.repo))}
- async function connectGitHub(){
-   const cid=g("githubClientId").value.trim();if(!cid){ghStatus("أدخل GitHub OAuth Client ID.", "status bad");return}
-   localStorage.setItem("wow_github_client_id",cid);GH.clientId=cid;hideDevice();
-   try{
-     ghStatus("جارٍ إنشاء رمز اتصال آمن...");
-     const r=await fetch("https://github.com/login/device/code",{method:"POST",headers:{"Accept":"application/json","Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:cid,scope:"repo workflow"})});
-     const d=await r.json();if(!r.ok||!d.device_code)throw new Error(d.error_description||d.error||"تعذر بدء GitHub Device Flow. تأكد من تفعيل Device Flow في OAuth App.");
-     showDevice(d);ghStatus("افتح GitHub بالرابط الظاهر، أدخل الرمز، ثم ستتصل اللوحة تلقائيًا.","status");
-     pollDevice(d.device_code,d.interval||5,d.expires_in||900,cid);
-   }catch(e){ghStatus(e.message,"status bad")}
- }
- async function pollDevice(deviceCode,interval,expires,cid){
-   const started=Date.now();
-   const poll=async()=>{
-     if(Date.now()-started>expires*1000){ghStatus("انتهت صلاحية رمز GitHub. ابدأ الاتصال من جديد.","status bad");hideDevice();return}
-     try{
-       const r=await fetch("https://github.com/login/oauth/access_token",{method:"POST",headers:{"Accept":"application/json","Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:cid,device_code:deviceCode,grant_type:"urn:ietf:params:oauth:grant-type:device_code"})});
-       const d=await r.json();
-       if(d.access_token){GH.token=d.access_token;sessionStorage.setItem("wow_github_token",GH.token);hideDevice();history.replaceState({},document.title,location.pathname+location.hash);await loadGitHub();return}
-       if(d.error==="authorization_pending"||d.error==="slow_down"){GH.deviceTimer=setTimeout(()=>pollDevice(deviceCode,d.error==="slow_down"?interval+5:interval,expires,cid),d.error==="slow_down"?(interval+5)*1000:interval*1000);return}
-       throw new Error(d.error_description||d.error||"فشل اتصال GitHub");
-     }catch(e){ghStatus(e.message,"status bad");}
-   };
-   await poll();
- }
- async function loadGitHub(){
-   if(!GH.token){g("githubAccount").textContent="غير متصل";g("githubDisconnect").classList.add("hidden");return}
-   try{const u=await ghFetch("/user");g("githubAccount").textContent="✓ "+(u.login||"GitHub")+" متصل";g("githubDisconnect").classList.remove("hidden");await loadRepos()}catch(e){GH.token="";sessionStorage.removeItem("wow_github_token");ghStatus(e.message,"status bad")}
- }
- async function loadRepos(){if(!GH.token){ghStatus("اتصل بحساب GitHub أولًا.","status bad");return}g("githubRepos").innerHTML='<div class="muted">جارٍ تحميل المستودعات...</div>';const all=[];for(let page=1;page<=10;page++){const a=await ghFetch("/user/repos?per_page=100&page="+page+"&affiliation=owner,collaborator,organization_member&sort=updated");all.push(...a);if(a.length<100)break}GH.repos=all;renderRepos()}
- async function selectRepo(full){GH.repo=GH.repos.find(x=>x.full_name===full);GH.file=null;GH.sha=null;GH.original="";GH.branch=GH.repo?.default_branch||"main";g("githubSelectedRepo").textContent=GH.repo?.full_name||full;g("githubRepoMeta").textContent=(GH.repo?.private?"🔒 Private":"🌐 Public")+" · "+(GH.repo?.language||"")+" · "+(GH.repo?.description||"");renderRepos();await loadBranches();await loadTree()}
- async function loadBranches(){if(!GH.repo)return;const owner=GH.repo.owner.login,repo=GH.repo.name;const a=[];for(let page=1;page<=10;page++){const x=await ghFetch("/repos/"+encodeURIComponent(owner)+"/"+encodeURIComponent(repo)+"/branches?per_page=100&page="+page);a.push(...x);if(x.length<100)break}GH.branches=a;g("githubBranchSelect").innerHTML=a.map(b=>'<option value="'+esc2(b.name)+'">'+esc2(b.name)+'</option>').join("");g("githubBranchSelect").value=GH.branch}
- async function loadTree(){if(!GH.repo)return;const [owner,repo]=[GH.repo.owner.login,GH.repo.name];try{ghStatus("جارٍ تحميل ملفات "+GH.repo.full_name+" / "+GH.branch+"...");const d=await ghFetch("/repos/"+owner+"/"+repo+"/git/trees/"+encodeURIComponent(GH.branch)+"?recursive=1");if(d.truncated)ghStatus("تم تحميل شجرة الملفات جزئيًا لأن GitHub أعادها truncated.","status");GH.tree=(d.tree||[]).filter(x=>x.type==="blob"&&x.size<1000000);renderTree()}catch(e){ghStatus(e.message,"status bad")}}
- function renderTree(){const q=(g("githubFileSearch2").value||"").toLowerCase();const a=(GH.tree||[]).filter(x=>!q||x.path.toLowerCase().includes(q));g("githubTree").innerHTML=a.length?a.map(x=>'<button class="file-item '+(GH.file===x.path?"active":"")+'" data-path="'+esc2(x.path)+'">'+icon(x.path)+" "+esc2(x.path)+"</button>").join(""):'<div class="muted">لا توجد ملفات نصية قابلة للتحرير في هذا الفرع.</div>';g("githubTree").querySelectorAll("[data-path]").forEach(b=>b.onclick=()=>openGitFile(b.dataset.path))}
- async function openGitFile(path){if(!GH.repo)return;const [owner,repo]=[GH.repo.owner.login,GH.repo.name];ghStatus("جارٍ تحميل "+path+"...");try{const d=await ghFetch("/repos/"+owner+"/"+repo+"/contents/"+path.split("/").map(encodeURIComponent).join("/")+"?ref="+encodeURIComponent(GH.branch));if(d.type!=="file"||d.encoding!=="base64")throw new Error("هذا العنصر ليس ملفًا نصيًا قابلًا للتحرير.");const bin=atob(d.content.replace(/\n/g,""));const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));const text=new TextDecoder("utf-8").decode(bytes);GH.file=path;GH.sha=d.sha;GH.original=text;g("githubCurrentFile").textContent=path;g("githubFileSha").textContent=d.sha.slice(0,10);g("githubEditor").value=text;renderTree();g("githubLiveDiff").textContent="لا توجد تغييرات.";ghStatus("✓ تم تحميل الملف. يمكنك تعديله ثم Commit & Push.","status ok")}catch(e){ghStatus(e.message,"status bad")}}
- async function commitFile(){if(!GH.repo||!GH.file||!GH.sha){ghStatus("اختر Repository ثم Branch ثم File.","status bad");return}const content=g("githubEditor").value;if(content===GH.original){ghStatus("لا توجد تغييرات.","status");return}const msg=g("githubCommitMessage").value.trim()||"update from Dashboard";const [owner,repo]=[GH.repo.owner.login,GH.repo.name];try{g("githubCommit").disabled=true;ghStatus("جارٍ Commit & Push إلى "+GH.repo.full_name+" / "+GH.branch+"...");let bytes=new TextEncoder().encode(content),bin="";for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000));const b64=btoa(bin);const d=await ghFetch("/repos/"+owner+"/"+repo+"/contents/"+GH.file,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:msg,content:b64,sha:GH.sha,branch:GH.branch})});GH.sha=d.content?.sha||GH.sha;GH.original=content;g("githubFileSha").textContent=GH.sha.slice(0,10);g("githubLiveDiff").textContent="✓ تم إنشاء Commit: "+(d.commit?.sha||"").slice(0,10);ghStatus("✓ تم الحفظ في GitHub بنجاح.","status ok");await loadTree()}catch(e){ghStatus(e.message,"status bad")}finally{g("githubCommit").disabled=false}}
- async function pullFile(){if(!GH.repo||!GH.file){ghStatus("اختر ملفًا أولًا.","status bad");return}if(g("githubEditor").value!==GH.original&&!confirm("لديك تغييرات غير محفوظة. هل تريد استبدالها بآخر نسخة من GitHub؟"))return;await openGitFile(GH.file)}
- async function newBranch(){if(!GH.repo)return;const name=prompt("اسم Branch الجديد:","dashboard/"+new Date().toISOString().slice(0,10));if(!name)return;try{const base=await ghFetch("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/git/ref/heads/"+encodeURIComponent(GH.branch));await ghFetch("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/git/refs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"refs/heads/"+name,sha:base.object.sha})});GH.branch=name;await loadBranches();await loadTree();ghStatus("✓ تم إنشاء Branch: "+name,"status ok")}catch(e){ghStatus(e.message,"status bad")}}
- async function createPR(){if(!GH.repo||!GH.branch){ghStatus("اختر Repository وBranch.","status bad");return}const base=GH.repo.default_branch;if(GH.branch===base){ghStatus("لا يمكن إنشاء Pull Request من الفرع الافتراضي إلى نفسه. أنشئ Branch أولًا.","status bad");return}const title=prompt("عنوان Pull Request:","تعديلات من لوحة التحكم");if(!title)return;try{const d=await ghFetch("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/pulls",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,head:GH.branch,base,body:"Created from WOW Admin Dashboard"})});g("githubBranches").innerHTML='<div class="row"><div><strong>PR #'+d.number+'</strong><small>'+esc2(d.title||title)+'</small></div><a class="btn" target="_blank" rel="noopener" href="'+esc2(d.html_url)+'">فتح</a></div>';ghStatus("✓ تم إنشاء Pull Request.","status ok")}catch(e){ghStatus(e.message,"status bad")}}
- async function listBranches(){g("githubBranches").innerHTML=GH.branches.length?GH.branches.map(b=>'<div class="row"><div><strong>'+esc2(b.name)+'</strong></div><button class="btn" data-branch="'+esc2(b.name)+'">فتح</button></div>').join(""):'لا توجد فروع';g("githubBranches").querySelectorAll("[data-branch]").forEach(b=>b.onclick=async()=>{GH.branch=b.dataset.branch;g("githubBranchSelect").value=GH.branch;await loadTree()})}
- function disconnect(){GH.token="";clearDevice();hideDevice();sessionStorage.removeItem("wow_github_token");g("githubAccount").textContent="غير متصل";g("githubDisconnect").classList.add("hidden");GH.repo=null;GH.branch=null;GH.file=null;GH.sha=null;GH.repos=[];GH.branches=[];g("githubRepos").innerHTML='<div class="muted">تم قطع الاتصال.</div>';g("githubTree").innerHTML='<div class="muted">اختر Repository.</div>';g("githubSelectedRepo").textContent="لم يتم اختيار Repository";ghStatus("تم قطع اتصال جلسة GitHub.","status")}
- g("githubConnect").onclick=connectGitHub;g("githubDisconnect").onclick=disconnect;g("githubRefreshRepos").onclick=loadRepos;g("githubPull").onclick=pullFile;g("githubRepoSearch").oninput=renderRepos;g("githubFileSearch2").oninput=renderTree;g("githubCommit").onclick=commitFile;g("githubNewBranch").onclick=newBranch;g("githubListBranches").onclick=listBranches;g("githubCreatePr").onclick=createPR;g("githubBranchSelect").onchange=async e=>{if(g("githubEditor").value!==GH.original&&GH.file&&!confirm("تغييرات غير محفوظة. تغيير Branch سيستبدل المحرر. المتابعة؟")){g("githubBranchSelect").value=GH.branch;return}GH.branch=e.target.value;GH.file=null;GH.sha=null;GH.original="";g("githubCurrentFile").textContent="لم يتم اختيار ملف";g("githubEditor").value="";await loadTree()};g("githubEditor").oninput=()=>{const changed=g("githubEditor").value!==GH.original;g("githubLiveDiff").textContent=changed?"✏️ تغييرات غير محفوظة في "+(GH.file||""):"لا توجد تغييرات."};loadGitHub();
-})();
-})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script src="../runtime-config.js"></script>
 <style>
 :root{--primary:#1b5e20;--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#64748b;--border:#e2e8f0;--danger:#dc2626;--shadow:0 10px 30px rgba(15,23,42,.07)}
@@ -223,18 +164,10 @@
       <p class="tabs-note">إدارة مستودعات GitHub من داخل لوحة التحكم: Repository → Branch → File → Edit → Commit.</p>
     </div>
     <div class="github-connect-row">
-      <input id="githubClientId" class="github-client-id" placeholder="GitHub OAuth Client ID" aria-label="GitHub OAuth Client ID">
       <button class="btn primary" id="githubConnect">اتصال بـ GitHub</button>
       <button class="btn hidden" id="githubDisconnect">قطع الاتصال</button>
       <span id="githubAccount" class="status">غير متصل</span>
-    </div><div id="githubDeviceBox" class="github-device-box hidden">
-  <strong>🔐 تأكيد الاتصال</strong>
-  <span>افتح GitHub ثم أدخل الرمز التالي:</span>
-  <code id="githubDeviceCode">—</code>
-  <a id="githubDeviceLink" class="btn primary" href="https://github.com/login/device" target="_blank" rel="noopener">فتح GitHub لإدخال الرمز</a>
-  <small>بعد الموافقة ستكتشف اللوحة الاتصال تلقائيًا. لا يوجد Client Secret داخل المتصفح.</small>
-</div>
-  </div>
+    </div></div>
 
   <div class="github-workspace-grid">
     <aside class="card github-sidebar">
@@ -293,7 +226,7 @@
 
   <div class="card github-security-note">
     <strong>🔐 اتصال GitHub</strong>
-    <p>Client ID عام فقط. رمز الوصول لا يُحفظ في Supabase ولا داخل ملفات المشروع؛ يبقى في جلسة المتصفح ويمكن إبطاله بإعادة قطع الاتصال. لا تضع Client Secret في هذه الصفحة.</p>
+    <p>الاتصال يتم عبر GitHub OAuth من خلال Supabase Auth. لا يتم وضع Client Secret داخل الموقع، ورمز GitHub يبقى في جلسة المتصفح فقط.</p>
   </div>
 </section>
 
@@ -325,7 +258,7 @@
 (function(){
 "use strict";
 const cfg=Object.assign({url:"https://npytwojnxsmxhcssajtg.supabase.co",anonKey:"sb_publishable_s9DgcPj_TJh-ZbVhPqgnvw_opH6Z5ww"},window.WOW_SUPABASE_CONFIG||{});
-const client=window.supabase&&cfg.url&&cfg.anonKey?window.supabase.createClient(cfg.url,cfg.anonKey):null;
+const client=window.supabase&&cfg.url&&cfg.anonKey?window.supabase.createClient(cfg.url,cfg.anonKey):null;window.__WOW_SUPABASE_CLIENT__=client;
 const $=id=>document.getElementById(id);
 let settings=null, ads=[], seo=[], content=[], categories=[], role=null;
 
@@ -471,7 +404,56 @@ async function loadStudio(){
 }
 function renderProjectSelect(){$("studioProject").innerHTML='<option value="">مشروع جديد</option>'+S.projects.map(p=>'<option value="'+p.id+'">'+esc2(p.name)+'</option>').join("");if(S.project)$("studioProject").value=S.project.id}
 function selectProject(id){const p=S.projects.find(x=>x.id===id);if(!p)return;S.project=JSON.parse(JSON.stringify(p));S.file=null;S.dirty=false;$("studioProjectName").value=S.project.name;renderFiles();renderDiff();renderPreview();$("studioDirty").textContent="جاهز";if(filesOf(S.project)[0])openFile(filesOf(S.project)[0].path)}
-function newProject(){S.project={id:null,owner_id:null,name:"مشروع جديد",slug:"project-"+Date.now(),source_type:"local",files:[{path:"index.html",content:"<!doctype html>\n<html lang=\"ar\" dir=\"rtl\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>مشروعي</title></head><body><main><h1>مشروع جديد</h1></main></body></html>"}],settings:{}};S.file="index.html";$("studioProjectName").value=S.project.name;renderFiles();openFile("index.html");renderPreview();switchStudio()}
+function newProject(){S.project={id:null,owner_id:null,name:"مشروع جديد",slug:"project-"+Date.now(),source_type:"local",files:[{path:"index.html",content:"<!doctype html>\n<html lang=\"ar\" dir=\"rtl\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>مشروعي</title></head><body><main><h1>مشروع جديد</h1></main><script>
+(function(){
+"use strict";
+function boot(){
+ const client=window.__WOW_SUPABASE_CLIENT__;
+ const g=id=>document.getElementById(id);
+ if(!client||!g("githubConnect"))return;
+ const GH={token:sessionStorage.getItem("wow_github_token")||"",repo:null,branch:null,file:null,sha:null,original:"",repos:[],branches:[]};
+ const API="https://api.github.com";
+ const esc2=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+ const icon=p=>/\.(js|ts|jsx|tsx|html|css|json|md|xml|yml|yaml)$/i.test(p)?"📄":"📦";
+ function status(m,cls="status"){g("githubWriteStatus").className=cls;g("githubWriteStatus").textContent=m}
+ function headers(){const h={Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10"};if(GH.token)h.Authorization="Bearer "+GH.token;return h}
+ async function api(path,opt={}){const r=await fetch(API+path,{...opt,headers:{...headers(),...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||("GitHub API "+r.status));return d}
+ async function syncToken(){
+   const {data:{session}}=await client.auth.getSession();
+   const t=session?.provider_token||sessionStorage.getItem("wow_github_token")||"";
+   if(t){GH.token=t;sessionStorage.setItem("wow_github_token",t);return true}
+   return false;
+ }
+ async function connect(){
+   status("جارٍ فتح GitHub OAuth...");
+   const {error}=await client.auth.signInWithOAuth({provider:"github",options:{scopes:"repo workflow",redirectTo:location.href}});
+   if(error)status("تعذر بدء GitHub OAuth: "+error.message,"status bad");
+ }
+ async function load(){
+   if(!await syncToken()){g("githubAccount").textContent="غير متصل";g("githubDisconnect").classList.add("hidden");return}
+   try{const u=await api("/user");g("githubAccount").textContent="✓ "+(u.login||"GitHub")+" متصل";g("githubDisconnect").classList.remove("hidden");await repos()}catch(e){GH.token="";sessionStorage.removeItem("wow_github_token");status(e.message,"status bad")}
+ }
+ async function repos(){g("githubRepos").innerHTML='<div class="muted">جارٍ تحميل المستودعات...</div>';const all=[];for(let page=1;page<=10;page++){const a=await api("/user/repos?per_page=100&page="+page+"&affiliation=owner,collaborator,organization_member&sort=updated");all.push(...a);if(a.length<100)break}GH.repos=all;renderRepos()}
+ function renderRepos(){const q=(g("githubRepoSearch").value||"").toLowerCase();const a=GH.repos.filter(r=>!q||r.full_name.toLowerCase().includes(q)||String(r.description||"").toLowerCase().includes(q));g("githubRepos").innerHTML=a.length?a.map(r=>'<button class="github-repo '+(GH.repo?.full_name===r.full_name?"active":"")+'" data-repo="'+esc2(r.full_name)+'"><strong>'+esc2(r.name)+'</strong><small>'+esc2(r.full_name)+(r.private?" · 🔒":"")+'</small></button>').join(""):'<div class="muted">لا توجد نتائج.</div>';g("githubRepos").querySelectorAll("[data-repo]").forEach(b=>b.onclick=()=>selectRepo(b.dataset.repo))}
+ async function selectRepo(full){GH.repo=GH.repos.find(x=>x.full_name===full);GH.file=null;GH.sha=null;GH.original="";GH.branch=GH.repo?.default_branch||"main";g("githubSelectedRepo").textContent=GH.repo?.full_name||full;g("githubRepoMeta").textContent=(GH.repo?.private?"🔒 Private":"🌐 Public")+" · "+(GH.repo?.language||"")+" · "+(GH.repo?.description||"");renderRepos();await branches();await tree()}
+ async function branches(){if(!GH.repo)return;const a=[];for(let page=1;page<=10;page++){const x=await api("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/branches?per_page=100&page="+page);a.push(...x);if(x.length<100)break}GH.branches=a;g("githubBranchSelect").innerHTML=a.map(b=>'<option value="'+esc2(b.name)+'">'+esc2(b.name)+'</option>').join("");g("githubBranchSelect").value=GH.branch}
+ async function tree(){if(!GH.repo)return;try{status("جارٍ تحميل ملفات "+GH.repo.full_name+" / "+GH.branch+"...");const d=await api("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/git/trees/"+encodeURIComponent(GH.branch)+"?recursive=1");GH.tree=(d.tree||[]).filter(x=>x.type==="blob"&&x.size<1000000);renderTree();status("✓ تم تحميل شجرة الملفات.","status ok")}catch(e){status(e.message,"status bad")}}
+ function renderTree(){const q=(g("githubFileSearch2").value||"").toLowerCase();const a=(GH.tree||[]).filter(x=>!q||x.path.toLowerCase().includes(q));g("githubTree").innerHTML=a.length?a.map(x=>'<button class="file-item '+(GH.file===x.path?"active":"")+'" data-path="'+esc2(x.path)+'">'+icon(x.path)+" "+esc2(x.path)+"</button>").join(""):'<div class="muted">لا توجد ملفات قابلة للتحرير.</div>';g("githubTree").querySelectorAll("[data-path]").forEach(b=>b.onclick=()=>openFile(b.dataset.path))}
+ async function openFile(path){const d=await api("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/contents/"+path.split("/").map(encodeURIComponent).join("/")+"?ref="+encodeURIComponent(GH.branch));if(d.type!=="file"||d.encoding!=="base64")throw new Error("هذا العنصر ليس ملفًا نصيًا قابلًا للتحرير.");const bin=atob(d.content.replace(/\n/g,""));const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));const text=new TextDecoder("utf-8").decode(bytes);GH.file=path;GH.sha=d.sha;GH.original=text;g("githubCurrentFile").textContent=path;g("githubFileSha").textContent=d.sha.slice(0,10);g("githubEditor").value=text;renderTree();g("githubLiveDiff").textContent="لا توجد تغييرات.";status("✓ تم تحميل الملف. يمكنك تعديله ثم Commit & Push.","status ok")}
+ async function commit(){if(!GH.repo||!GH.file||!GH.sha){status("اختر Repository ثم Branch ثم File.","status bad");return}const content=g("githubEditor").value;if(content===GH.original){status("لا توجد تغييرات.","status");return}try{g("githubCommit").disabled=true;status("جارٍ Commit & Push...");const bytes=new TextEncoder().encode(content);let bin="";for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000));const d=await api("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/contents/"+GH.file,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:g("githubCommitMessage").value.trim()||"update from Dashboard",content:btoa(bin),sha:GH.sha,branch:GH.branch})});GH.sha=d.content?.sha||GH.sha;GH.original=content;g("githubFileSha").textContent=GH.sha.slice(0,10);g("githubLiveDiff").textContent="✓ Commit: "+(d.commit?.sha||"").slice(0,10);status("✓ تم الحفظ في GitHub بنجاح.","status ok");await tree()}catch(e){status(e.message,"status bad")}finally{g("githubCommit").disabled=false}}
+ async function pull(){if(!GH.file)return;await openFile(GH.file)}
+ async function newBranch(){if(!GH.repo)return;const name=prompt("اسم Branch الجديد:","dashboard/"+new Date().toISOString().slice(0,10));if(!name)return;try{const base=await api("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/git/ref/heads/"+encodeURIComponent(GH.branch));await api("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/git/refs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"refs/heads/"+name,sha:base.object.sha})});GH.branch=name;await branches();await tree();status("✓ تم إنشاء Branch.","status ok")}catch(e){status(e.message,"status bad")}}
+ async function listBranches(){g("githubBranches").innerHTML=GH.branches.map(b=>'<div class="row"><div><strong>'+esc2(b.name)+'</strong></div><button class="btn" data-branch="'+esc2(b.name)+'">فتح</button></div>').join("");g("githubBranches").querySelectorAll("[data-branch]").forEach(b=>b.onclick=async()=>{GH.branch=b.dataset.branch;g("githubBranchSelect").value=GH.branch;await tree()})}
+ async function pr(){if(!GH.repo||GH.branch===GH.repo.default_branch){status("أنشئ Branch أولًا قبل Pull Request.","status bad");return}const title=prompt("عنوان Pull Request:","تعديلات من لوحة التحكم");if(!title)return;try{const d=await api("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/pulls",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,head:GH.branch,base:GH.repo.default_branch,body:"Created from WOW Admin Dashboard"})});g("githubBranches").innerHTML='<div class="row"><div><strong>PR #'+d.number+'</strong></div><a class="btn" target="_blank" rel="noopener" href="'+esc2(d.html_url)+'">فتح</a></div>';status("✓ تم إنشاء Pull Request.","status ok")}catch(e){status(e.message,"status bad")}}
+ function disconnect(){GH.token="";sessionStorage.removeItem("wow_github_token");GH.repo=null;GH.file=null;GH.sha=null;GH.original="";g("githubAccount").textContent="غير متصل";g("githubDisconnect").classList.add("hidden");g("githubRepos").innerHTML='<div class="muted">تم قطع الاتصال.</div>';g("githubTree").innerHTML='<div class="muted">اختر Repository.</div>';status("تم قطع اتصال GitHub من هذه الجلسة.","status")}
+ g("githubConnect").onclick=connect;g("githubDisconnect").onclick=disconnect;g("githubRefreshRepos").onclick=repos;g("githubPull").onclick=pull;g("githubRepoSearch").oninput=renderRepos;g("githubFileSearch2").oninput=renderTree;g("githubCommit").onclick=commit;g("githubNewBranch").onclick=newBranch;g("githubListBranches").onclick=listBranches;g("githubCreatePr").onclick=pr;g("githubBranchSelect").onchange=async e=>{GH.branch=e.target.value;GH.file=null;GH.sha=null;GH.original="";g("githubEditor").value="";await tree()};g("githubEditor").oninput=()=>{g("githubLiveDiff").textContent=g("githubEditor").value!==GH.original?"✏️ تغييرات غير محفوظة في "+(GH.file||""):"لا توجد تغييرات."};
+ client.auth.onAuthStateChange((event,session)=>{if(session?.provider_token){GH.token=session.provider_token;sessionStorage.setItem("wow_github_token",GH.token);load()}});
+ load();
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
+})();
+</script>
+</body></html>"}],settings:{}};S.file="index.html";$("studioProjectName").value=S.project.name;renderFiles();openFile("index.html");renderPreview();switchStudio()}
 function switchStudio(){document.querySelector('#nav button[data-tab="studio"]')?.click()}
 async function persistProject(){if(!sb||!S.project)return;saveCurrent();const {data:{user}}=await sb.auth.getUser();if(!user)return;S.project.owner_id=user.id;S.project.name=$("studioProjectName").value.trim()||"مشروع";S.project.slug=slug(S.project.name)+"-"+(S.project.id||Date.now());const payload={owner_id:user.id,name:S.project.name,slug:S.project.slug,source_type:S.project.source_type||"local",github_owner:S.project.github_owner||null,github_repo:S.project.github_repo||null,github_branch:S.project.github_branch||"main",description:S.project.description||null,files:filesOf(S.project),settings:S.project.settings||{}};let r;if(S.project.id)r=await sb.from("admin_projects").update(payload).eq("id",S.project.id).select().single();else r=await sb.from("admin_projects").insert(payload).select().single();if(r.error){toast2(r.error.message,true);return}S.project=r.data;S.projects=[S.project,...S.projects.filter(x=>x.id!==S.project.id)];renderProjectSelect();$("studioProject").value=S.project.id;S.dirty=false;$("studioDirty").textContent="✓ محفوظ";toast2("تم حفظ المشروع")}
 async function saveVersion(){if(!S.project?.id){await persistProject();if(!S.project?.id)return}saveCurrent();const {data:{user}}=await sb.auth.getUser();const {data:last}=await sb.from("admin_project_versions").select("version_number").eq("project_id",S.project.id).order("version_number",{ascending:false}).limit(1).maybeSingle();const n=(last?.version_number||0)+1;const {error}=await sb.from("admin_project_versions").insert({project_id:S.project.id,created_by:user.id,version_number:n,label:"نسخة "+n,files:filesOf(S.project)});if(error)toast2(error.message,true);else{toast2("تم حفظ النسخة "+n);renderHistory()}}
