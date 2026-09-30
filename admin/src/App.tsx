@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BarChart3, FileText, LogOut, Megaphone, Palette, RefreshCw, Settings, ShieldCheck, Trash2, Pencil, Plus } from "lucide-react";
 import { supabase, defaultTheme, type Settings as AppSettings, type ThemeConfig, type Ad, type SeoPage } from "./lib/supabase";
+import type { Session } from "@supabase/supabase-js";
 import { Button, Card, Field, Input, Select, Textarea } from "./components/ui";
 
 type Role="admin"|"editor";
@@ -52,7 +53,7 @@ function App(){
  </div>;
 }
 
-function Login({email,password,setEmail,setPassword,onSuccess}:{email:string;password:string;setEmail:(v:string)=>void;setPassword:(v:string)=>void;onSuccess:(s:NonNullable<Parameters<NonNullable<typeof supabase>["auth"]["onAuthStateChange"]>[1]>)=>void}){
+function Login({email,password,setEmail,setPassword,onSuccess}:{email:string;password:string;setEmail:(v:string)=>void;setPassword:(v:string)=>void;onSuccess:(s:Session)=>void}){
  const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
  return <div className="grid min-h-screen place-items-center bg-slate-100 p-5" dir="rtl"><Card className="w-full max-w-md"><div className="mb-6 text-center"><ShieldCheck className="mx-auto mb-3 text-emerald-600" size={40}/><h1 className="text-2xl font-bold">تسجيل دخول الإدارة</h1><p className="text-slate-500">WOW Admin Dashboard</p></div><form className="grid gap-4" onSubmit={async e=>{e.preventDefault();setBusy(true);setError("");const {data,error}=await supabase!.auth.signInWithPassword({email,password});if(error)setError(error.message);else if(data.session)onSuccess(data.session);setBusy(false)}}><Field label="البريد الإلكتروني"><Input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></Field><Field label="كلمة المرور"><Input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></Field>{error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}<Button variant="primary" disabled={busy}>{busy?"جارٍ الدخول…":"دخول آمن"}</Button></form></Card></div>
 }
