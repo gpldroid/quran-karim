@@ -54,17 +54,7 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-        run: |
-          node - <<'NODE'
-          const fs = require("fs");
-          const url = process.env.SUPABASE_URL;
-          const anonKey = process.env.SUPABASE_ANON_KEY;
-          fs.writeFileSync(
-            "public/runtime-config.js",
-            "window.WOW_SUPABASE_CONFIG=" + JSON.stringify({url, anonKey}) + ";\\n",
-            "utf8"
-          );
-          NODE
+        run: node -e 'require("fs").writeFileSync("public/runtime-config.js", "window.WOW_SUPABASE_CONFIG="+JSON.stringify({url:process.env.SUPABASE_URL,anonKey:process.env.SUPABASE_ANON_KEY})+";\\n")'
 
       - name: Build static site
         env:
