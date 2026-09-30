@@ -24,6 +24,10 @@ public final class DynamicConfigHandler {
         public String surfaceColor;
         public String font;
         public String radius;
+        public boolean maintenanceMode;
+        public String maintenanceMessage;
+        public String minRequiredVersion;
+        public String appUpdateUrl;
         public final List<AdConfig> ads = new ArrayList<>();
     }
 
@@ -52,20 +56,25 @@ public final class DynamicConfigHandler {
 
                 Config config = new Config();
                 String settingsJson = get(
-                    base + "/rest/v1/app_settings?select=google_analytics_id,theme_config&id=eq.true&limit=1",
+                    base + "/rest/v1/app_settings?select=google_analytics_id,theme_config,primary_color,app_dark_mode,maintenance_mode,maintenance_message,min_required_version,app_update_url&id=eq.1&limit=1",
                     key
                 );
                 JSONArray settingsRows = new JSONArray(settingsJson);
                 if (settingsRows.length() > 0) {
                     JSONObject row = settingsRows.getJSONObject(0);
                     config.googleAnalyticsId = row.optString("google_analytics_id", null);
+                    config.maintenanceMode = row.optBoolean("maintenance_mode", false);
+                    config.maintenanceMessage = row.optString("maintenance_message", null);
+                    config.minRequiredVersion = row.optString("min_required_version", "1.0.0");
+                    config.appUpdateUrl = row.optString("app_update_url", null);
+                    String directPrimary = row.optString("primary_color", null);
                     JSONObject theme = row.optJSONObject("theme_config");
                     if (theme != null) {
-                        config.primaryColor = theme.optString("primary", null);
-                        config.secondaryColor = theme.optString("secondary", null);
-                        config.backgroundColor = theme.optString("background", null);
+                        config.primaryColor = theme.optString("primary", theme.optString("primaryColor", directPrimary));
+                        config.secondaryColor = theme.optString("secondary", theme.optString("secondaryColor", null));
+                        config.backgroundColor = theme.optString("background", theme.optString("backgroundColor", null));
                         config.surfaceColor = theme.optString("surface", null);
-                        config.font = theme.optString("font", null);
+                        config.font = theme.optString("font", theme.optString("fontFamily", null));
                         config.radius = theme.optString("radius", null);
                     }
                 }
