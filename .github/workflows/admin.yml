@@ -11,6 +11,10 @@ on:
 permissions:
   contents: read
 
+env:
+  VITE_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://npytwojnxsmxhcssajtg.supabase.co' }}
+  VITE_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_s9DgcPj_TJh-ZbVhPqgnvw_opH6Z5ww' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -26,11 +30,20 @@ jobs:
           cache-dependency-path: admin/package.json
       - name: Install
         run: npm install
+      - name: Verify Supabase configuration
+        run: |
+          set -e
+          test -n "$VITE_SUPABASE_URL"
+          test -n "$VITE_SUPABASE_ANON_KEY"
+          echo "Supabase configuration: OK"
       - name: Build
-        env:
-          VITE_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         run: npm run build
+      - name: Verify admin bundle contains Supabase configuration
+        run: |
+          set -e
+          test -d dist
+          grep -R -F -q -- "$VITE_SUPABASE_URL" dist
+          grep -R -F -q -- "$VITE_SUPABASE_ANON_KEY" dist
       - name: Upload admin artifact
         uses: actions/upload-artifact@v4
         with:
