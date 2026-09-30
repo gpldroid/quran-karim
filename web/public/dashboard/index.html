@@ -5,7 +5,50 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>WOW · لوحة التحكم</title>
 <meta name="robots" content="noindex,nofollow">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+/* GitHub Workspace */
+(function(){
+ const GH={token:sessionStorage.getItem("wow_github_token")||"",clientId:localStorage.getItem("wow_github_client_id")||"",repo:null,branch:null,file:null,sha:null,original:"",repos:[],branches:[]};
+ const g=id=>document.getElementById(id);
+ if(!g("githubClientId"))return;
+ g("githubClientId").value=GH.clientId;
+ function ghHeaders(){return {Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10",Authorization:"Bearer "+GH.token};}
+ async function ghFetch(url,opt={}){const r=await fetch("https://api.github.com"+url,{...opt,headers:{...ghHeaders(),...(opt.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||("GitHub API "+r.status));return d}
+ function ghStatus(m,cls="status"){g("githubWriteStatus").className=cls;g("githubWriteStatus").textContent=m}
+ function renderRepos(){const q=(g("githubRepoSearch").value||"").toLowerCase();const a=GH.repos.filter(r=>!q||r.full_name.toLowerCase().includes(q)||String(r.description||"").toLowerCase().includes(q));g("githubRepos").innerHTML=a.length?a.map(r=>'<button class="github-repo '+(GH.repo?.full_name===r.full_name?"active":"")+'" data-repo="'+esc2(r.full_name)+'"><strong>'+esc2(r.name)+'</strong><small>'+esc2(r.full_name)+(r.private?" · 🔒":"")+'</small></button>').join(""):'<div class="muted">لا توجد نتائج.</div>';g("githubRepos").querySelectorAll("[data-repo]").forEach(b=>b.onclick=()=>selectRepo(b.dataset.repo))}
+ async function connectGitHub(){
+   const cid=g("githubClientId").value.trim();if(!cid){ghStatus("أدخل GitHub OAuth Client ID.", "status bad");return}
+   localStorage.setItem("wow_github_client_id",cid);GH.clientId=cid;
+   const bytes=crypto.getRandomValues(new Uint8Array(32));const verifier=btoa(String.fromCharCode(...bytes)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");const hash=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(verifier));const challenge=btoa(String.fromCharCode(...new Uint8Array(hash))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");const state=crypto.randomUUID();sessionStorage.setItem("wow_github_oauth_state",state);sessionStorage.setItem("wow_github_code_verifier",verifier);
+   const u=new URL("https://github.com/login/oauth/authorize");u.searchParams.set("client_id",cid);u.searchParams.set("redirect_uri",location.href.split("#")[0].split("?")[0]);u.searchParams.set("scope","repo workflow");u.searchParams.set("state",state);u.searchParams.set("code_challenge",challenge);u.searchParams.set("code_challenge_method","S256");location.href=u.toString();
+ }
+ async function finishOAuth(){
+   const p=new URLSearchParams(location.search),code=p.get("code"),state=p.get("state");if(!code)return;
+   if(state!==sessionStorage.getItem("wow_github_oauth_state")){ghStatus("فشل التحقق من OAuth state.","status bad");return}
+   const cid=GH.clientId||localStorage.getItem("wow_github_client_id"),ver=sessionStorage.getItem("wow_github_code_verifier");ghStatus("جارٍ إكمال اتصال GitHub...");
+   try{
+     const body=new URLSearchParams({client_id:cid,code,redirect_uri:location.href.split("?")[0],code_verifier:ver});
+     const r=await fetch("https://github.com/login/oauth/access_token",{method:"POST",headers:{"Accept":"application/json","Content-Type":"application/x-www-form-urlencoded"},body});
+     const d=await r.json();if(!d.access_token)throw new Error(d.error_description||d.error||"فشل OAuth");
+     GH.token=d.access_token;sessionStorage.setItem("wow_github_token",GH.token);history.replaceState({},document.title,location.pathname+location.hash);await loadGitHub();
+   }catch(e){ghStatus(e.message,"status bad")}
+ }
+ async function loadGitHub(){
+   if(!GH.token){g("githubAccount").textContent="غير متصل";g("githubDisconnect").classList.add("hidden");return}
+   try{const u=await ghFetch("/user");g("githubAccount").textContent="✓ "+(u.login||"GitHub")+" متصل";g("githubDisconnect").classList.remove("hidden");await loadRepos()}catch(e){GH.token="";sessionStorage.removeItem("wow_github_token");ghStatus(e.message,"status bad")}
+ }
+ async function loadRepos(){g("githubRepos").innerHTML='<div class="muted">جارٍ تحميل المستودعات...</div>';const all=[];for(let page=1;page<=5;page++){const a=await ghFetch("/user/repos?per_page=100&page="+page+"&affiliation=owner,collaborator,organization_member&sort=updated");all.push(...a);if(a.length<100)break}GH.repos=all;renderRepos()}
+ async function selectRepo(full){GH.repo=GH.repos.find(x=>x.full_name===full);GH.branch=GH.repo?.default_branch||"main";g("githubSelectedRepo").textContent=GH.repo?.full_name||full;g("githubRepoMeta").textContent=(GH.repo?.private?"🔒 Private":"🌐 Public")+" · "+(GH.repo?.language||"")+" · "+(GH.repo?.description||"");renderRepos();await loadBranches();await loadTree()}
+ async function loadBranches(){if(!GH.repo)return;const owner=GH.repo.owner.login,repo=GH.repo.name;const a=[];for(let page=1;page<=5;page++){const x=await ghFetch("/repos/"+encodeURIComponent(owner)+"/"+encodeURIComponent(repo)+"/branches?per_page=100&page="+page);a.push(...x);if(x.length<100)break}GH.branches=a;g("githubBranchSelect").innerHTML=a.map(b=>'<option value="'+esc2(b.name)+'">'+esc2(b.name)+'</option>').join("");g("githubBranchSelect").value=GH.branch}
+ async function loadTree(){if(!GH.repo)return;const [owner,repo]=[GH.repo.owner.login,GH.repo.name];try{const d=await ghFetch("/repos/"+owner+"/"+repo+"/git/trees/"+encodeURIComponent(GH.branch)+"?recursive=1");GH.tree=(d.tree||[]).filter(x=>x.type==="blob"&&x.size<800000);renderTree()}catch(e){ghStatus(e.message,"status bad")}}
+ function renderTree(){const q=(g("githubFileSearch2").value||"").toLowerCase();const a=(GH.tree||[]).filter(x=>!q||x.path.toLowerCase().includes(q));g("githubTree").innerHTML=a.length?a.map(x=>'<button class="file-item '+(GH.file===x.path?"active":"")+'" data-path="'+esc2(x.path)+'">'+icon(x.path)+' '+esc2(x.path)+'</button>').join(""):'<div class="muted">لا توجد ملفات.</div>';g("githubTree").querySelectorAll("[data-path]").forEach(b=>b.onclick=()=>openGitFile(b.dataset.path))}
+ async function openGitFile(path){if(!GH.repo)return;const [owner,repo]=[GH.repo.owner.login,GH.repo.name];ghStatus("جارٍ تحميل "+path+"...");try{const d=await ghFetch("/repos/"+owner+"/"+repo+"/contents/"+encodeURIComponent(path)+"?ref="+encodeURIComponent(GH.branch));if(d.type!=="file"||d.encoding!=="base64")throw new Error("هذا الملف غير قابل للتحرير من المحرر النصي.");const bin=atob(d.content.replace(/\n/g,""));const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));const text=new TextDecoder("utf-8").decode(bytes);GH.file=path;GH.sha=d.sha;GH.original=text;g("githubCurrentFile").textContent=path;g("githubFileSha").textContent=d.sha.slice(0,10);g("githubEditor").value=text;renderTree();g("githubLiveDiff").textContent="لا توجد تغييرات.";ghStatus("تم تحميل الملف.")}catch(e){ghStatus(e.message,"status bad")}}
+ async function commitFile(){if(!GH.repo||!GH.file||!GH.sha){ghStatus("اختر Repository وBranch وملفًا.","status bad");return}const content=g("githubEditor").value;if(content===GH.original){ghStatus("لا توجد تغييرات.","status");return}const msg=g("githubCommitMessage").value.trim()||"update from Dashboard";const [owner,repo]=[GH.repo.owner.login,GH.repo.name];try{g("githubCommit").disabled=true;ghStatus("جارٍ Commit & Push...");let bytes=new TextEncoder().encode(content),bin="";for(let i=0;i<bytes.length;i+=0x8000)bin+=String.fromCharCode(...bytes.subarray(i,i+0x8000));const b64=btoa(bin);const d=await ghFetch("/repos/"+owner+"/"+repo+"/contents/"+GH.file,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:msg,content:b64,sha:GH.sha,branch:GH.branch})});GH.sha=d.content?.sha||GH.sha;GH.original=content;g("githubFileSha").textContent=GH.sha.slice(0,10);g("githubLiveDiff").textContent="✓ تم إنشاء Commit: "+(d.commit?.sha||"").slice(0,10);ghStatus("✓ تم الحفظ في GitHub بنجاح.","status ok");await loadTree()}catch(e){ghStatus(e.message,"status bad")}finally{g("githubCommit").disabled=false}}
+ async function newBranch(){if(!GH.repo)return;const name=prompt("اسم Branch الجديد:","dashboard/"+new Date().toISOString().slice(0,10));if(!name)return;try{const base=await ghFetch("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/git/ref/heads/"+encodeURIComponent(GH.branch));await ghFetch("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/git/refs",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({ref:"refs/heads/"+name,sha:base.object.sha})});GH.branch=name;await loadBranches();await loadTree();ghStatus("✓ تم إنشاء Branch: "+name,"status ok")}catch(e){ghStatus(e.message,"status bad")}}
+ async function createPR(){if(!GH.repo||!GH.branch){ghStatus("اختر Repository وBranch.","status bad");return}const base=GH.repo.default_branch,title=prompt("عنوان Pull Request:","تعديلات من لوحة التحكم");if(!title)return;try{const d=await ghFetch("/repos/"+GH.repo.owner.login+"/"+GH.repo.name+"/pulls",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title,head:GH.branch,base,body:"Created from WOW Admin Dashboard"})});g("githubBranches").innerHTML='<div class="row"><div><strong>PR #'+d.number+'</strong><small>'+esc2(d.title||title)+'</small></div><a class="btn" target="_blank" rel="noopener" href="'+esc2(d.html_url)+'">فتح</a></div>';ghStatus("✓ تم إنشاء Pull Request.","status ok")}catch(e){ghStatus(e.message,"status bad")}}
+ async function listBranches(){g("githubBranches").innerHTML=GH.branches.length?GH.branches.map(b=>'<div class="row"><div><strong>'+esc2(b.name)+'</strong></div><button class="btn" data-branch="'+esc2(b.name)+'">فتح</button></div>').join(""):'لا توجد فروع';g("githubBranches").querySelectorAll("[data-branch]").forEach(b=>b.onclick=()=>{GH.branch=b.dataset.branch;g("githubBranchSelect").value=GH.branch;loadTree()})}
+ g("githubConnect").onclick=connectGitHub;g("githubDisconnect").onclick=()=>{GH.token="";sessionStorage.removeItem("wow_github_token");g("githubAccount").textContent="غير متصل";g("githubDisconnect").classList.add("hidden");g("githubRepos").innerHTML='<div class="muted">تم قطع الاتصال.</div>'};g("githubRefreshRepos").onclick=loadRepos;g("githubRepoSearch").oninput=renderRepos;g("githubFileSearch2").oninput=renderTree;g("githubCommit").onclick=commitFile;g("githubNewBranch").onclick=newBranch;g("githubListBranches").onclick=listBranches;g("githubCreatePr").onclick=createPR;g("githubBranchSelect").onchange=async e=>{GH.branch=e.target.value;await loadTree()};g("githubEditor").oninput=()=>{const changed=g("githubEditor").value!==GH.original;g("githubLiveDiff").textContent=changed?"✏️ تغييرات غير محفوظة في "+(GH.file||""):"لا توجد تغييرات."};finishOAuth();loadGitHub();
+})();</script>
 <script src="../runtime-config.js"></script>
 <style>
 :root{--primary:#1b5e20;--bg:#f5f7fb;--card:#fff;--text:#172033;--muted:#64748b;--border:#e2e8f0;--danger:#dc2626;--shadow:0 10px 30px rgba(15,23,42,.07)}
@@ -157,29 +200,77 @@
 </section>
 
 <section id="tab-github" class="tab hidden">
-  <div class="grid two">
-    <div class="card">
-      <h2 class="section-title">🐙 استيراد مشروع GitHub</h2>
-      <p class="tabs-note">يمكن استيراد المستودعات العامة مباشرة. لا يتم إرسال رمز GitHub أو أي سر إلى المتصفح.</p>
-      <div class="field"><label>رابط المستودع</label><input id="githubUrl" placeholder="https://github.com/owner/repository"></div>
-      <div class="grid two">
-        <div class="field"><label>Branch</label><input id="githubBranch" value="main"></div>
-        <div class="field"><label>حد الملفات</label><input id="githubLimit" type="number" value="80" min="1" max="300"></div>
-      </div>
-      <button class="btn primary" id="githubImport">استيراد وفتح في Studio</button>
-      <div id="githubStatus" class="status" style="margin-top:12px">جاهز للاستيراد.</div>
+  <div class="card github-connection">
+    <div>
+      <h2 class="section-title">🐙 GitHub Workspace</h2>
+      <p class="tabs-note">إدارة مستودعات GitHub من داخل لوحة التحكم: Repository → Branch → File → Edit → Commit.</p>
     </div>
-    <div class="card">
-      <h2 class="section-title">🔎 معلومات المستودع</h2>
-      <div id="githubInfo" class="status">لم يتم تحميل مستودع بعد.</div>
-      <div class="field"><label>البحث عن ملف</label><input id="githubSearch" placeholder="مثال: quran.html"></div>
-      <div id="githubResults" class="list"></div>
+    <div class="github-connect-row">
+      <input id="githubClientId" class="github-client-id" placeholder="GitHub OAuth Client ID" aria-label="GitHub OAuth Client ID">
+      <button class="btn primary" id="githubConnect">اتصال بـ GitHub</button>
+      <button class="btn hidden" id="githubDisconnect">قطع الاتصال</button>
+      <span id="githubAccount" class="status">غير متصل</span>
     </div>
   </div>
-  <div class="card" style="margin-top:14px">
-    <h2 class="section-title">Git Diff / Commit</h2>
-    <p class="tabs-note">التعديل والحفظ داخل Studio يعملان محليًا وداخل Supabase. دفع Commit مباشر إلى GitHub يحتاج توصيل GitHub OAuth/Token آمن عبر Edge Function، ولن يتم وضع Token داخل الواجهة.</p>
-    <div id="githubDiff" class="diff-box">لا توجد تغييرات بعد.</div>
+
+  <div class="github-workspace-grid">
+    <aside class="card github-sidebar">
+      <div class="studio-panel-head"><strong>📦 Repositories</strong><button class="btn" id="githubRefreshRepos">↻</button></div>
+      <input id="githubRepoSearch" class="studio-search" placeholder="بحث عن مشروع...">
+      <div id="githubRepos" class="github-repo-list"><div class="muted">اتصل بحساب GitHub أولًا.</div></div>
+    </aside>
+
+    <section class="card github-files-panel">
+      <div class="github-toolbar">
+        <div>
+          <strong id="githubSelectedRepo">لم يتم اختيار Repository</strong>
+          <div id="githubRepoMeta" class="muted"></div>
+        </div>
+        <div class="actions">
+          <select id="githubBranchSelect" aria-label="Branch"></select>
+          <button class="btn" id="githubNewBranch">+ Branch</button>
+          <button class="btn" id="githubPull">↻ Pull</button>
+        </div>
+      </div>
+      <div class="github-files-layout">
+        <div class="github-tree-wrap">
+          <input id="githubFileSearch2" class="studio-search" placeholder="بحث في الملفات...">
+          <div id="githubTree" class="file-tree"><div class="muted">اختر Repository.</div></div>
+        </div>
+        <div class="github-code-wrap">
+          <div class="studio-panel-head">
+            <strong id="githubCurrentFile">لم يتم اختيار ملف</strong>
+            <span id="githubFileSha" class="muted"></span>
+          </div>
+          <textarea id="githubEditor" class="code-editor github-editor" spellcheck="false" placeholder="اختر ملفًا نصيًا..."></textarea>
+          <div class="github-commit-bar">
+            <input id="githubCommitMessage" placeholder="رسالة Commit..." value="update from Dashboard">
+            <button class="btn primary" id="githubCommit">💾 Commit & Push</button>
+          </div>
+          <div id="githubWriteStatus" class="status">جاهز.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="grid two github-bottom-grid">
+    <div class="card">
+      <h2 class="section-title">🔀 Branches & Pull Requests</h2>
+      <div class="actions" style="margin-bottom:10px">
+        <button class="btn" id="githubListBranches">الفروع</button>
+        <button class="btn" id="githubCreatePr">إنشاء Pull Request</button>
+      </div>
+      <div id="githubBranches" class="list"></div>
+    </div>
+    <div class="card">
+      <h2 class="section-title">🧾 Git Status / Diff</h2>
+      <div id="githubLiveDiff" class="diff-box">لا توجد تغييرات.</div>
+    </div>
+  </div>
+
+  <div class="card github-security-note">
+    <strong>🔐 اتصال GitHub</strong>
+    <p>Client ID عام فقط. رمز الوصول لا يُحفظ في Supabase ولا داخل ملفات المشروع؛ يبقى في جلسة المتصفح ويمكن إبطاله بإعادة قطع الاتصال. لا تضع Client Secret في هذه الصفحة.</p>
   </div>
 </section>
 
