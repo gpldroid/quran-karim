@@ -13,3 +13,4 @@ dist/
 build/
 captures/
 local.properties
+web/public/runtime-config.js
