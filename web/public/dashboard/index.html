@@ -110,8 +110,8 @@
 <script>
 (function(){
 "use strict";
-const cfg=window.WOW_SUPABASE_CONFIG||{};
-const client=cfg.url&&cfg.anonKey?window.supabase.createClient(cfg.url,cfg.anonKey):null;
+const cfg=Object.assign({url:"https://npytwojnxsmxhcssajtg.supabase.co",anonKey:"sb_publishable_s9DgcPj_TJh-ZbVhPqgnvw_opH6Z5ww"},window.WOW_SUPABASE_CONFIG||{});
+const client=window.supabase&&cfg.url&&cfg.anonKey?window.supabase.createClient(cfg.url,cfg.anonKey):null;
 const $=id=>document.getElementById(id);
 let settings=null, ads=[], seo=[], content=[], categories=[], role=null;
 
@@ -196,7 +196,7 @@ document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>switchTab(b.da
 $("loginForm").onsubmit=async e=>{e.preventDefault();const btn=$("loginForm").querySelector('button[type="submit"]');const errorBox=$("loginError");errorBox.classList.add("hidden");if(!client){errorBox.textContent="تعذر الاتصال بخدمة تسجيل الدخول. إعداد Supabase غير متوفر.";errorBox.classList.remove("hidden");return}const email=$("loginEmail").value.trim();const password=$("loginPassword").value;if(!email||!password){errorBox.textContent="أدخل البريد الإلكتروني وكلمة المرور.";errorBox.classList.remove("hidden");return}if(btn){btn.disabled=true;btn.textContent="جارٍ التحقق..."}try{const result=await Promise.race([client.auth.signInWithPassword({email,password}),new Promise((_,reject)=>setTimeout(()=>reject(new Error("انتهت مهلة الاتصال بـ Supabase. تحقق من اتصال الإنترنت ثم حاول مرة أخرى.")),15000))]);const {data,error}=result;if(error){errorBox.textContent=error.message||"فشل تسجيل الدخول.";errorBox.classList.remove("hidden");return}if(!data?.session){errorBox.textContent="تم قبول الطلب ولكن لم يتم إنشاء جلسة. تحقق من تأكيد البريد الإلكتروني وإعدادات Auth.";errorBox.classList.remove("hidden");return}await load()}catch(err){errorBox.textContent=err instanceof Error?err.message:"حدث خطأ غير متوقع أثناء تسجيل الدخول.";errorBox.classList.remove("hidden")}finally{if(btn){btn.disabled=false;btn.textContent="دخول"}}};
 $("logout").onclick=async()=>{if(client)await client.auth.signOut();location.reload()};
 $("refresh").onclick=load;$("saveAdMob").onclick=saveAdMob;$("settingsForm").onsubmit=saveSettings;$("themeForm").onsubmit=saveTheme;$("appForm").onsubmit=saveApp;$("adForm").onsubmit=saveAd;$("seoForm").onsubmit=saveSeo;$("contentForm").onsubmit=saveContent;$("categoryForm").onsubmit=saveCat;$("contentSearch").oninput=renderContent;
-client?.auth.onAuthStateChange(()=>load());
+client?.auth.onAuthStateChange((event)=>{ if(event==="SIGNED_IN"||event==="SIGNED_OUT") load(); });
 load();
 })();
 </script>
