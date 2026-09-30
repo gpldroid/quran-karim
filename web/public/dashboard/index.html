@@ -46,6 +46,10 @@
     <button data-tab="content">المحتوى</button>
     <button data-tab="categories">التصنيفات</button>
     <button data-tab="app">تحكم التطبيق</button>
+    <button data-tab="studio">🧩 Project Studio</button>
+    <button data-tab="github">🐙 GitHub</button>
+    <button data-tab="templates">📦 القوالب</button>
+    <button data-tab="history">🕘 الإصدارات</button>
   </nav>
   <div class="side-bottom"><button id="logout" class="btn danger full">تسجيل الخروج</button></div>
 </aside>
@@ -105,6 +109,102 @@
 </div></section>
 
 <section id="tab-app" class="tab hidden"><div class="card"><h2 class="section-title">الصيانة والتحديث الإجباري</h2><p class="tabs-note">هذه القيم يقرأها تطبيق Android عند التشغيل. لا تحتاج لإعادة بناء التطبيق عند تغيير الرسالة أو الحد الأدنى للإصدار أو رابط التحديث.</p><form id="appForm"><div class="card" style="box-shadow:none;background:#fff7ed;border-color:#fed7aa;margin-bottom:16px"><label class="switch"><input id="maintenance_mode" type="checkbox"> تفعيل وضع الصيانة</label><div class="field" style="margin-top:12px"><label>رسالة الصيانة</label><textarea id="maintenance_message"></textarea></div></div><div class="grid two"><div class="field"><label>أدنى إصدار مطلوب</label><input id="min_required_version" placeholder="1.1.0"></div><div class="field"><label>رابط التحديث</label><input id="app_update_url" type="url" placeholder="https://play.google.com/store/apps/details?id=com.example.app"></div></div><button class="btn primary" type="submit">حفظ إعدادات التطبيق</button></form></div></section>
+
+<section id="tab-studio" class="tab hidden">
+  <div class="studio-toolbar card">
+    <div class="studio-project">
+      <select id="studioProject" aria-label="المشروع"><option value="">مشروع جديد</option></select>
+      <input id="studioProjectName" placeholder="اسم المشروع" aria-label="اسم المشروع">
+    </div>
+    <div class="actions">
+      <button class="btn primary" id="studioNew">مشروع جديد</button>
+      <button class="btn" id="studioSave">حفظ</button>
+      <button class="btn" id="studioSaveVersion">حفظ نسخة</button>
+      <button class="btn" id="studioExport">تصدير ZIP</button>
+      <button class="btn" id="studioTemplate">حفظ كقالب</button>
+    </div>
+  </div>
+  <div class="studio-grid">
+    <aside class="card file-panel">
+      <div class="studio-panel-head"><strong>📁 الملفات</strong><button class="btn" id="studioAddFile">+ ملف</button></div>
+      <input id="studioFileSearch" class="studio-search" placeholder="بحث في الملفات">
+      <div id="studioFiles" class="file-tree"></div>
+    </aside>
+    <section class="card editor-panel">
+      <div class="studio-panel-head">
+        <strong id="studioCurrentFile">لم يتم اختيار ملف</strong>
+        <div class="actions">
+          <select id="studioLanguage" aria-label="لغة المحرر"><option>auto</option><option>html</option><option>css</option><option>javascript</option><option>json</option><option>markdown</option></select>
+          <button class="btn" id="studioFormat">تنسيق</button>
+        </div>
+      </div>
+      <textarea id="studioEditor" class="code-editor" spellcheck="false" placeholder="اختر ملفًا من الشجرة..."></textarea>
+      <div class="editor-status"><span id="studioDirty">جاهز</span><span id="studioChars">0</span></div>
+    </section>
+    <section class="card preview-panel">
+      <div class="studio-panel-head">
+        <strong>👁 المعاينة المباشرة</strong>
+        <div class="actions">
+          <button class="btn preview-size active" data-size="desktop">🖥</button>
+          <button class="btn preview-size" data-size="tablet">📟</button>
+          <button class="btn preview-size" data-size="mobile">📱</button>
+          <button class="btn" id="studioRefresh">↻</button>
+        </div>
+      </div>
+      <div id="previewStage" class="preview-stage"><iframe id="studioPreview" title="معاينة المشروع" sandbox="allow-scripts allow-forms allow-modals"></iframe></div>
+    </section>
+  </div>
+</section>
+
+<section id="tab-github" class="tab hidden">
+  <div class="grid two">
+    <div class="card">
+      <h2 class="section-title">🐙 استيراد مشروع GitHub</h2>
+      <p class="tabs-note">يمكن استيراد المستودعات العامة مباشرة. لا يتم إرسال رمز GitHub أو أي سر إلى المتصفح.</p>
+      <div class="field"><label>رابط المستودع</label><input id="githubUrl" placeholder="https://github.com/owner/repository"></div>
+      <div class="grid two">
+        <div class="field"><label>Branch</label><input id="githubBranch" value="main"></div>
+        <div class="field"><label>حد الملفات</label><input id="githubLimit" type="number" value="80" min="1" max="300"></div>
+      </div>
+      <button class="btn primary" id="githubImport">استيراد وفتح في Studio</button>
+      <div id="githubStatus" class="status" style="margin-top:12px">جاهز للاستيراد.</div>
+    </div>
+    <div class="card">
+      <h2 class="section-title">🔎 معلومات المستودع</h2>
+      <div id="githubInfo" class="status">لم يتم تحميل مستودع بعد.</div>
+      <div class="field"><label>البحث عن ملف</label><input id="githubSearch" placeholder="مثال: quran.html"></div>
+      <div id="githubResults" class="list"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:14px">
+    <h2 class="section-title">Git Diff / Commit</h2>
+    <p class="tabs-note">التعديل والحفظ داخل Studio يعملان محليًا وداخل Supabase. دفع Commit مباشر إلى GitHub يحتاج توصيل GitHub OAuth/Token آمن عبر Edge Function، ولن يتم وضع Token داخل الواجهة.</p>
+    <div id="githubDiff" class="diff-box">لا توجد تغييرات بعد.</div>
+  </div>
+</section>
+
+<section id="tab-templates" class="tab hidden">
+  <div class="grid two">
+    <div class="card">
+      <h2 class="section-title">📦 القوالب</h2>
+      <div class="field"><label>اسم القالب</label><input id="templateName" placeholder="Quran UI Template"></div>
+      <div class="field"><label>الوصف</label><textarea id="templateDescription" placeholder="وصف القالب..."></textarea></div>
+      <label class="switch"><input id="templatePublic" type="checkbox"> السماح باستخدام القالب كقالب عام</label>
+      <button class="btn primary" id="templateSave" style="margin-top:12px">حفظ القالب الحالي</button>
+    </div>
+    <div class="card">
+      <h2 class="section-title">القوالب المحفوظة</h2>
+      <div id="templateList" class="list"></div>
+    </div>
+  </div>
+</section>
+
+<section id="tab-history" class="tab hidden">
+  <div class="card">
+    <div class="studio-panel-head"><h2 class="section-title" style="margin:0">🕘 تاريخ الإصدارات</h2><button class="btn" id="historyRefresh">تحديث</button></div>
+    <div id="historyList" class="list"></div>
+  </div>
+</section>
 </main></div>
 
 <script>
@@ -212,6 +312,62 @@ load();
   apply(saved);
   const b=document.getElementById("adminThemeToggle");
   if(b)b.addEventListener("click",()=>{const dark=!document.body.classList.contains("admin-dark");localStorage.setItem(key,dark?"1":"0");apply(dark);});
+})();
+</script>
+
+<script>
+(function(){
+"use strict";
+const scfg=Object.assign({url:"https://npytwojnxsmxhcssajtg.supabase.co",anonKey:"sb_publishable_s9DgcPj_TJh-ZbVhPqgnvw_opH6Z5ww"},window.WOW_SUPABASE_CONFIG||{});
+const sb=window.supabase&&scfg.url&&scfg.anonKey?window.supabase.createClient(scfg.url,scfg.anonKey):null;
+const S={projects:[],templates:[],project:null,file:null,dirty:false,sourceFiles:[]};
+const $=id=>document.getElementById(id);
+const esc2=v=>String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast2(m,b=false){const t=$("toast");if(t){t.textContent=m;t.className="toast";setTimeout(()=>t.className="toast hidden",3200)}if(b)console.error(m)}
+function filesOf(p){return Array.isArray(p?.files)?p.files:[]}
+function uid(){return crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2)}
+function slug(v){return v.toLowerCase().trim().replace(/[^a-z0-9؀-ۿ]+/g,"-").replace(/^-|-$/g,"")||"project"}
+function fileContent(path){const f=filesOf(S.project).find(x=>x.path===path);return f?.content||""}
+function markDirty(){S.dirty=true;$("studioDirty").textContent="● تعديلات غير محفوظة";renderDiff();$("studioChars").textContent=($("studioEditor").value||"").length}
+function renderFiles(){
+ const q=($("studioFileSearch").value||"").toLowerCase();
+ const arr=filesOf(S.project).filter(f=>!q||f.path.toLowerCase().includes(q));
+ $("studioFiles").innerHTML=arr.length?arr.map(f=>'<button class="file-item '+(f.path===S.file?"active":"")+'" data-file="'+esc2(f.path)+'"><span>'+icon(f.path)+'</span><span>'+esc2(f.path)+'</span></button>').join(""):'<div class="muted">لا توجد ملفات.</div>';
+ $("studioFiles").querySelectorAll(".file-item").forEach(b=>b.onclick=()=>openFile(b.dataset.file));
+}
+function icon(p){if(/\.html?$/i.test(p))return"🌐";if(/\.css$/i.test(p))return"🎨";if(/\.js$/i.test(p))return"⚙️";if(/\.json$/i.test(p))return"🧾";if(/\.(png|jpg|jpeg|webp|svg)$/i.test(p))return"🖼️";return"📄"}
+function openFile(path){if(S.file&&S.dirty){const old=filesOf(S.project).find(f=>f.path===S.file);if(old)old.content=$("studioEditor").value;S.dirty=false}S.file=path;$("studioCurrentFile").textContent=path;$("studioEditor").value=fileContent(path);$("studioChars").textContent=$("studioEditor").value.length;$("studioDirty").textContent="جاهز";$("studioLanguage").value=language(path);renderFiles();$("studioEditor").focus()}
+function language(p){if(/\.html?$/i.test(p))return"html";if(/\.css$/i.test(p))return"css";if(/\.js$/i.test(p))return"javascript";if(/\.json$/i.test(p))return"json";if(/\.md$/i.test(p))return"markdown";return"auto"}
+function saveCurrent(){if(S.file){const f=filesOf(S.project).find(x=>x.path===S.file);if(f)f.content=$("studioEditor").value}S.dirty=false;$("studioDirty").textContent="تم الحفظ في الذاكرة";renderDiff();renderPreview()}
+function renderDiff(){const el=$("githubDiff");if(!el||!S.project)return;const changed=filesOf(S.project).filter(f=>f.changed);el.innerHTML=changed.length?changed.map(f=>'<div class="diff-line">✏️ '+esc2(f.path)+'</div>').join(""):'لا توجد تغييرات مقارنة بآخر نسخة محفوظة.'}
+function injectPreview(html){
+ const all=filesOf(S.project); let out=html||"<h1>لا يوجد index.html</h1>";
+ out=out.replace(/<link([^>]+)href=["']([^"']+)["']([^>]*)>/gi,(m,a,p,b)=>{const f=all.find(x=>x.path===norm(p));return f&&/\.css$/i.test(p)?"<style>"+f.content+"</style>":m});
+ out=out.replace(/<script([^>]+)src=["']([^"']+)["']([^>]*)><\/script>/gi,(m,a,p,b)=>{const f=all.find(x=>x.path===norm(p));return f&&/\.js$/i.test(p)?"<script>"+f.content+"<\/script>":m});
+ return out;
+}
+function norm(p){return p.replace(/^\.\//,"").replace(/^\//,"")}
+function renderPreview(){if(!S.project)return;const f=filesOf(S.project).find(x=>/^(index|home)\.html?$/i.test(x.path))||filesOf(S.project).find(x=>/\.html?$/i.test(x.path));if(!f){$("studioPreview").srcdoc="<h2>لم يوجد ملف HTML</h2>";return}$("studioPreview").srcdoc=injectPreview(f.content)}
+function setPreviewSize(s){const st=$("previewStage");st.classList.remove("size-desktop","size-tablet","size-mobile");st.classList.add("size-"+s);document.querySelectorAll(".preview-size").forEach(x=>x.classList.toggle("active",x.dataset.size===s))}
+async function loadStudio(){
+ if(!sb)return;
+ const {data:{user}}=await sb.auth.getUser();if(!user)return;
+ const [p,t]=await Promise.all([sb.from("admin_projects").select("*").eq("owner_id",user.id).order("updated_at",{ascending:false}),sb.from("admin_templates").select("*").or("owner_id.eq."+user.id+",is_public.eq.true").order("created_at",{ascending:false})]);
+ S.projects=p.data||[];S.templates=t.data||[];renderProjectSelect();renderTemplates();if(!S.project&&S.projects[0])selectProject(S.projects[0].id);renderHistory()
+}
+function renderProjectSelect(){$("studioProject").innerHTML='<option value="">مشروع جديد</option>'+S.projects.map(p=>'<option value="'+p.id+'">'+esc2(p.name)+'</option>').join("");if(S.project)$("studioProject").value=S.project.id}
+function selectProject(id){const p=S.projects.find(x=>x.id===id);if(!p)return;S.project=JSON.parse(JSON.stringify(p));S.file=null;S.dirty=false;$("studioProjectName").value=S.project.name;renderFiles();renderDiff();renderPreview();$("studioDirty").textContent="جاهز";if(filesOf(S.project)[0])openFile(filesOf(S.project)[0].path)}
+function newProject(){S.project={id:null,owner_id:null,name:"مشروع جديد",slug:"project-"+Date.now(),source_type:"local",files:[{path:"index.html",content:"<!doctype html>\n<html lang=\"ar\" dir=\"rtl\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>مشروعي</title></head><body><main><h1>مشروع جديد</h1></main></body></html>"}],settings:{}};S.file="index.html";$("studioProjectName").value=S.project.name;renderFiles();openFile("index.html");renderPreview();switchStudio()}
+function switchStudio(){document.querySelector('#nav button[data-tab="studio"]')?.click()}
+async function persistProject(){if(!sb||!S.project)return;saveCurrent();const {data:{user}}=await sb.auth.getUser();if(!user)return;S.project.owner_id=user.id;S.project.name=$("studioProjectName").value.trim()||"مشروع";S.project.slug=slug(S.project.name)+"-"+(S.project.id||Date.now());const payload={owner_id:user.id,name:S.project.name,slug:S.project.slug,source_type:S.project.source_type||"local",github_owner:S.project.github_owner||null,github_repo:S.project.github_repo||null,github_branch:S.project.github_branch||"main",description:S.project.description||null,files:filesOf(S.project),settings:S.project.settings||{}};let r;if(S.project.id)r=await sb.from("admin_projects").update(payload).eq("id",S.project.id).select().single();else r=await sb.from("admin_projects").insert(payload).select().single();if(r.error){toast2(r.error.message,true);return}S.project=r.data;S.projects=[S.project,...S.projects.filter(x=>x.id!==S.project.id)];renderProjectSelect();$("studioProject").value=S.project.id;S.dirty=false;$("studioDirty").textContent="✓ محفوظ";toast2("تم حفظ المشروع")}
+async function saveVersion(){if(!S.project?.id){await persistProject();if(!S.project?.id)return}saveCurrent();const {data:{user}}=await sb.auth.getUser();const {data:last}=await sb.from("admin_project_versions").select("version_number").eq("project_id",S.project.id).order("version_number",{ascending:false}).limit(1).maybeSingle();const n=(last?.version_number||0)+1;const {error}=await sb.from("admin_project_versions").insert({project_id:S.project.id,created_by:user.id,version_number:n,label:"نسخة "+n,files:filesOf(S.project)});if(error)toast2(error.message,true);else{toast2("تم حفظ النسخة "+n);renderHistory()}}
+async function exportZip(){saveCurrent();if(!window.JSZip){const s=document.createElement("script");s.src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js";document.head.appendChild(s);await new Promise(r=>s.onload=r)}const z=new JSZip();filesOf(S.project).forEach(f=>{if(typeof f.content==="string")z.file(f.path,f.content)});const blob=await z.generateAsync({type:"blob"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=(S.project?.name||"wow-project")+".zip";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+async function saveTemplate(){if(!S.project){toast2("اختر مشروعًا أولًا",true);return}saveCurrent();const {data:{user}}=await sb.auth.getUser();const name=$("templateName").value.trim()||S.project.name;const {error}=await sb.from("admin_templates").insert({owner_id:user.id,name,description:$("templateDescription").value.trim()||null,files:filesOf(S.project),settings:S.project.settings||{},is_public:$("templatePublic").checked});if(error)toast2(error.message,true);else{toast2("تم حفظ القالب");await loadStudio()}}
+function renderTemplates(){$("templateList").innerHTML=S.templates.length?S.templates.map(t=>'<div class="row"><div><div class="row-title">'+esc2(t.name)+'</div><small>'+esc2(t.description||"قالب")+' · '+(t.is_public?"عام":"خاص")+'</small></div><div class="row-actions"><button class="btn" data-template="'+t.id+'">فتح</button></div></div>').join(""):'<div class="muted">لا توجد قوالب.</div>';$("templateList").querySelectorAll("[data-template]").forEach(b=>b.onclick=()=>{const t=S.templates.find(x=>x.id===b.dataset.template);if(!t)return;S.project={id:null,name:t.name,slug:slug(t.name)+"-"+Date.now(),source_type:"template",files:JSON.parse(JSON.stringify(t.files||[])),settings:t.settings||{}};$("studioProjectName").value=S.project.name;renderFiles();if(filesOf(S.project)[0])openFile(filesOf(S.project)[0].path);renderPreview();switchStudio();toast2("تم فتح القالب في Studio")})}
+async function renderHistory(){if(!S.project?.id){$("historyList").innerHTML='<div class="muted">احفظ مشروعًا أولًا لرؤية الإصدارات.</div>';return}const {data,error}=await sb.from("admin_project_versions").select("*").eq("project_id",S.project.id).order("version_number",{ascending:false});if(error){$("historyList").textContent=error.message;return}$("historyList").innerHTML=data?.length?data.map(v=>'<div class="row"><div><div class="row-title">Version '+v.version_number+'</div><small>'+esc2(v.label||"")+' · '+new Date(v.created_at).toLocaleString("ar")+'</small></div><button class="btn" data-restore="'+v.id+'">استعادة</button></div>').join(""):'<div class="muted">لا توجد إصدارات.</div>';$("historyList").querySelectorAll("[data-restore]").forEach(b=>b.onclick=async()=>{const v=data.find(x=>x.id===b.dataset.restore);if(!v)return;S.project.files=JSON.parse(JSON.stringify(v.files||[]));S.file=null;renderFiles();if(filesOf(S.project)[0])openFile(filesOf(S.project)[0].path);renderPreview();await persistProject();toast2("تمت استعادة النسخة")})}
+async function importGitHub(){const raw=$("githubUrl").value.trim().replace(/\/$/,"");const m=raw.match(/github\.com\/([^/]+)\/([^/#]+)/i);if(!m){$("githubStatus").className="status bad";$("githubStatus").textContent="أدخل رابط GitHub صحيحًا.";return}const owner=m[1],repo=m[2].replace(/\.git$/,""),branch=$("githubBranch").value.trim()||"main",limit=Math.min(300,Math.max(1,Number($("githubLimit").value)||80));$("githubStatus").className="status";$("githubStatus").textContent="جارٍ قراءة المستودع...";try{const meta=await fetch("https://api.github.com/repos/"+owner+"/"+repo).then(r=>{if(!r.ok)throw new Error("المستودع غير موجود أو غير عام.");return r.json()});const tree=await fetch("https://api.github.com/repos/"+owner+"/"+repo+"/git/trees/"+encodeURIComponent(branch)+"?recursive=1").then(r=>{if(!r.ok)throw new Error("تعذر قراءة Branch: "+branch);return r.json()});const candidates=(tree.tree||[]).filter(x=>x.type==="blob"&&x.size<250000&&!/^(.git|node_modules|dist|build)\//.test(x.path)&&/\.(html?|css|js|json|md|txt|svg)$/i.test(x.path)).slice(0,limit);$("githubInfo").innerHTML="<strong>"+esc2(meta.full_name)+"</strong><br>"+esc2(meta.description||"")+"<br><span class='badge'>"+candidates.length+" ملف</span>";S.sourceFiles=candidates.map(x=>x.path);$("githubResults").innerHTML=candidates.map(x=>'<div class="row"><span>'+icon(x.path)+' '+esc2(x.path)+'</span></div>').join("");const files=[];for(const x of candidates){const r=await fetch("https://api.github.com/repos/"+owner+"/"+repo+"/contents/"+x.path+"?ref="+encodeURIComponent(branch));if(!r.ok)continue;const d=await r.json();if(d.encoding==="base64"){const bin=atob(d.content.replace(/\n/g,""));let text="";for(let i=0;i<bin.length;i++)text+=String.fromCharCode(bin.charCodeAt(i));files.push({path:x.path,content:decodeURIComponent(escape(text)),changed:false})}}S.project={id:null,name:meta.name||repo,slug:slug(repo)+"-"+Date.now(),source_type:"github",github_owner:owner,github_repo:repo,github_branch:branch,description:meta.description||"",files,settings:{githubUrl:raw}};$("studioProjectName").value=S.project.name;renderFiles();if(files[0])openFile(files[0].path);renderPreview();$("githubStatus").className="status ok";$("githubStatus").textContent="✓ تم الاستيراد. المشروع الآن قابل للتحرير داخل Studio.";switchStudio()}catch(e){$("githubStatus").className="status bad";$("githubStatus").textContent=e.message||"فشل الاستيراد."}}
+$("studioEditor").addEventListener("input",markDirty);$("studioFileSearch").addEventListener("input",renderFiles);$("studioProject").addEventListener("change",e=>e.target.value?selectProject(e.target.value):newProject());$("studioNew").onclick=newProject;$("studioSave").onclick=persistProject;$("studioSaveVersion").onclick=saveVersion;$("studioExport").onclick=exportZip;$("studioTemplate").onclick=()=>document.querySelector('#nav button[data-tab="templates"]')?.click();$("templateSave").onclick=saveTemplate;$("historyRefresh").onclick=renderHistory;$("githubImport").onclick=importGitHub;$("studioRefresh").onclick=renderPreview;$("studioFormat").onclick=()=>{const ta=$("studioEditor");if($("studioLanguage").value==="json"){try{ta.value=JSON.stringify(JSON.parse(ta.value),null,2);markDirty()}catch(e){toast2("JSON غير صالح",true)}}};$("studioAddFile").onclick=()=>{const p=prompt("مسار الملف الجديد:","new-file.html");if(!p)return;if(filesOf(S.project).some(x=>x.path===p)){toast2("الملف موجود",true);return}S.project.files.push({path:p,content:""});renderFiles();openFile(p);markDirty()};document.querySelectorAll(".preview-size").forEach(b=>b.onclick=()=>setPreviewSize(b.dataset.size));$("githubSearch").oninput=()=>{const q=$("githubSearch").value.toLowerCase();$("githubResults").querySelectorAll(".row").forEach(x=>x.style.display=x.textContent.toLowerCase().includes(q)?"flex":"none")};
+loadStudio();
 })();
 </script>
 </body>
