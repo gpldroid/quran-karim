@@ -7,7 +7,7 @@ import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
-import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineScope\nimport kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 
@@ -32,7 +32,7 @@ class SupabaseRealtimeEngine(
 
     private var started = false
 
-    suspend fun startListening() {
+    fun startListening() {\n        scope.launch { startListeningInternal() }\n    }\n\n    private suspend fun startListeningInternal() {
         if (started) return
 
         if (BuildConfig.SUPABASE_URL.isBlank() || BuildConfig.SUPABASE_ANON_KEY.isBlank()) {
@@ -79,7 +79,7 @@ class SupabaseRealtimeEngine(
         }
     }
 
-    suspend fun stopListening() {
+    fun stopListening() {\n        scope.launch { stopListeningInternal() }\n    }\n\n    private suspend fun stopListeningInternal() {
         if (!started) return
         started = false
         try {
