@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+env:
+  SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://npytwojnxsmxhcssajtg.supabase.co' }}
+  SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_s9DgcPj_TJh-ZbVhPqgnvw_opH6Z5ww' }}
+
 concurrency:
   group: native-android-build
   cancel-in-progress: false
@@ -56,8 +60,6 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         working-directory: android
         run: |
           set -euo pipefail
