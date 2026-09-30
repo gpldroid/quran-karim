@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
+import java.lang.Runnable
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.cancel
@@ -23,8 +24,8 @@ import kotlinx.coroutines.cancel
  * the Android client to the exact JSON shape of theme_config/ad_code.
  */
 class SupabaseRealtimeEngine(
-    private val onSettingsChanged: () -> Unit,
-    private val onAdsChanged: () -> Unit
+    private val onSettingsChanged: Runnable,
+    private val onAdsChanged: Runnable
 ) {
     private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
 
@@ -69,7 +70,7 @@ class SupabaseRealtimeEngine(
                 }
                 .onEach {
                     Log.d(TAG, "Realtime UPDATE: app_settings")
-                    onSettingsChanged()
+                    onSettingsChanged.run()
                 }
                 .launchIn(scope)
 
@@ -80,7 +81,7 @@ class SupabaseRealtimeEngine(
                 }
                 .onEach {
                     Log.d(TAG, "Realtime change: ads_management")
-                    onAdsChanged()
+                    onAdsChanged.run()
                 }
                 .launchIn(scope)
 
