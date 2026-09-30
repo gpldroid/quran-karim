@@ -209,7 +209,7 @@ public class MainActivity extends Activity {
     }
 
     private static String JSONObjectQuote(String value) {
-        return """ + value.replace("\\", "\\\\").replace(""", "\\"") + """;
+        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     private boolean handleLocalRoute(WebView view, String url) {
