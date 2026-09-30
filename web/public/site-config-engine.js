@@ -107,7 +107,13 @@
       applyTheme(Object.assign({}, settingsResult.data.theme_config || {}, {
         primaryColor: settingsResult.data.primary_color || undefined
       }));
-      if (window.WOWPrivacyConsent?.has("analytics")) {\n      injectGoogleAnalytics(settingsResult.data.google_analytics_id);\n    }
+      function enableAnalyticsWhenAllowed() {
+      if (window.WOWPrivacyConsent?.has("analytics")) {
+        injectGoogleAnalytics(settingsResult.data.google_analytics_id);
+      }
+    }
+    enableAnalyticsWhenAllowed();
+    window.addEventListener("wow:consent-changed", enableAnalyticsWhenAllowed);
       if (settingsResult.data.site_name) document.title = settingsResult.data.site_name;
       if (settingsResult.data.site_description) {
         var metaDescription = document.querySelector('meta[name="description"]');
