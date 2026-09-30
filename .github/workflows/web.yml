@@ -27,6 +27,15 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - name: Restore Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: web/.next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('web/package.json') }}
+          restore-keys: |
+            nextjs-${{ runner.os }}-
+      - name: Prepare Next.js cache directory
+        run: mkdir -p .next/cache
       - name: Install
         run: npm install
       - name: Verify Supabase configuration
