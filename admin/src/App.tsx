@@ -57,7 +57,27 @@ function App(){
 
 function Login({email,password,setEmail,setPassword,onSuccess}:{email:string;password:string;setEmail:(v:string)=>void;setPassword:(v:string)=>void;onSuccess:(s:Session)=>void}){
  const [error,setError]=useState(""); const [busy,setBusy]=useState(false);
- return <div className="grid min-h-screen place-items-center bg-slate-100 p-5" dir="rtl"><Card className="w-full max-w-md"><div className="mb-6 text-center"><ShieldCheck className="mx-auto mb-3 text-emerald-600" size={40}/><h1 className="text-2xl font-bold">تسجيل دخول الإدارة</h1><p className="text-slate-500">WOW Admin Dashboard</p></div><form className="grid gap-4" onSubmit={async e=>{e.preventDefault();setBusy(true);setError("");const {data,error}=await supabase!.auth.signInWithPassword({email,password});if(error)setError(error.message);else if(data.session)onSuccess(data.session);setBusy(false)}}><Field label="البريد الإلكتروني"><Input type="email" required value={email} onChange={e=>setEmail(e.target.value)}/></Field><Field label="كلمة المرور"><Input type="password" required value={password} onChange={e=>setPassword(e.target.value)}/></Field>{error&&<p className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}<Button variant="primary" disabled={busy}>{busy?"جارٍ الدخول…":"دخول آمن"}</Button></form></Card></div>
+ const submit=async(e:React.FormEvent<HTMLFormElement>)=>{
+   e.preventDefault();
+   if(busy)return;
+   const cleanEmail=email.trim();
+   if(!cleanEmail||!password){setError("أدخل البريد الإلكتروني وكلمة المرور.");return;}
+   setBusy(true); setError("");
+   try{
+     if(!supabase) throw new Error("تعذر تهيئة Supabase. تحقق من إعدادات VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY.");
+     const result=await Promise.race([
+       supabase.auth.signInWithPassword({email:cleanEmail,password}),
+       new Promise<never>((_,reject)=>setTimeout(()=>reject(new Error("انتهت مهلة الاتصال بـ Supabase. تحقق من اتصال الإنترنت وإعدادات Supabase ثم حاول مرة أخرى.")),15000))
+     ]);
+     const {data,error}=result;
+     if(error){setError(error.message||"فشل تسجيل الدخول.");return;}
+     if(!data.session){setError("لم يتم إنشاء جلسة تسجيل الدخول. إذا كان البريد يحتاج إلى تأكيد، أكّد البريد من Supabase ثم أعد المحاولة.");return;}
+     onSuccess(data.session);
+   }catch(err){
+     setError(err instanceof Error?err.message:"حدث خطأ غير متوقع أثناء تسجيل الدخول.");
+   }finally{setBusy(false);}
+ };
+ return <div className="grid min-h-screen place-items-center bg-slate-100 p-5" dir="rtl"><Card className="w-full max-w-md"><div className="mb-6 text-center"><ShieldCheck className="mx-auto mb-3 text-emerald-600" size={40}/><h1 className="text-2xl font-bold">تسجيل دخول الإدارة</h1><p className="text-slate-500">WOW Admin Dashboard</p></div><form className="grid gap-4" onSubmit={submit}><Field label="البريد الإلكتروني"><Input type="email" required autoComplete="username" value={email} onChange={e=>setEmail(e.target.value)}/></Field><Field label="كلمة المرور"><Input type="password" required autoComplete="current-password" value={password} onChange={e=>setPassword(e.target.value)}/></Field>{error&&<p role="alert" className="break-words rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}<Button type="submit" variant="primary" disabled={busy}>{busy?"جارٍ التحقق من بيانات الدخول…":"دخول آمن"}</Button></form></Card></div>
 }
 function Overview(){return <div className="grid gap-5 md:grid-cols-3"><Card><BarChart3 className="mb-3 text-emerald-600"/><b className="text-lg">نظرة عامة</b><p className="text-sm text-slate-500">لوحة موحدة لإدارة الإعدادات والإعلانات وصفحات SEO.</p></Card><Card><ShieldCheck className="mb-3 text-emerald-600"/><b className="text-lg">RLS</b><p className="text-sm text-slate-500">التعديلات الإدارية محمية بدور admin داخل Supabase.</p></Card><Card><RefreshCw className="mb-3 text-emerald-600"/><b className="text-lg">Realtime</b><p className="text-sm text-slate-500">البيانات قابلة للتحديث الفوري عبر Supabase Realtime.</p></Card></div>}
 function ColorField({label,value,onChange}:{label:string;value:string;onChange:(v:string)=>void}){return <Field label={label}><div className="flex gap-2"><input type="color" value={value} onChange={e=>onChange(e.target.value)} className="h-11 w-14 rounded-lg border border-slate-200"/><Input value={value} onChange={e=>onChange(e.target.value)}/></div></Field>}
