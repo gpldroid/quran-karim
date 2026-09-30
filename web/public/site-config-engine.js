@@ -90,13 +90,20 @@
 
     const settingsResult = await client
       .from("app_settings")
-      .select("google_analytics_id,theme_config")
+      .select("site_name,site_description,google_analytics_id,theme_config,primary_color,app_dark_mode")
       .eq("id", 1)
       .maybeSingle();
 
     if (!settingsResult.error && settingsResult.data) {
-      applyTheme(settingsResult.data.theme_config);
+      applyTheme(Object.assign({}, settingsResult.data.theme_config || {}, {
+        primaryColor: settingsResult.data.primary_color || undefined
+      }));
       injectGoogleAnalytics(settingsResult.data.google_analytics_id);
+      if (settingsResult.data.site_name) document.title = settingsResult.data.site_name;
+      if (settingsResult.data.site_description) {
+        var metaDescription = document.querySelector('meta[name="description"]');
+        if (metaDescription) metaDescription.content = settingsResult.data.site_description;
+      }
     }
 
     const adsResult = await client
