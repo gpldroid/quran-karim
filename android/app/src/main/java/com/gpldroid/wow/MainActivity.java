@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.Window;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceError;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -47,14 +48,15 @@ public class MainActivity extends Activity {
             }
 
             @Override
-            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
-                if (remoteLoadInProgress && failingUrl != null && failingUrl.startsWith(REMOTE_WEB_URL)) {
+            public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
+                if (remoteLoadInProgress && request != null && request.isForMainFrame()
+                    && request.getUrl() != null && request.getUrl().toString().startsWith(REMOTE_WEB_URL)) {
                     remoteLoadInProgress = false;
-                    Log.w("MainActivity", "Remote web update unavailable; using bundled offline copy: " + description);
+                    Log.w("MainActivity", "Remote web update unavailable; using bundled offline copy: " + error);
                     view.loadUrl("file:///android_asset/quran.html");
                     return;
                 }
-                super.onReceivedError(view, errorCode, description, failingUrl);
+                super.onReceivedError(view, request, error);
             }
 
             @Override
