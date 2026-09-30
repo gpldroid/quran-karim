@@ -91,7 +91,7 @@
     const settingsResult = await client
       .from("app_settings")
       .select("google_analytics_id,theme_config")
-      .eq("id", true)
+      .eq("id", 1)
       .maybeSingle();
 
     if (!settingsResult.error && settingsResult.data) {
@@ -122,5 +122,23 @@
     if (!seoResult.error) updateSeo(seoResult.data);
   }
 
-  window.WOWSiteConfigEngine = { load, injectGoogleAnalytics, applyTheme };
+  function ensureManagementLinks() {
+    var host = document.querySelector(".header-controls");
+    if (!host || host.querySelector("[data-wow-management-link]")) return;
+    var base = window.WOW_BASE_PATH || "/wow";
+    var link = document.createElement("a");
+    link.href = base + "/dashboard/";
+    link.textContent = "لوحة التحكم";
+    link.setAttribute("data-wow-management-link", "true");
+    link.setAttribute("aria-label", "فتح لوحة التحكم");
+    link.style.cssText = "display:inline-flex;align-items:center;justify-content:center;padding:8px 12px;border:1px solid rgba(255,255,255,.45);border-radius:10px;color:inherit;text-decoration:none;font-weight:700;font-size:12px;white-space:nowrap";
+    host.appendChild(link);
+  }
+
+  window.WOWSiteConfigEngine = { load, injectGoogleAnalytics, applyTheme, ensureManagementLinks };
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", ensureManagementLinks, { once: true });
+  } else {
+    ensureManagementLinks();
+  }
 })();
