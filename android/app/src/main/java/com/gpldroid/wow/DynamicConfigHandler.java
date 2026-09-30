@@ -28,6 +28,9 @@ public final class DynamicConfigHandler {
         public String maintenanceMessage;
         public String minRequiredVersion;
         public String appUpdateUrl;
+        public boolean adsEnabled = true;
+        public String admobBannerId;
+        public String admobInterstitialId;
         public final List<AdConfig> ads = new ArrayList<>();
     }
 
@@ -56,7 +59,7 @@ public final class DynamicConfigHandler {
 
                 Config config = new Config();
                 String settingsJson = get(
-                    base + "/rest/v1/app_settings?select=google_analytics_id,theme_config,primary_color,app_dark_mode,maintenance_mode,maintenance_message,min_required_version,app_update_url&id=eq.1&limit=1",
+                    base + "/rest/v1/app_settings?select=google_analytics_id,theme_config,primary_color,app_dark_mode,maintenance_mode,maintenance_message,min_required_version,app_update_url,is_ads_enabled,admob_banner_id,admob_interstitial_id&id=eq.1&limit=1",
                     key
                 );
                 JSONArray settingsRows = new JSONArray(settingsJson);
@@ -67,6 +70,10 @@ public final class DynamicConfigHandler {
                     config.maintenanceMessage = row.optString("maintenance_message", null);
                     config.minRequiredVersion = row.optString("min_required_version", "1.0.0");
                     config.appUpdateUrl = row.optString("app_update_url", null);
+                    config.adsEnabled = row.optBoolean("is_ads_enabled", true);
+                    config.admobBannerId = row.optString("admob_banner_id", null);
+                    config.admobInterstitialId = row.optString("admob_interstitial_id", null);
+
                     String directPrimary = row.optString("primary_color", null);
                     JSONObject theme = row.optJSONObject("theme_config");
                     if (theme != null) {
