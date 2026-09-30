@@ -50,7 +50,7 @@
       .wow-consent-panel h2{margin:0 0 8px;font-size:1.3rem}.wow-consent-panel p{margin:0 0 16px;line-height:1.85;color:var(--wow-muted,#64756a)}
       .wow-consent-grid{display:grid;gap:10px;margin:12px 0 18px}.wow-consent-option{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border:1px solid var(--wow-border,rgba(22,101,52,.13));border-radius:14px;background:var(--wow-surface-2,#eef7f0)}
       .wow-consent-option strong{display:block}.wow-consent-option small{display:block;margin-top:3px;opacity:.75}.wow-consent-option input{width:20px;height:20px;accent-color:var(--wow-secondary,#22c55e)}
-      .wow-consent-actions{display:flex;flex-wrap:wrap;gap:9px}.wow-consent-actions button{border:0;border-radius:12px;padding:11px 15px;font:inherit;font-weight:800;cursor:pointer}.wow-consent-primary{background:linear-gradient(135deg,var(--wow-primary,#166534),var(--wow-secondary,#22c55e));color:#fff}.wow-consent-secondary{background:var(--wow-surface-2,#eef7f0);color:var(--wow-text,#102218);border:1px solid var(--wow-border)!important}.wow-consent-manage{position:fixed;left:18px;bottom:18px;z-index:4500;border:1px solid var(--wow-border,rgba(22,101,52,.15));background:var(--wow-surface,#fff);color:var(--wow-text,#102218);border-radius:999px;padding:9px 13px;font:inherit;font-size:.82rem;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.14)}
+      .wow-consent-actions{display:flex;flex-wrap:wrap;gap:9px}.wow-consent-actions button{border:0;border-radius:12px;padding:11px 15px;font:inherit;font-weight:800;cursor:pointer}.wow-consent-primary{background:linear-gradient(135deg,var(--wow-primary,#166534),var(--wow-secondary,#22c55e));color:#fff}.wow-consent-secondary{background:var(--wow-surface-2,#eef7f0);color:var(--wow-text,#102218);border:1px solid var(--wow-border)!important}.wow-consent-manage{position:fixed;left:18px;bottom:18px;z-index:4500;border:1px solid var(--wow-border,rgba(22,101,52,.15));background:var(--wow-surface,#fff);color:var(--wow-text,#102218);border-radius:999px;padding:9px 13px;font:inherit;font-size:.82rem;font-weight:800;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.14)}.wow-footer-privacy{border:0;background:none;color:inherit;font:inherit;font-weight:800;cursor:pointer;padding:6px 0;text-decoration:underline;text-underline-offset:3px}
       @media(max-width:600px){.wow-consent-panel{bottom:8px;padding:17px;border-radius:18px}.wow-consent-actions{display:grid;grid-template-columns:1fr}.wow-consent-actions button{width:100%}.wow-consent-manage{left:10px;bottom:10px}}
     `;
     document.head.appendChild(style);
@@ -112,7 +112,7 @@
     button.textContent = "إدارة الخصوصية";
     button.setAttribute("aria-label", "إدارة الخصوصية وملفات تعريف الارتباط");
     button.onclick = function(){ open("manage"); };
-    document.body.appendChild(button);
+    if (footer) {\n      const target = footer.querySelector(".footer-social, .footer-legal, .site-footer-inner > section, .site-footer-inner") || footer;\n      target.appendChild(button);\n    } else {\n      document.body.appendChild(button);\n    }
   }
 
   function init() {
