@@ -12,6 +12,12 @@ android {
         targetSdk 35
         versionCode 3
         versionName "1.1.0"
+        buildConfigField "String", "SUPABASE_URL", "\"" + (System.getenv("SUPABASE_URL") ?: "") + "\""
+        buildConfigField "String", "SUPABASE_ANON_KEY", "\"" + (System.getenv("SUPABASE_ANON_KEY") ?: "") + "\""
+    }
+
+    buildFeatures {
+        buildConfig true
     }
 
     signingConfigs {
