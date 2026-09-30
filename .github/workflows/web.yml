@@ -50,8 +50,8 @@ jobs:
       - name: Generate public runtime Supabase configuration
         working-directory: web
         env:
-          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://npytwojnxsmxhcssajtg.supabase.co' }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_s9DgcPj_TJh-ZbVhPqgnvw_opH6Z5ww' }}
         run: node -e 'require("fs").writeFileSync("public/runtime-config.js", "window.WOW_SUPABASE_CONFIG="+JSON.stringify({url:process.env.SUPABASE_URL,anonKey:process.env.SUPABASE_ANON_KEY})+";\\n")'
 
       - name: Build static site
