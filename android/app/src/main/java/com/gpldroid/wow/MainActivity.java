@@ -9,9 +9,15 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.graphics.Color;
 import android.webkit.ValueCallback;
+import android.util.Log;
+import kotlinx.coroutines.CoroutineScope;
+import kotlinx.coroutines.Dispatchers;
+import kotlinx.coroutines.SupervisorJob;
 
 public class MainActivity extends Activity {
     private WebView webView;
+    private CoroutineScope realtimeScope;
+    private SupabaseRealtimeEngine realtimeEngine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +52,20 @@ public class MainActivity extends Activity {
 
         webView.loadUrl("file:///android_asset/quran.html");
 
+        realtimeScope = new CoroutineScope(Dispatchers.getMain().plus(new SupervisorJob()));
+        realtimeEngine = new SupabaseRealtimeEngine(
+            realtimeScope,
+            () -> refreshRemoteConfig(),
+            () -> refreshRemoteConfig()
+        );
+
+        realtimeScope.launch(new kotlin.jvm.functions.Function1<kotlin.coroutines.Continuation<? super kotlin.Unit>, Object>() {
+            @Override
+            public Object invoke(kotlin.coroutines.Continuation<? super kotlin.Unit> continuation) {
+                return realtimeEngine.startListening(continuation);
+            }
+        });
+
         DynamicConfigHandler.fetch(new DynamicConfigHandler.Callback() {
             @Override
             public void onSuccess(DynamicConfigHandler.Config config) {
@@ -76,6 +96,51 @@ public class MainActivity extends Activity {
         });
     }
 
+    
+    private void refreshRemoteConfig() {
+        DynamicConfigHandler.fetch(new DynamicConfigHandler.Callback() {
+            @Override
+            public void onSuccess(DynamicConfigHandler.Config config) {
+                applyRemoteConfig(config);
+            }
+
+            @Override
+            public void onError(Exception error) {
+                Log.w("MainActivity", "Remote config refresh failed", error);
+            }
+        });
+
+        if (webView != null) {
+            webView.post(() -> webView.evaluateJavascript(
+                "(function(){if(window.WOWSiteConfigEngine&&window.WOWSiteConfigEngine.load){window.WOWSiteConfigEngine.load('/');}})();",
+                null
+            ));
+        }
+    }
+
+    private void applyRemoteConfig(DynamicConfigHandler.Config config) {
+        if (webView == null) return;
+
+        if (config.backgroundColor != null) {
+            try {
+                webView.setBackgroundColor(Color.parseColor(config.backgroundColor));
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+
+        String primary = config.primaryColor;
+        String secondary = config.secondaryColor;
+        if (primary != null || secondary != null) {
+            String script =
+                "(function(){" +
+                "var r=document.documentElement;" +
+                (primary != null ? "r.style.setProperty('--wow-primary'," + JSONObjectQuote(primary) + ");" : "") +
+                (secondary != null ? "r.style.setProperty('--wow-secondary'," + JSONObjectQuote(secondary) + ");" : "") +
+                "})();";
+            webView.evaluateJavascript(script, null);
+        }
+    }
+
     private static String JSONObjectQuote(String value) {
         return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
@@ -100,6 +165,17 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (realtimeEngine != null && realtimeScope != null) {
+            realtimeScope.launch(new kotlin.jvm.functions.Function1<kotlin.coroutines.Continuation<? super kotlin.Unit>, Object>() {
+                @Override
+                public Object invoke(kotlin.coroutines.Continuation<? super kotlin.Unit> continuation) {
+                    return realtimeEngine.stopListening(continuation);
+                }
+            });
+        }
+        if (realtimeScope != null) {
+            realtimeScope.cancel(null);
+        }
         if (webView != null) {
             webView.loadUrl("about:blank");
             webView.destroy();
