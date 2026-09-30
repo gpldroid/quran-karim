@@ -452,7 +452,7 @@ function boot(){
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 })();
-</script>
+<\/script>
 </body></html>"}],settings:{}};S.file="index.html";$("studioProjectName").value=S.project.name;renderFiles();openFile("index.html");renderPreview();switchStudio()}
 function switchStudio(){document.querySelector('#nav button[data-tab="studio"]')?.click()}
 async function persistProject(){if(!sb||!S.project)return;saveCurrent();const {data:{user}}=await sb.auth.getUser();if(!user)return;S.project.owner_id=user.id;S.project.name=$("studioProjectName").value.trim()||"مشروع";S.project.slug=slug(S.project.name)+"-"+(S.project.id||Date.now());const payload={owner_id:user.id,name:S.project.name,slug:S.project.slug,source_type:S.project.source_type||"local",github_owner:S.project.github_owner||null,github_repo:S.project.github_repo||null,github_branch:S.project.github_branch||"main",description:S.project.description||null,files:filesOf(S.project),settings:S.project.settings||{}};let r;if(S.project.id)r=await sb.from("admin_projects").update(payload).eq("id",S.project.id).select().single();else r=await sb.from("admin_projects").insert(payload).select().single();if(r.error){toast2(r.error.message,true);return}S.project=r.data;S.projects=[S.project,...S.projects.filter(x=>x.id!==S.project.id)];renderProjectSelect();$("studioProject").value=S.project.id;S.dirty=false;$("studioDirty").textContent="✓ محفوظ";toast2("تم حفظ المشروع")}
