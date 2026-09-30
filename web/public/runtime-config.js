@@ -1,0 +1,1 @@
+window.WOW_SUPABASE_CONFIG = window.WOW_SUPABASE_CONFIG || {};
