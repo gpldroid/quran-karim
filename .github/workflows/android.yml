@@ -40,7 +40,14 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$ANDROID_KEYSTORE_BASE64"
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode --ignore-garbage > "$RUNNER_TEMP/wow-release.jks"
+          CLEANED_B64="$(printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]')"
+          case $((${#CLEANED_B64} % 4)) in
+            2) CLEANED_B64="${CLEANED_B64}==" ;;
+            3) CLEANED_B64="${CLEANED_B64}=" ;;
+            0) ;;
+            *) echo "Invalid Base64 secret length"; exit 1 ;;
+          esac
+          printf '%s' "$CLEANED_B64" | base64 --decode > "$RUNNER_TEMP/wow-release.jks"
           chmod 600 "$RUNNER_TEMP/wow-release.jks"
           test -s "$RUNNER_TEMP/wow-release.jks"
 
