@@ -24,7 +24,7 @@ function App(){
 
  const profile=useQuery({queryKey:["profile",session?.user.id],enabled:!!supabase&&!!session,queryFn:async()=>{const {data,error}=await supabase!.from("profiles").select("role,display_name").eq("id",session!.user.id).single();if(error)throw error;return data as {role:Role;display_name:string|null}}});
  const role=profile.data?.role;
- const settings=useQuery({queryKey:["settings"],enabled:!!supabase&&role==="admin",queryFn:async()=>{const {data,error}=await supabase!.from("app_settings").select("id,google_analytics_id,theme_config").eq("id",true).single();if(error)throw error;return data as AppSettings}});
+ const settings=useQuery({queryKey:["settings"],enabled:!!supabase&&role==="admin",queryFn:async()=>{const {data,error}=await supabase!.from("app_settings").select("id,google_analytics_id,theme_config").eq("id",1).single();if(error)throw error;return data as AppSettings}});
  const ads=useQuery({queryKey:["ads"],enabled:!!supabase&&role==="admin",queryFn:async()=>{const {data,error}=await supabase!.from("ads_management").select("*").order("placement");if(error)throw error;return data as Ad[]}});
  const pages=useQuery({queryKey:["seo"],enabled:!!supabase&&role==="admin",queryFn:async()=>{const {data,error}=await supabase!.from("pages_and_seo").select("*").order("updated_at",{ascending:false});if(error)throw error;return data as SeoPage[]}});
 
