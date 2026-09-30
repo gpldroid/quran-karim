@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { BarChart3, FileText, LogOut, Megaphone, Palette, RefreshCw, Settings, ShieldCheck, Trash2, Pencil, Plus } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { supabase, defaultTheme, type Settings as AppSettings, type ThemeConfig, type Ad, type SeoPage } from "./lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import { Button, Card, Field, Input, Select, Textarea } from "./components/ui";
@@ -38,7 +39,7 @@ function App(){
  if(!supabase)return <div className="grid min-h-screen place-items-center p-6" dir="rtl"><Card className="w-full max-w-md"><h1 className="mb-2 text-2xl font-bold">إعداد Supabase مفقود</h1><p className="text-slate-600">أضف VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY إلى بيئة النشر.</p></Card></div>;
  if(!session)return <Login email={email} password={password} setEmail={setEmail} setPassword={setPassword} onSuccess={s=>setSession(s)} />;
 
- const nav=[["overview","نظرة عامة",BarChart3],...(role==="admin"?[["settings","الإعدادات",Settings],["theme","المظهر",Palette],["seo","الصفحات و SEO",FileText],["ads","الإعلانات",Megaphone]] as const:[])];
+ const nav: [string,string,LucideIcon][]=[["overview","نظرة عامة",BarChart3],...(role==="admin"?[["settings","الإعدادات",Settings],["theme","المظهر",Palette],["seo","الصفحات و SEO",FileText],["ads","الإعلانات",Megaphone]]:[])];
  return <div className="min-h-screen bg-slate-50" dir="rtl">
    {toast&&<div role="status" className="fixed left-4 top-4 z-50 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl">{toast}</div>}
    <div className="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-[240px_1fr]">
