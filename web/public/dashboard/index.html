@@ -123,7 +123,8 @@
     <div class="card"><h2 class="section-title">المستودع</h2>
       <div class="field"><label>Repository</label><input id="fmRepo" value="gpldroid/wow" placeholder="owner/repository"></div>
       <div class="field"><label>Branch</label><input id="fmBranch" value="main" placeholder="main"></div>
-      <div class="actions" style="margin-bottom:12px"><button class="btn primary" id="fmLoad">فتح المستودع</button><button class="btn" data-fm-repo="gpldroid/wow">WOW</button><button class="btn" data-fm-repo="gpldroid/apk-wpdf">APK-WPDF</button><button class="btn" data-fm-repo="gpldroid/mseo">MSEO</button><button class="btn" data-fm-repo="gpldroid/reviewer">Reviewer</button></div>
+      <div class="actions" style="margin-bottom:12px"><button class="btn primary" id="fmConnect">🐙 جلب مستودعات حسابي</button><button class="btn" id="fmLoad">فتح Repository</button></div>
+      <div class="field"><label>مستودعات حساب GitHub</label><select id="fmRepoSelect"><option value="">اتصل بـ GitHub لجلب المستودعات...</option></select></div>
       <div id="fmStatus" class="status">أدخل المستودع واضغط «فتح المستودع».</div><div id="fmRepoInfo" class="muted"></div>
     </div>
     <div class="card"><h2 class="section-title">الملف المحدد</h2><div id="fmCurrent" class="row"><div><div class="row-title">لم يتم اختيار ملف</div><small>اختر ملفًا من الشجرة.</small></div></div>
@@ -295,18 +296,45 @@ window.switchTab=switchTab;
  const el=id=>document.getElementById(id);
  const escFm=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
  const API="https://api.github.com";
- const state={repo:"gpldroid/wow",branch:"main",tree:[],file:null,content:""};
- function headers(){const h={Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10"};const t=sessionStorage.getItem("wow_github_token");if(t)h.Authorization="Bearer "+t;return h}
+ const state={repo:"gpldroid/wow",branch:"main",tree:[],file:null,content:"",repos:[]};
+ function token(){return sessionStorage.getItem("wow_github_token")||""}
+ function headers(){const h={Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10"};if(token())h.Authorization="Bearer "+token();return h}
  async function api(path){const r=await fetch(API+path,{headers:headers()});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||("GitHub API "+r.status));return d}
  function status(m,bad=false){el("fmStatus").textContent=m;el("fmStatus").className="status "+(bad?"bad":"")}
  function icon(p){if(/\.(html?|xhtml)$/i.test(p))return"🌐";if(/\.(css|scss|less)$/i.test(p))return"🎨";if(/\.(js|ts|jsx|tsx)$/i.test(p))return"⚙️";if(/\.(json|xml|yml|yaml)$/i.test(p))return"🧾";if(/\.(png|jpg|jpeg|webp|gif|svg|ico)$/i.test(p))return"🖼️";if(/\.(java|kt|gradle|properties)$/i.test(p))return"📱";return"📄"}
  function render(){const q=(el("fmSearch").value||"").toLowerCase().trim();const a=state.tree.filter(x=>x.type==="blob"&&(!q||x.path.toLowerCase().includes(q)));el("fmCount").textContent=state.tree.filter(x=>x.type==="blob").length+" ملف";el("fmTree").innerHTML=a.length?a.map(x=>'<button class="file-item '+(state.file?.path===x.path?"active":"")+'" data-fm-path="'+escFm(x.path)+'"><span>'+icon(x.path)+'</span><span>'+escFm(x.path)+'</span><small style="margin-right:auto;color:var(--muted)">'+(x.size||0).toLocaleString()+" B"+'</small></button>').join(""):'<div class="muted">لا توجد ملفات مطابقة.</div>';el("fmTree").querySelectorAll("[data-fm-path]").forEach(b=>b.onclick=()=>openFile(b.dataset.fmPath))}
- async function loadRepo(){const repo=el("fmRepo").value.trim().replace(/^https?:\/\/github\.com\//i,"").replace(/\.git\/?$/,"").replace(/\/$/,"");const branch=el("fmBranch").value.trim()||"main";if(!/^[^/]+\/[^/]+$/.test(repo)){status("صيغة Repository غير صحيحة. استخدم owner/repository.",true);return}state.repo=repo;state.branch=branch;state.file=null;setButtons(false);try{status("جارٍ قراءة "+repo+" / "+branch+"...");const meta=await api("/repos/"+repo);const d=await api("/repos/"+repo+"/git/trees/"+encodeURIComponent(branch)+"?recursive=1");state.tree=(d.tree||[]).filter(x=>x.type==="blob"&&Number(x.size||0)<=5000000);el("fmRepoInfo").innerHTML="<strong>"+escFm(meta.full_name)+"</strong> · "+(meta.private?"🔒 Private":"🌐 Public")+" · Default: "+escFm(meta.default_branch||branch)+"<br>"+escFm(meta.description||"");render();status("✓ تم تحميل "+state.tree.length+" ملفًا.");}catch(e){el("fmTree").innerHTML='<div class="muted">تعذر تحميل الملفات.</div>';status(e.message||"فشل تحميل المستودع.",true)}}
+ function renderRepos(){const s=el("fmRepoSelect");s.innerHTML='<option value="">اختر مستودعًا من حساب GitHub...</option>'+state.repos.map(r=>'<option value="'+escFm(r.full_name)+'">'+escFm(r.full_name)+(r.private?" · 🔒":"")+'</option>').join("");s.value=state.repo}
+ async function connect(){
+   if(!window.__WOW_SUPABASE_CLIENT__){status("Supabase Auth غير جاهز.",true);return}
+   const client=window.__WOW_SUPABASE_CLIENT__;
+   const {data:{session}}=await client.auth.getSession();
+   if(session?.provider_token){sessionStorage.setItem("wow_github_token",session.provider_token);return loadRepos()}
+   status("جارٍ فتح GitHub OAuth...");
+   const {error}=await client.auth.signInWithOAuth({provider:"github",options:{scopes:"repo workflow",redirectTo:location.href}});
+   if(error)status("تعذر بدء GitHub OAuth: "+error.message,true)
+ }
+ async function loadRepos(){
+   if(!token()){status("اتصل بحساب GitHub أولًا.",true);return}
+   try{
+     status("جارٍ جلب جميع مستودعات حساب GitHub...");
+     const all=[];for(let page=1;page<=10;page++){const a=await api("/user/repos?per_page=100&page="+page+"&affiliation=owner,collaborator,organization_member&sort=updated");all.push(...a);if(a.length<100)break}
+     state.repos=all;renderRepos();status("✓ تم جلب "+all.length+" مستودعًا. يمكنك اختيار أي Repository لديك صلاحية الوصول إليه.");
+   }catch(e){status(e.message||"تعذر جلب مستودعات الحساب.",true)}
+ }
+ async function loadRepo(){
+   const selected=el("fmRepoSelect").value;
+   const repo=(selected||el("fmRepo").value).trim().replace(/^https?:\/\/github\.com\//i,"").replace(/\.git\/?$/,"").replace(/\/$/,"");
+   const branch=el("fmBranch").value.trim()||"main";
+   if(!/^[^/]+\/[^/]+$/.test(repo)){status("اختر Repository من حساب GitHub أو استخدم owner/repository.",true);return}
+   state.repo=repo;state.branch=branch;state.file=null;setButtons(false);
+   try{status("جارٍ قراءة "+repo+" / "+branch+"...");const meta=await api("/repos/"+repo);const d=await api("/repos/"+repo+"/git/trees/"+encodeURIComponent(branch)+"?recursive=1");state.tree=(d.tree||[]).filter(x=>x.type==="blob"&&Number(x.size||0)<=5000000);el("fmRepoInfo").innerHTML="<strong>"+escFm(meta.full_name)+"</strong> · "+(meta.private?"🔒 Private":"🌐 Public")+" · Default: "+escFm(meta.default_branch||branch)+"<br>"+escFm(meta.description||"");render();status("✓ تم تحميل "+state.tree.length+" ملفًا من "+repo+".");}catch(e){el("fmTree").innerHTML='<div class="muted">تعذر تحميل الملفات.</div>';status(e.message||"فشل تحميل المستودع.",true)}
+ }
  async function openFile(path){try{status("جارٍ فتح "+path+"...");const d=await api("/repos/"+state.repo+"/contents/"+path.split("/").map(encodeURIComponent).join("/")+"?ref="+encodeURIComponent(state.branch));state.file={path,sha:d.sha,html_url:d.html_url,download_url:d.download_url};if(d.encoding==="base64"){const bin=atob(d.content.replace(/\n/g,""));const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));state.content=new TextDecoder("utf-8").decode(bytes);el("fmPreview").textContent=state.content.length>300000?state.content.slice(0,300000)+"\n\n[تم اختصار المعاينة]":state.content;el("fmPreviewMeta").textContent=(d.size||0).toLocaleString()+" B · "+d.sha.slice(0,10)}else{state.content="";el("fmPreview").textContent="هذا الملف غير متاح كنص عبر Contents API."}el("fmPreviewTitle").textContent=path;el("fmCurrent").innerHTML="<div><div class='row-title'>"+escFm(path)+"</div><small>"+escFm(state.repo)+" / "+escFm(state.branch)+"</small></div>";setButtons(true);render();status("✓ تم فتح الملف.");}catch(e){status(e.message||"تعذر فتح الملف.",true)}}
  function setButtons(on){["fmDownload","fmGithubFile"].forEach(id=>el(id).disabled=!on)}
  function download(){if(!state.file)return;const blob=new Blob([state.content],{type:"text/plain;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=state.file.path.split("/").pop();a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
  function githubFile(){if(state.file)window.open("https://github.com/"+state.repo+"/blob/"+encodeURIComponent(state.branch)+"/"+state.file.path.split("/").map(encodeURIComponent).join("/"),"_blank","noopener")}
- el("fmLoad").onclick=loadRepo;el("fmRefresh").onclick=loadRepo;el("fmSearch").oninput=render;el("fmDownload").onclick=download;el("fmGithubFile").onclick=githubFile;el("fmOpenGithub").onclick=()=>switchTab("github");document.querySelectorAll("[data-fm-repo]").forEach(b=>b.onclick=()=>{el("fmRepo").value=b.dataset.fmRepo;loadRepo()});loadRepo();
+ el("fmConnect").onclick=connect;el("fmLoad").onclick=loadRepo;el("fmRefresh").onclick=()=>token()?loadRepos():loadRepo();el("fmSearch").oninput=render;el("fmDownload").onclick=download;el("fmGithubFile").onclick=githubFile;el("fmRepoSelect").onchange=()=>{const r=state.repos.find(x=>x.full_name===el("fmRepoSelect").value);if(r){el("fmBranch").value=r.default_branch||"main";state.repo=r.full_name;loadRepo()}};el("fmOpenGithub").onclick=()=>switchTab("github");
+ if(token())loadRepos();
 })();
 
 async function requireAdmin(){if(!client)return false;const {data:{user}}=await client.auth.getUser();if(!user)return false;$("userEmail").textContent=user.email||"";const p=await client.from("profiles").select("role").eq("id",user.id).maybeSingle();role=p.data?.role||"editor";if(role!=="admin"){toast("هذا الحساب لا يملك صلاحيات المدير.",true);return false}return true}
