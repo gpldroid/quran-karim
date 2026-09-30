@@ -107,7 +107,7 @@
       applyTheme(Object.assign({}, settingsResult.data.theme_config || {}, {
         primaryColor: settingsResult.data.primary_color || undefined
       }));
-      injectGoogleAnalytics(settingsResult.data.google_analytics_id);
+      if (window.WOWPrivacyConsent?.has("analytics")) {\n      injectGoogleAnalytics(settingsResult.data.google_analytics_id);\n    }
       if (settingsResult.data.site_name) document.title = settingsResult.data.site_name;
       if (settingsResult.data.site_description) {
         var metaDescription = document.querySelector('meta[name="description"]');
