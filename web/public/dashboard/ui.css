@@ -1,79 +1,17 @@
-/* WOW Admin UI v2 */
-:root{
- --admin-bg:#f4faf6;--admin-surface:rgba(255,255,255,.88);--admin-text:#102218;--admin-muted:#64756a;
- --admin-border:rgba(22,101,52,.12);--admin-primary:#166534;--admin-secondary:#22c55e;
- --admin-shadow:0 16px 45px rgba(16,66,35,.10);--admin-glow:0 0 40px rgba(34,197,94,.10);
-}
-body{
- background:
- radial-gradient(circle at 5% 0%,rgba(34,197,94,.11),transparent 25rem),
- radial-gradient(circle at 95% 5%,rgba(132,204,22,.09),transparent 23rem),
- var(--admin-bg)!important;color:var(--admin-text)!important;
-}
-body.admin-dark{
- --admin-bg:#07130c;--admin-surface:rgba(13,31,20,.90);--admin-text:#e9f7ed;--admin-muted:#9db1a3;
- --admin-border:rgba(134,239,172,.14);--admin-primary:#22c55e;--admin-secondary:#86efac;
- --admin-shadow:0 18px 52px rgba(0,0,0,.35);--admin-glow:0 0 45px rgba(34,197,94,.10);
-}
-.auth{position:relative;overflow:hidden;background:transparent!important}
-.auth:before,.auth:after{content:"";position:absolute;border-radius:50%;filter:blur(3px);pointer-events:none}
-.auth:before{width:360px;height:360px;background:rgba(34,197,94,.12);top:-120px;right:-100px;box-shadow:0 0 100px rgba(34,197,94,.14)}
-.auth:after{width:300px;height:300px;background:rgba(132,204,22,.08);bottom:-130px;left:-80px;box-shadow:0 0 100px rgba(132,204,22,.10)}
-.auth-card{
- position:relative;z-index:1;background:var(--admin-surface)!important;color:var(--admin-text)!important;
- border:1px solid var(--admin-border)!important;border-radius:28px!important;
- box-shadow:var(--admin-shadow),var(--admin-glow)!important;backdrop-filter:blur(18px);
- padding:34px!important;animation:adminIn .45s ease both;
-}
-.brand{font-size:26px!important;letter-spacing:-.03em}
-.field input,.field textarea,.field select{
- background:rgba(255,255,255,.72)!important;color:var(--admin-text)!important;
- border-color:var(--admin-border)!important;border-radius:14px!important;
- transition:border-color .2s,box-shadow .2s,transform .2s;
-}
-.admin-dark .field input,.admin-dark .field textarea,.admin-dark .field select{background:rgba(7,19,12,.78)!important}
-.field input:focus,.field textarea:focus,.field select:focus{
- border-color:var(--admin-secondary)!important;box-shadow:0 0 0 4px rgba(34,197,94,.12)!important;transform:translateY(-1px)
-}
-.btn{
- border-radius:13px!important;box-shadow:0 5px 16px rgba(15,23,42,.07);
- transition:transform .2s ease,box-shadow .2s ease,background .2s ease!important
-}
-.btn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(15,23,42,.14)}
-.btn.primary{background:linear-gradient(135deg,var(--admin-primary),var(--admin-secondary))!important}
-.layout{grid-template-columns:280px 1fr!important}
-.sidebar{
- background:linear-gradient(180deg,#0a2414,#0f3b21 70%,#0a2414)!important;
- border-left:1px solid rgba(255,255,255,.08);box-shadow:18px 0 45px rgba(6,78,31,.14);
-}
-.side-brand{font-size:23px!important;letter-spacing:-.03em}
-.nav button{transition:transform .2s,background .2s,box-shadow .2s!important}
-.nav button.active,.nav button:hover{
- background:linear-gradient(135deg,rgba(34,197,94,.28),rgba(134,239,172,.10))!important;
- box-shadow:inset 0 0 0 1px rgba(134,239,172,.12),0 8px 20px rgba(0,0,0,.12);
- transform:translateX(-2px)
-}
-.main{padding:26px!important}
-.topbar{margin-bottom:24px!important}
-.topbar h1{font-size:30px!important;letter-spacing:-.04em}
-.card{
- background:var(--admin-surface)!important;color:var(--admin-text)!important;
- border:1px solid var(--admin-border)!important;border-radius:20px!important;
- box-shadow:var(--admin-shadow)!important;backdrop-filter:blur(14px);
- transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease;
-}
-.card:hover{transform:translateY(-2px);box-shadow:0 22px 55px rgba(16,66,35,.14),var(--admin-glow)!important}
-.stat{color:var(--admin-primary)}
-.status{background:rgba(226,232,240,.55)!important;color:var(--admin-text)!important;border:1px solid var(--admin-border)}
-.admin-dark .status{background:rgba(30,41,59,.5)!important}
-.row{background:rgba(255,255,255,.34);border-color:var(--admin-border)!important}
-.admin-dark .row{background:rgba(7,19,12,.35)}
-.toast{background:#0a2414!important;box-shadow:0 16px 40px rgba(0,0,0,.24)!important}
-.tab{animation:adminTab .25s ease both}
-@keyframes adminIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
-@keyframes adminTab{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@media(max-width:950px){
- .sidebar{border-left:0;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px rgba(6,78,31,.15)}
- .main{padding:18px!important}
-}
+/* WOW Admin UI v3 — balanced RTL dashboard */
+:root{--admin-bg:#f4faf6;--admin-surface:rgba(255,255,255,.94);--admin-text:#102218;--admin-muted:#64756a;--admin-border:rgba(22,101,52,.12);--admin-primary:#166534;--admin-secondary:#22c55e;--admin-shadow:0 12px 34px rgba(16,66,35,.09);--admin-glow:0 0 34px rgba(34,197,94,.08)}
+*{box-sizing:border-box}
+body{background:radial-gradient(circle at 5% 0%,rgba(34,197,94,.08),transparent 25rem),radial-gradient(circle at 95% 5%,rgba(132,204,22,.06),transparent 23rem),var(--admin-bg)!important;color:var(--admin-text)!important}
+body.admin-dark{--admin-bg:#07130c;--admin-surface:rgba(13,31,20,.94);--admin-text:#e9f7ed;--admin-muted:#a5b8aa;--admin-border:rgba(134,239,172,.14);--admin-primary:#22c55e;--admin-secondary:#86efac;--admin-shadow:0 16px 42px rgba(0,0,0,.34);--admin-glow:0 0 36px rgba(34,197,94,.08)}
+.auth{position:relative;overflow:hidden;background:transparent!important;padding:24px}.auth:before,.auth:after{content:"";position:absolute;border-radius:50%;filter:blur(4px);pointer-events:none}.auth:before{width:330px;height:330px;background:rgba(34,197,94,.10);top:-120px;right:-90px;box-shadow:0 0 90px rgba(34,197,94,.12)}.auth:after{width:270px;height:270px;background:rgba(132,204,22,.07);bottom:-120px;left:-80px;box-shadow:0 0 90px rgba(132,204,22,.08)}
+.auth-card{position:relative;z-index:1;width:min(430px,100%);background:var(--admin-surface)!important;color:var(--admin-text)!important;border:1px solid var(--admin-border)!important;border-radius:24px!important;box-shadow:var(--admin-shadow),var(--admin-glow)!important;backdrop-filter:blur(18px);padding:30px!important;animation:adminIn .35s ease both}
+.brand{font-size:22px!important;line-height:1.35!important;letter-spacing:-.02em}.auth-card>.muted{font-size:.9rem;line-height:1.8}.field{gap:7px;margin-bottom:14px}.field label{font-size:.88rem!important;font-weight:700}
+.field input,.field textarea,.field select{background:rgba(255,255,255,.78)!important;color:var(--admin-text)!important;border-color:var(--admin-border)!important;border-radius:12px!important;padding:10px 12px!important;transition:border-color .2s,box-shadow .2s,transform .2s}.admin-dark .field input,.admin-dark .field textarea,.admin-dark .field select{background:rgba(7,19,12,.82)!important}.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--admin-secondary)!important;box-shadow:0 0 0 3px rgba(34,197,94,.11)!important;transform:translateY(-1px)}
+.btn{border-radius:11px!important;padding:9px 13px!important;font-size:.9rem!important;font-weight:800;box-shadow:0 5px 15px rgba(15,23,42,.06);transition:transform .2s ease,box-shadow .2s ease,background .2s ease!important}.btn:hover{transform:translateY(-1px);box-shadow:0 9px 20px rgba(15,23,42,.11)}.btn.primary{background:linear-gradient(135deg,var(--admin-primary),var(--admin-secondary))!important}
+.layout{grid-template-columns:250px 1fr!important}.sidebar{background:linear-gradient(180deg,#0b2415,#0f3a21 70%,#0a2414)!important;border-left:1px solid rgba(255,255,255,.07);box-shadow:14px 0 34px rgba(6,78,31,.12);padding:16px!important}.side-brand{font-size:20px!important;line-height:1.35;padding:8px 7px 20px!important}.nav{gap:5px!important}.nav button{font-size:.9rem!important;font-weight:700!important;padding:10px 11px!important;transition:transform .2s,background .2s,box-shadow .2s!important}.nav button.active,.nav button:hover{background:linear-gradient(135deg,rgba(34,197,94,.24),rgba(134,239,172,.09))!important;box-shadow:inset 0 0 0 1px rgba(134,239,172,.11),0 6px 16px rgba(0,0,0,.10);transform:translateX(-1px)}
+.side-bottom{bottom:16px!important;left:16px!important;right:16px!important}.main{padding:24px!important;max-width:1440px!important}.topbar{margin-bottom:20px!important}.topbar h1{font-size:24px!important;line-height:1.3!important;letter-spacing:-.025em}#userEmail{font-size:.82rem!important;margin-top:3px}.actions{gap:7px!important}.grid{gap:14px!important}
+.card{background:var(--admin-surface)!important;color:var(--admin-text)!important;border:1px solid var(--admin-border)!important;border-radius:17px!important;box-shadow:var(--admin-shadow)!important;backdrop-filter:blur(12px);padding:17px!important;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}.card:hover{transform:translateY(-1px);box-shadow:0 18px 42px rgba(16,66,35,.12),var(--admin-glow)!important}.section-title{font-size:18px!important;line-height:1.45!important;margin:0 0 13px!important}.stat{font-size:25px!important}.muted{color:var(--admin-muted)!important}.status{font-size:.86rem!important;line-height:1.7!important;background:rgba(226,232,240,.5)!important;color:var(--admin-text)!important;border:1px solid var(--admin-border)}.admin-dark .status{background:rgba(30,41,59,.45)!important}.row{background:rgba(255,255,255,.30);border-color:var(--admin-border)!important;padding:11px!important}.admin-dark .row{background:rgba(7,19,12,.32)}.row-title{font-size:.92rem!important}.row small{font-size:.78rem!important}.toast{background:#0a2414!important;box-shadow:0 14px 34px rgba(0,0,0,.22)!important;font-size:.88rem!important}.tab{animation:adminTab .2s ease both}
+@keyframes adminIn{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}@keyframes adminTab{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(max-width:950px){.layout{grid-template-columns:1fr!important}.sidebar{position:static;height:auto!important;border-left:0;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 10px 26px rgba(6,78,31,.13)}.side-bottom{position:static!important;margin-top:14px}.main{padding:18px!important}.cards,.two,.three{grid-template-columns:1fr 1fr}}
+@media(max-width:620px){.main{padding:14px!important}.cards,.two,.three{grid-template-columns:1fr}.topbar{align-items:flex-start;flex-direction:column}.nav{grid-template-columns:1fr 1fr}.nav button{padding:9px!important}.row{align-items:flex-start;flex-direction:column}.row-actions{width:100%}.auth-card{padding:24px!important}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.001ms!important;transition-duration:.001ms!important}}
