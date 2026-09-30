@@ -37,8 +37,17 @@
     const value = theme || {};
     root.style.setProperty("--primary-color", value.primaryColor || value.primary || DEFAULT_THEME.primaryColor);
     root.style.setProperty("--secondary-color", value.secondaryColor || value.secondary || DEFAULT_THEME.secondaryColor);
-    if (value.background) root.style.setProperty("--bg-color", value.background);
-    if (value.surface) root.style.setProperty("--dark-card", value.surface);
+    root.style.setProperty("--wow-primary", value.primaryColor || value.primary || DEFAULT_THEME.primaryColor);
+    root.style.setProperty("--wow-secondary", value.secondaryColor || value.secondary || DEFAULT_THEME.secondaryColor);
+    if (value.background) {
+      root.style.setProperty("--bg-color", value.background);
+      root.style.setProperty("--wow-bg", value.background);
+    }
+    if (value.surface) {
+      root.style.setProperty("--dark-card", value.surface);
+      root.style.setProperty("--wow-surface", value.surface);
+    }
+    if (value.radius) root.style.setProperty("--wow-radius", value.radius);
     if (value.font) document.body.style.fontFamily = value.font;
   }
 
