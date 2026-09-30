@@ -148,19 +148,23 @@ public class MainActivity extends Activity {
         if (webView == null) return;
 
         StringBuilder script = new StringBuilder(
-            "(function(){function host(p){var h=document.querySelector('[data-ad-placement=\\\"'+p+'\\\"]');" +
-            "if(!h){h=document.createElement('div');h.setAttribute('data-ad-placement',p);" +
-            "h.style.cssText='margin:12px auto;max-width:100%;text-align:center;';" +
-            "var q=document.getElementById('quran-container'),head=document.querySelector('header');" +
-            "if(p==='body_top'&&q)q.parentNode.insertBefore(h,q);else if(p==='body_bottom'&&q)q.parentNode.insertBefore(h,q.nextSibling);" +
-            "else if(p==='header'&&head)head.appendChild(h);else document.body.prepend(h);}return h;}" +
-            "function setHtml(h,html){h.innerHTML='';var box=document.createElement('div');box.innerHTML=html;" +
-            "Array.from(box.childNodes).forEach(function(n){if(n.tagName==='SCRIPT'){var s=document.createElement('script');" +
-            "Array.from(n.attributes).forEach(function(a){s.setAttribute(a.name,a.value);});s.text=n.textContent||'';h.appendChild(s);}else{h.appendChild(n.cloneNode(true));}})}"
+            "(function(){"
+          + "function allowed(){try{var c=JSON.parse(localStorage.getItem('wow_privacy_consent_v1'));return !!(c&&c.version===1&&c.ads===true);}catch(e){return false;}}"
+          + "function host(p){var h=document.querySelector('[data-ad-placement=\\\"'+p+'\\\"]');"
+          + "if(!h){h=document.createElement('div');h.setAttribute('data-ad-placement',p);"
+          + "h.style.cssText='margin:12px auto;max-width:100%;text-align:center;';"
+          + "var q=document.getElementById('quran-container'),head=document.querySelector('header');"
+          + "if(p==='body_top'&&q)q.parentNode.insertBefore(h,q);else if(p==='body_bottom'&&q)q.parentNode.insertBefore(h,q.nextSibling);"
+          + "else if(p==='header'&&head)head.appendChild(h);else document.body.prepend(h);}return h;}"
+          + "function setHtml(h,html){h.innerHTML='';var box=document.createElement('div');box.innerHTML=html;"
+          + "Array.from(box.childNodes).forEach(function(n){if(n.tagName==='SCRIPT'){var s=document.createElement('script');"
+          + "Array.from(n.attributes).forEach(function(a){s.setAttribute(a.name,a.value);});s.text=n.textContent||'';h.appendChild(s);}else{h.appendChild(n.cloneNode(true));}})}"
+          + "function clear(){document.querySelectorAll('[data-ad-placement]').forEach(function(h){h.innerHTML='';h.hidden=true;});}"
+          + "function render(){if(!allowed()){clear();return;}"
         );
 
         if (!config.adsEnabled) {
-            script.append("document.querySelectorAll('[data-ad-placement]').forEach(function(h){h.remove();});");
+            script.append("clear();");
         } else {
             for (DynamicConfigHandler.AdConfig ad : config.ads) {
                 if (ad == null || !ad.active || ad.adCode == null || ad.adCode.trim().isEmpty()) continue;
@@ -172,7 +176,10 @@ public class MainActivity extends Activity {
             }
         }
 
-        script.append("})();");
+        script.append("}"
+            + "render();"
+            + "window.addEventListener('wow:consent-changed',render);"
+            + "})();");
         webView.evaluateJavascript(script.toString(), null);
     }
 
