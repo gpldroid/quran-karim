@@ -6,7 +6,7 @@ export async function getPublicSettings(): Promise<PublicAppSettings | null> {
   const { data, error } = await supabase
     .from("app_settings")
     .select("id,google_analytics_id,theme_config")
-    .eq("id", true)
+    .eq("id", 1)
     .single();
 
   if (error || !data) return null;
