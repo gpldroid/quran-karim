@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace "com.gpldroid.wow"
-    compileSdk 35
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.gpldroid.wow"
