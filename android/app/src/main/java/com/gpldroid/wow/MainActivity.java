@@ -153,7 +153,7 @@ public class MainActivity extends Activity {
     private void injectAds(DynamicConfigHandler.Config config) {
         if (config.ads == null) return;
         StringBuilder script = new StringBuilder(
-            "(function(){function host(p){var h=document.querySelector('[data-ad-placement="'+p+'"]');" +
+            "(function(){function host(p){var h=document.querySelector('[data-ad-placement=\\\"'+p+'\\\"]');" +
             "if(!h){h=document.createElement('div');h.setAttribute('data-ad-placement',p);" +
             "h.style.cssText='margin:12px auto;max-width:100%;text-align:center;';" +
             "var q=document.getElementById('quran-container'),head=document.querySelector('header');" +
