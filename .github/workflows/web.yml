@@ -54,8 +54,8 @@ jobs:
           node -e 'require("fs").writeFileSync("public/runtime-config.js", "window.WOW_SUPABASE_CONFIG="+JSON.stringify({url:process.env.SUPABASE_URL,anonKey:process.env.SUPABASE_ANON_KEY})+";\\n")'
       - name: Build static site
         env:
-          NEXT_PUBLIC_SUPABASE_URL: $SUPABASE_URL
-          NEXT_PUBLIC_SUPABASE_ANON_KEY: $SUPABASE_ANON_KEY
+          NEXT_PUBLIC_SUPABASE_URL: ${{ env.SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_BASE_PATH: /wow
         run: npm run build
       - name: Copy unified public shell
