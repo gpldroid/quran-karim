@@ -7,16 +7,17 @@ import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
-import kotlinx.coroutines.CoroutineScope\nimport kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 
 /**
  * Keeps the Android client subscribed to Supabase database changes.
  *
- * We deliberately re-fetch the complete public configuration after an event.
- * This keeps the WebView and native configuration in sync and avoids coupling
- * the Android UI to the exact JSON shape of theme_config/ad_code.
+ * After a database event we re-fetch the complete public configuration.
+ * This keeps the WebView and native configuration in sync without coupling
+ * the Android client to the exact JSON shape of theme_config/ad_code.
  */
 class SupabaseRealtimeEngine(
     private val scope: CoroutineScope,
@@ -32,10 +33,22 @@ class SupabaseRealtimeEngine(
 
     private var started = false
 
-    fun startListening() {\n        scope.launch { startListeningInternal() }\n    }\n\n    private suspend fun startListeningInternal() {
+    /**
+     * Java-friendly lifecycle entry point.
+     * The suspend work is launched in the Activity-owned scope.
+     */
+    fun startListening() {
+        scope.launch {
+            startListeningInternal()
+        }
+    }
+
+    private suspend fun startListeningInternal() {
         if (started) return
 
-        if (BuildConfig.SUPABASE_URL.isBlank() || BuildConfig.SUPABASE_ANON_KEY.isBlank()) {
+        if (BuildConfig.SUPABASE_URL.isBlank() ||
+            BuildConfig.SUPABASE_ANON_KEY.isBlank()
+        ) {
             Log.w(TAG, "Supabase configuration is missing; Realtime disabled.")
             return
         }
@@ -45,8 +58,6 @@ class SupabaseRealtimeEngine(
         try {
             client.realtime.connect()
 
-            // One channel per table is intentional: postgresChangeFlow registrations
-            // must be configured before the channel is subscribed.
             val settingsChannel = client.channel("wow-app-settings")
             settingsChannel
                 .postgresChangeFlow<PostgresAction.Update>(schema = "public") {
@@ -79,9 +90,20 @@ class SupabaseRealtimeEngine(
         }
     }
 
-    fun stopListening() {\n        scope.launch { stopListeningInternal() }\n    }\n\n    private suspend fun stopListeningInternal() {
+    /**
+     * Java-friendly lifecycle exit point.
+     */
+    fun stopListening() {
+        scope.launch {
+            stopListeningInternal()
+        }
+    }
+
+    private suspend fun stopListeningInternal() {
         if (!started) return
+
         started = false
+
         try {
             client.realtime.disconnect()
         } catch (error: Exception) {
