@@ -8,7 +8,7 @@ export type ThemeConfig = {
   primary:string; secondary:string; background:string; surface:string; font:string; radius:string;
 };
 export type Settings = {
-  id:boolean; google_analytics_id:string|null; theme_config:ThemeConfig;
+  id:number; google_analytics_id:string|null; theme_config:ThemeConfig;
 };
 export type Ad = {
   id:string; placement:"header"|"body_top"|"body_bottom"|"interstitial"; ad_code:string; is_active:boolean; target_platform:"web"|"android"|"both";
