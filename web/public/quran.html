@@ -8,6 +8,9 @@
     <meta name="keywords" content="القرآن الكريم, قراءة القرآن, الاستماع للقرآن, تلاوة القرآن, المصحف الشريف, القرآن مكتوب, القرآن صوت, تفسير القرآن, تفسير الآيات, شرح الأحاديث النبوية, أحاديث نبوية, سور القرآن, آيات القرآن, قراء القرآن, تلاوات القرآن, عماد الدين لمراني">
     <meta name="author" content="عماد الدين لمراني"><meta name="robots" content="index, follow"><meta name="googlebot" content="index, follow"><link rel="canonical" href="https://gpldroid.github.io/wow/"><meta property="og:type" content="website"><meta property="og:title" content="قراءة و الإستماع للقران الكريم"><meta property="og:description" content="قراءة و الاستماع للقرآن الكريم مع توفير شرح الأحاديث النبوية و تفسير الآيات القرآنية على صفحة عماد الدين لمراني للقرآن الكريم"><meta property="og:url" content="https://gpldroid.github.io/wow/"><meta property="og:locale" content="ar_AR"><meta property="og:site_name" content="عماد الدين لمراني للقرآن الكريم"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="قراءة و الإستماع للقران الكريم"><meta name="twitter:description" content="قراءة و الاستماع للقرآن الكريم مع توفير شرح الأحاديث النبوية و تفسير الآيات القرآنية على صفحة عماد الدين لمراني للقرآن الكريم"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"عماد الدين لمراني للقرآن الكريم","alternateName":"قراءة و الإستماع للقران الكريم","url":"https://gpldroid.github.io/wow/","inLanguage":"ar","description":"قراءة و الاستماع للقرآن الكريم مع توفير شرح الأحاديث النبوية و تفسير الآيات القرآنية على صفحة عماد الدين لمراني للقرآن الكريم","publisher":{"@type":"Person","name":"عماد الدين لمراني"}}</script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./runtime-config.js"></script>
+    <script src="./site-config-engine.js"></script>
     <style>
         :root {
             --primary-color: #1b5e20;
@@ -911,7 +914,10 @@
         </div>
     </header>
 
+    <div data-ad-placement="header" class="config-ad-slot" hidden></div>
+
     <div class="container">
+        <div data-ad-placement="body_top" class="config-ad-slot" hidden></div>
         <!-- Main Title -->
         <div class="main-title">
             <h1>القرآن الكريم</h1>
@@ -1600,6 +1606,8 @@
     </script>
 
 
+    <div data-ad-placement="body_bottom" class="config-ad-slot" hidden></div>
+
     <footer class="site-footer">
       <div class="site-footer-inner">
         <section><h2 class="footer-brand">عماد الدين لمراني للقرآن الكريم</h2><p>منصة لقراءة القرآن الكريم والاستماع إلى التلاوات، مع محتوى إسلامي مساعد للقراءة والتدبر.</p></section>
@@ -1630,5 +1638,10 @@
       })();
     </script>
 
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        if (window.WOWSiteConfigEngine) window.WOWSiteConfigEngine.load("/");
+      });
+    </script>
 </body>
 </html>
