@@ -1,0 +1,40 @@
+name: Admin Dashboard Build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "admin/**"
+      - "supabase/migrations/**"
+      - ".github/workflows/admin.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: admin
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: admin/package.json
+      - name: Install
+        run: npm install
+      - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: npm run build
+      - name: Upload admin artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wow-admin-dist-${{ github.run_number }}
+          path: admin/dist
+          if-no-files-found: error
+          retention-days: 30
