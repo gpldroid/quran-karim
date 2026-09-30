@@ -17,6 +17,7 @@
 @media(max-width:950px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.side-bottom{position:static;margin-top:18px}.nav{grid-template-columns:repeat(2,1fr)}.cards,.two,.three{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.main{padding:14px}.cards,.two,.three{grid-template-columns:1fr}.topbar{align-items:flex-start;flex-direction:column}.nav{grid-template-columns:1fr 1fr}.row{align-items:flex-start;flex-direction:column}.row-actions{width:100%}}
 </style>
+<link rel="stylesheet" href="./ui.css">
 </head>
 <body>
 <div id="toast" class="toast hidden"></div>
@@ -50,7 +51,7 @@
 </aside>
 
 <main class="main">
-<header class="topbar"><div><h1 id="pageTitle">نظرة عامة</h1><div id="userEmail" class="muted"></div></div><div class="actions"><a class="btn" href="../">الموقع</a><button id="refresh" class="btn">تحديث البيانات</button></div></header>
+<header class="topbar"><div><h1 id="pageTitle">نظرة عامة</h1><div id="userEmail" class="muted"></div></div><div class="actions"><a class="btn" href="../">الموقع</a><button id="adminThemeToggle" class="btn" type="button" aria-label="تبديل الوضع الداكن">☾ الوضع</button><button id="refresh" class="btn">تحديث البيانات</button></div></header>
 <div id="status" class="status hidden"></div>
 
 <section id="tab-overview" class="tab">
@@ -197,6 +198,20 @@ $("logout").onclick=async()=>{if(client)await client.auth.signOut();location.rel
 $("refresh").onclick=load;$("saveAdMob").onclick=saveAdMob;$("settingsForm").onsubmit=saveSettings;$("themeForm").onsubmit=saveTheme;$("appForm").onsubmit=saveApp;$("adForm").onsubmit=saveAd;$("seoForm").onsubmit=saveSeo;$("contentForm").onsubmit=saveContent;$("categoryForm").onsubmit=saveCat;$("contentSearch").oninput=renderContent;
 client?.auth.onAuthStateChange(()=>load());
 load();
+})();
+</script>
+<script>
+(function(){
+  const key="wow_admin_dark";
+  const apply=(dark)=>{
+    document.body.classList.toggle("admin-dark",dark);
+    const b=document.getElementById("adminThemeToggle");
+    if(b){b.textContent=dark?"☀ الوضع الفاتح":"☾ الوضع الداكن";b.setAttribute("aria-pressed",dark?"true":"false");}
+  };
+  const saved=localStorage.getItem(key)==="1";
+  apply(saved);
+  const b=document.getElementById("adminThemeToggle");
+  if(b)b.addEventListener("click",()=>{const dark=!document.body.classList.contains("admin-dark");localStorage.setItem(key,dark?"1":"0");apply(dark);});
 })();
 </script>
 </body>
