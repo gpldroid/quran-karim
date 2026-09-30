@@ -1,7 +1,14 @@
 import { createClient } from "@supabase/supabase-js";
 
-export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+declare global {
+  interface Window {
+    WOW_SUPABASE_CONFIG?: { url?: string; anonKey?: string };
+  }
+}
+
+const runtime = typeof window !== "undefined" ? window.WOW_SUPABASE_CONFIG : undefined;
+export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || runtime?.url || "https://npytwojnxsmxhcssajtg.supabase.co";
+export const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || runtime?.anonKey || "sb_publishable_s9DgcPj_TJh-ZbVhPqgnvw_opH6Z5ww";
 export const supabase = supabaseUrl && supabaseAnonKey ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
 export type ThemeConfig = {
