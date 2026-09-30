@@ -12,6 +12,7 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
 public class MainActivity extends Activity {
     private WebView webView;
     private SupabaseRealtimeEngine realtimeEngine;
@@ -144,19 +145,33 @@ public class MainActivity extends Activity {
     }
 
     private void injectAds(DynamicConfigHandler.Config config) {
-        if (config.ads == null) return;
+        if (webView == null) return;
+
         StringBuilder script = new StringBuilder(
             "(function(){function host(p){var h=document.querySelector('[data-ad-placement=\\\"'+p+'\\\"]');" +
             "if(!h){h=document.createElement('div');h.setAttribute('data-ad-placement',p);" +
             "h.style.cssText='margin:12px auto;max-width:100%;text-align:center;';" +
             "var q=document.getElementById('quran-container'),head=document.querySelector('header');" +
             "if(p==='body_top'&&q)q.parentNode.insertBefore(h,q);else if(p==='body_bottom'&&q)q.parentNode.insertBefore(h,q.nextSibling);" +
-            "else if(p==='header'&&head)head.appendChild(h);else document.body.prepend(h);}return h;}"
+            "else if(p==='header'&&head)head.appendChild(h);else document.body.prepend(h);}return h;}" +
+            "function setHtml(h,html){h.innerHTML='';var box=document.createElement('div');box.innerHTML=html;" +
+            "Array.from(box.childNodes).forEach(function(n){if(n.tagName==='SCRIPT'){var s=document.createElement('script');" +
+            "Array.from(n.attributes).forEach(function(a){s.setAttribute(a.name,a.value);});s.text=n.textContent||'';h.appendChild(s);}else{h.appendChild(n.cloneNode(true));}})}"
         );
-        for (DynamicConfigHandler.AdConfig ad : config.ads) {
-            if (ad == null || !ad.active || ad.adCode == null || ad.adCode.trim().isEmpty()) continue;
-            script.append("host(").append(JSONObjectQuote(ad.placement)).append(").innerHTML=").append(JSONObjectQuote(ad.adCode)).append(";");
+
+        if (!config.adsEnabled) {
+            script.append("document.querySelectorAll('[data-ad-placement]').forEach(function(h){h.remove();});");
+        } else {
+            for (DynamicConfigHandler.AdConfig ad : config.ads) {
+                if (ad == null || !ad.active || ad.adCode == null || ad.adCode.trim().isEmpty()) continue;
+                script.append("setHtml(host(")
+                    .append(JSONObjectQuote(ad.placement))
+                    .append("),")
+                    .append(JSONObjectQuote(ad.adCode))
+                    .append(");");
+            }
         }
+
         script.append("})();");
         webView.evaluateJavascript(script.toString(), null);
     }
@@ -194,7 +209,7 @@ public class MainActivity extends Activity {
     }
 
     private static String JSONObjectQuote(String value) {
-        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+        return """ + value.replace("\\", "\\\\").replace(""", "\\"") + """;
     }
 
     private boolean handleLocalRoute(WebView view, String url) {
