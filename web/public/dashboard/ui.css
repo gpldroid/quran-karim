@@ -1,140 +1,850 @@
-/* WOW Admin UI v4 — responsive RTL workspace */
+/* WOW Admin UI v5 — Mobile First / RTL / Responsive Architecture
+   الحفاظ على جميع أسماء الـ Classes الحالية — إعادة تنظيم فقط.
+*/
+
+/* =========================
+   1) Design tokens
+   ========================= */
 :root{
-  --admin-bg:#f4f8f5;--admin-surface:rgba(255,255,255,.94);--admin-surface-2:#f8fbf9;
-  --admin-text:#102218;--admin-muted:#64756a;--admin-border:rgba(22,101,52,.13);
-  --admin-primary:#166534;--admin-secondary:#22c55e;--admin-danger:#dc2626;
-  --admin-shadow:0 10px 30px rgba(16,66,35,.08);--admin-shadow-lg:0 20px 55px rgba(16,66,35,.12);
-  --admin-glow:0 0 38px rgba(34,197,94,.08);--sidebar-w:280px;--content-max:1600px;
+  --admin-bg:#f4f8f5;
+  --admin-surface:rgba(255,255,255,.94);
+  --admin-surface-2:#f8fbf9;
+  --admin-text:#102218;
+  --admin-muted:#64756a;
+  --admin-border:rgba(22,101,52,.13);
+  --admin-primary:#166534;
+  --admin-secondary:#22c55e;
+  --admin-danger:#dc2626;
+  --admin-shadow:0 10px 30px rgba(16,66,35,.08);
+  --admin-shadow-lg:0 20px 55px rgba(16,66,35,.12);
+  --admin-glow:0 0 38px rgba(34,197,94,.08);
+  --sidebar-w:280px;
+  --content-max:1600px;
+  --radius-sm:10px;
+  --radius-md:14px;
+  --radius-lg:18px;
+  --space-1:clamp(5px,.6vw,8px);
+  --space-2:clamp(8px,.8vw,12px);
+  --space-3:clamp(12px,1vw,16px);
+  --space-4:clamp(16px,1.4vw,22px);
+  --space-5:clamp(20px,2vw,32px);
 }
-*{box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{margin:0;min-width:0;background:radial-gradient(circle at 5% 0%,rgba(34,197,94,.08),transparent 28rem),radial-gradient(circle at 95% 5%,rgba(132,204,22,.06),transparent 24rem),var(--admin-bg)!important;color:var(--admin-text)!important;font-family:Tajawal,system-ui,-apple-system,"Segoe UI",sans-serif;overflow-x:hidden}
-button,input,textarea,select{font:inherit}
+
+/* =========================
+   2) Reset + overflow safety
+   ========================= */
+*,
+*::before,
+*::after{box-sizing:border-box}
+
+html{
+  scroll-behavior:smooth;
+  -webkit-text-size-adjust:100%;
+}
+
+body{
+  margin:0;
+  min-width:0;
+  max-width:100%;
+  overflow-x:hidden;
+  background:
+    radial-gradient(circle at 5% 0%,rgba(34,197,94,.08),transparent 28rem),
+    radial-gradient(circle at 95% 5%,rgba(132,204,22,.06),transparent 24rem),
+    var(--admin-bg)!important;
+  color:var(--admin-text)!important;
+  font-family:Tajawal,system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:clamp(14px,.88rem + .08vw,16px);
+  line-height:1.65;
+}
+
+button,input,textarea,select{font:inherit;max-width:100%}
 button{cursor:pointer}
+img,svg,video,canvas,iframe{max-width:100%}
+a{overflow-wrap:anywhere}
 .hidden{display:none!important}
 .muted{color:var(--admin-muted)!important}
-.code{direction:ltr;text-align:left;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
-.auth{position:relative;min-height:100dvh;display:grid;place-items:center;padding:clamp(16px,4vw,32px);overflow:hidden;background:transparent!important}
-.auth:before,.auth:after{content:"";position:absolute;border-radius:50%;pointer-events:none;filter:blur(4px)}
-.auth:before{width:clamp(220px,35vw,380px);height:clamp(220px,35vw,380px);background:rgba(34,197,94,.1);top:-140px;right:-100px;box-shadow:0 0 100px rgba(34,197,94,.12)}
-.auth:after{width:300px;height:300px;background:rgba(132,204,22,.07);bottom:-150px;left:-100px;box-shadow:0 0 100px rgba(132,204,22,.08)}
-.auth-card{position:relative;z-index:1;width:min(430px,100%);padding:clamp(22px,5vw,32px)!important;background:var(--admin-surface)!important;color:var(--admin-text)!important;border:1px solid var(--admin-border)!important;border-radius:24px!important;box-shadow:var(--admin-shadow-lg),var(--admin-glow)!important;backdrop-filter:blur(18px);animation:adminIn .35s ease both}
-.brand{font-size:clamp(20px,5vw,25px)!important;line-height:1.35!important;font-weight:900;margin-bottom:7px}
-.auth-card>.muted{font-size:.9rem;line-height:1.8}
-.field{display:grid;gap:7px;margin-bottom:14px;min-width:0}
-.field label{font-size:.88rem!important;font-weight:750}
-.field input,.field textarea,.field select,.studio-project select,.studio-project input,.studio-search,.github-commit-bar input{
-  width:100%;min-width:0;border:1px solid var(--admin-border)!important;border-radius:12px!important;padding:10px 12px!important;
-  background:rgba(255,255,255,.8)!important;color:var(--admin-text)!important;outline:0;transition:border-color .2s,box-shadow .2s,transform .2s
+.code{
+  direction:ltr;
+  text-align:left;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
-.field textarea{min-height:110px;resize:vertical;line-height:1.7}
-.admin-dark .field input,.admin-dark .field textarea,.admin-dark .field select,.admin-dark .studio-project select,.admin-dark .studio-project input,.admin-dark .studio-search,.admin-dark .github-commit-bar input{background:rgba(7,19,12,.82)!important}
-.field input:focus,.field textarea:focus,.field select:focus,.studio-search:focus{border-color:var(--admin-secondary)!important;box-shadow:0 0 0 3px rgba(34,197,94,.12)!important;transform:translateY(-1px)}
-.btn{border:0;border-radius:11px!important;padding:9px 13px!important;background:#e8edf0;color:var(--admin-text);font-size:.9rem!important;font-weight:800;box-shadow:0 5px 15px rgba(15,23,42,.06);transition:transform .2s,box-shadow .2s,background .2s;min-height:40px}
+
+/* =========================
+   3) Fluid typography
+   ========================= */
+.brand{
+  font-size:clamp(1.15rem,2vw + .55rem,1.6rem)!important;
+  line-height:1.35!important;
+  font-weight:900;
+}
+.topbar h1{
+  margin:0;
+  font-size:clamp(1.25rem,2vw + .65rem,1.9rem)!important;
+  line-height:1.3!important;
+  letter-spacing:-.025em;
+  overflow-wrap:anywhere;
+}
+.section-title{
+  margin:0 0 var(--space-3)!important;
+  font-size:clamp(1rem,1vw + .7rem,1.25rem)!important;
+  line-height:1.45!important;
+  overflow-wrap:anywhere;
+}
+.stat{
+  margin-top:7px;
+  font-size:clamp(1.45rem,2.2vw + .5rem,1.9rem)!important;
+  line-height:1.2;
+  font-weight:900;
+}
+.field label{font-size:clamp(.8rem,.4vw + .72rem,.95rem)!important;font-weight:750}
+#userEmail{font-size:clamp(.72rem,.4vw + .65rem,.88rem)!important;overflow-wrap:anywhere}
+
+/* =========================
+   4) Auth
+   ========================= */
+.auth{
+  position:relative;
+  min-height:100dvh;
+  display:grid;
+  place-items:center;
+  padding:var(--space-4);
+  overflow:hidden;
+  background:transparent!important;
+}
+.auth:before,
+.auth:after{
+  content:"";
+  position:absolute;
+  border-radius:50%;
+  pointer-events:none;
+  filter:blur(4px);
+}
+.auth:before{
+  width:clamp(220px,35vw,380px);
+  aspect-ratio:1;
+  background:rgba(34,197,94,.1);
+  top:-140px;
+  right:-100px;
+  box-shadow:0 0 100px rgba(34,197,94,.12);
+}
+.auth:after{
+  width:clamp(220px,30vw,300px);
+  aspect-ratio:1;
+  background:rgba(132,204,22,.07);
+  bottom:-150px;
+  left:-100px;
+  box-shadow:0 0 100px rgba(132,204,22,.08);
+}
+.auth-card{
+  position:relative;
+  z-index:1;
+  width:min(430px,100%);
+  padding:clamp(20px,5vw,32px)!important;
+  background:var(--admin-surface)!important;
+  color:var(--admin-text)!important;
+  border:1px solid var(--admin-border)!important;
+  border-radius:24px!important;
+  box-shadow:var(--admin-shadow-lg),var(--admin-glow)!important;
+  backdrop-filter:blur(18px);
+  animation:adminIn .35s ease both;
+}
+.auth-card>.muted{font-size:.9rem;line-height:1.8}
+
+/* =========================
+   5) Forms / buttons
+   ========================= */
+.field{
+  display:grid;
+  gap:7px;
+  margin-bottom:14px;
+  min-width:0;
+}
+.field input,
+.field textarea,
+.field select,
+.studio-project select,
+.studio-project input,
+.studio-search,
+.github-commit-bar input{
+  width:100%;
+  min-width:0;
+  border:1px solid var(--admin-border)!important;
+  border-radius:12px!important;
+  padding:10px 12px!important;
+  background:rgba(255,255,255,.8)!important;
+  color:var(--admin-text)!important;
+  outline:0;
+  transition:border-color .2s,box-shadow .2s,transform .2s;
+}
+.field textarea{
+  min-height:110px;
+  resize:vertical;
+  line-height:1.7;
+  overflow:auto;
+}
+.admin-dark .field input,
+.admin-dark .field textarea,
+.admin-dark .field select,
+.admin-dark .studio-project select,
+.admin-dark .studio-project input,
+.admin-dark .studio-search,
+.admin-dark .github-commit-bar input{
+  background:rgba(7,19,12,.82)!important;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus,
+.studio-search:focus{
+  border-color:var(--admin-secondary)!important;
+  box-shadow:0 0 0 3px rgba(34,197,94,.12)!important;
+  transform:translateY(-1px);
+}
+.btn{
+  border:0;
+  border-radius:11px!important;
+  padding:9px 13px!important;
+  background:#e8edf0;
+  color:var(--admin-text);
+  font-size:clamp(.78rem,.35vw + .72rem,.94rem)!important;
+  line-height:1.3;
+  font-weight:800;
+  box-shadow:0 5px 15px rgba(15,23,42,.06);
+  transition:transform .2s,box-shadow .2s,background .2s;
+  min-height:40px;
+}
 .btn:hover{transform:translateY(-1px);box-shadow:0 9px 20px rgba(15,23,42,.11)}
-.btn:focus-visible,.nav button:focus-visible,.file-item:focus-visible,.github-repo:focus-visible{outline:3px solid rgba(34,197,94,.35);outline-offset:2px}
-.btn.primary{background:linear-gradient(135deg,var(--admin-primary),var(--admin-secondary))!important;color:#fff!important}
-.btn.danger{background:#fee2e2;color:#991b1b}.btn.full{width:100%}.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
-.layout{min-height:100dvh;display:grid;grid-template-columns:var(--sidebar-w) minmax(0,1fr)}
-.sidebar{position:sticky;top:0;height:100dvh;z-index:20;display:flex;flex-direction:column;background:linear-gradient(180deg,#0b2415,#0f3a21 70%,#0a2414)!important;color:#fff;padding:18px!important;border-left:1px solid rgba(255,255,255,.07);box-shadow:14px 0 34px rgba(6,78,31,.12)}
-.side-brand{font-size:21px!important;font-weight:900;line-height:1.35;padding:8px 7px 20px!important}
-.nav{display:grid;gap:5px;overflow:auto;padding:2px;scrollbar-width:thin}
-.nav button{border:0;background:transparent;color:#cbd5e1;text-align:right;padding:10px 11px;border-radius:11px;font-size:.9rem!important;font-weight:700!important;line-height:1.35;transition:transform .2s,background .2s,box-shadow .2s}
-.nav button.active,.nav button:hover{background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(134,239,172,.09));box-shadow:inset 0 0 0 1px rgba(134,239,172,.11),0 6px 16px rgba(0,0,0,.1);color:#fff;transform:translateX(-1px)}
-.side-bottom{position:static!important;margin-top:auto;padding-top:16px}
-.main{width:100%;max-width:var(--content-max);padding:clamp(16px,2.2vw,30px)!important;margin:0 auto;min-width:0}
-.topbar{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 -4px 20px;padding:10px 4px;background:linear-gradient(to bottom,rgba(244,248,245,.97),rgba(244,248,245,.84),transparent);backdrop-filter:blur(10px)}
-.topbar h1{margin:0;font-size:clamp(21px,2.3vw,29px)!important;line-height:1.3!important;letter-spacing:-.025em}
-#userEmail{font-size:.82rem!important;margin-top:4px;overflow-wrap:anywhere}
-.actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}
-.grid{display:grid;gap:14px;min-width:0}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.two{grid-template-columns:repeat(2,minmax(0,1fr))}.three{grid-template-columns:repeat(3,minmax(0,1fr))}
-.card{min-width:0;background:var(--admin-surface)!important;color:var(--admin-text)!important;border:1px solid var(--admin-border)!important;border-radius:17px!important;box-shadow:var(--admin-shadow)!important;backdrop-filter:blur(12px);padding:clamp(14px,1.4vw,19px)!important;transition:transform .22s,box-shadow .22s,border-color .22s}
-.card:hover{transform:translateY(-1px);box-shadow:var(--admin-shadow-lg),var(--admin-glow)!important}
-.stat{font-size:clamp(24px,2.3vw,30px)!important;font-weight:900;margin-top:7px}
-.section-title{font-size:clamp(17px,1.5vw,20px)!important;line-height:1.45!important;margin:0 0 13px!important}
-.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px;border:1px solid var(--admin-border)!important;border-radius:12px;background:rgba(255,255,255,.3);min-width:0}
-.row>div:first-child{min-width:0}.row-title{font-weight:900;font-size:.92rem}.row small{display:block;color:var(--admin-muted);margin-top:3px;overflow-wrap:anywhere}.row-actions{display:flex;gap:6px;flex-wrap:wrap}
-.switch{display:flex;align-items:center;gap:9px;min-height:28px}.switch input{width:18px;height:18px;accent-color:var(--admin-primary)}
-.status{padding:9px 11px;border-radius:10px;background:rgba(226,232,240,.5)!important;color:var(--admin-text)!important;border:1px solid var(--admin-border);font-size:.86rem!important;line-height:1.7}.status.ok{background:#dcfce7!important;color:#166534!important}.status.bad{background:#fee2e2!important;color:#991b1b!important}
-.toast{position:fixed;top:18px;left:18px;z-index:100;background:#0a2414!important;color:#fff;padding:11px 15px;border-radius:12px;box-shadow:0 14px 34px rgba(0,0,0,.22);max-width:min(420px,calc(100% - 36px));font-size:.88rem!important}
-.tabs-note{font-size:.82rem;color:var(--admin-muted);line-height:1.75;margin-top:-6px;margin-bottom:14px}
-.table-wrap{width:100%;overflow:auto}.mini-table{width:100%;min-width:620px;border-collapse:collapse}.mini-table th,.mini-table td{padding:10px;border-bottom:1px solid var(--admin-border);text-align:right;white-space:nowrap}.mini-table th{color:var(--admin-muted);font-size:13px}.badge{display:inline-flex;align-items:center;justify-content:center;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:800;white-space:nowrap}
-.tab{animation:adminTab .2s ease both}
-@keyframes adminIn{from{opacity:0;transform:translateY(8px) scale(.99)}to{opacity:1;transform:none}}
-@keyframes adminTab{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*:before,*:after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}}
-.admin-dark{--admin-bg:#07130c;--admin-surface:rgba(13,31,20,.94);--admin-surface-2:#0b1c12;--admin-text:#e9f7ed;--admin-muted:#a5b8aa;--admin-border:rgba(134,239,172,.14);--admin-primary:#22c55e;--admin-secondary:#86efac;--admin-shadow:0 16px 42px rgba(0,0,0,.34);--admin-shadow-lg:0 24px 65px rgba(0,0,0,.42);--admin-glow:0 0 36px rgba(34,197,94,.08)}
-.admin-dark .topbar{background:linear-gradient(to bottom,rgba(7,19,12,.97),rgba(7,19,12,.84),transparent)}
+.btn:focus-visible,
+.nav button:focus-visible,
+.file-item:focus-visible,
+.github-repo:focus-visible{
+  outline:3px solid rgba(34,197,94,.35);
+  outline-offset:2px;
+}
+.btn.primary{
+  background:linear-gradient(135deg,var(--admin-primary),var(--admin-secondary))!important;
+  color:#fff!important;
+}
+.btn.danger{background:#fee2e2;color:#991b1b}
+.btn.full{width:100%}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+/* =========================
+   6) Core layout — mobile first
+   ========================= */
+.layout{
+  min-height:100dvh;
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+}
+.sidebar{
+  position:sticky;
+  top:0;
+  z-index:20;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(180deg,#0b2415,#0f3a21 70%,#0a2414)!important;
+  color:#fff;
+  padding:10px 12px!important;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  box-shadow:0 10px 26px rgba(6,78,31,.16);
+}
+.side-brand{
+  padding:5px 4px 9px!important;
+  font-weight:900;
+  line-height:1.35;
+}
+.nav{
+  display:flex;
+  flex-wrap:nowrap;
+  gap:6px;
+  min-width:0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  padding:2px;
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+}
+.nav button{
+  flex:0 0 auto;
+  border:0;
+  background:transparent;
+  color:#cbd5e1;
+  text-align:right;
+  padding:9px 10px;
+  border-radius:11px;
+  font-size:.82rem!important;
+  font-weight:700!important;
+  line-height:1.35;
+  white-space:nowrap;
+  transition:transform .2s,background .2s,box-shadow .2s;
+}
+.nav button.active,
+.nav button:hover{
+  background:linear-gradient(135deg,rgba(34,197,94,.25),rgba(134,239,172,.09));
+  box-shadow:inset 0 0 0 1px rgba(134,239,172,.11),0 6px 16px rgba(0,0,0,.1);
+  color:#fff;
+  transform:translateX(-1px);
+}
+.side-bottom{
+  margin-top:8px;
+  padding-top:0;
+}
+.side-bottom .btn{width:100%}
+
+.main{
+  width:100%;
+  max-width:var(--content-max);
+  min-width:0;
+  margin:0 auto;
+  padding:12px!important;
+}
+.topbar{
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:10px;
+  margin:0 0 14px;
+  padding:0 0 4px;
+}
+.topbar .actions{width:100%}
+.topbar .actions .btn,
+.topbar .actions a{flex:1 1 auto;text-align:center}
+
+.actions{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  flex-wrap:wrap;
+  min-width:0;
+}
+
+/* =========================
+   7) Flexible grids
+   ========================= */
+.grid{
+  display:grid;
+  gap:14px;
+  min-width:0;
+}
+.cards,
+.two,
+.three{
+  grid-template-columns:minmax(0,1fr);
+}
+.card{
+  min-width:0;
+  max-width:100%;
+  overflow:hidden;
+  background:var(--admin-surface)!important;
+  color:var(--admin-text)!important;
+  border:1px solid var(--admin-border)!important;
+  border-radius:17px!important;
+  box-shadow:var(--admin-shadow)!important;
+  backdrop-filter:blur(12px);
+  padding:clamp(13px,1.4vw,19px)!important;
+  transition:transform .22s,box-shadow .22s,border-color .22s;
+}
+.card:hover{
+  transform:translateY(-1px);
+  box-shadow:var(--admin-shadow-lg),var(--admin-glow)!important;
+}
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  min-width:0;
+  padding:11px;
+  border:1px solid var(--admin-border)!important;
+  border-radius:12px;
+  background:rgba(255,255,255,.3);
+}
+.row>div:first-child{min-width:0}
+.row-title{font-weight:900;font-size:.92rem;overflow-wrap:anywhere}
+.row small{
+  display:block;
+  color:var(--admin-muted);
+  margin-top:3px;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap}
+.switch{display:flex;align-items:center;gap:9px;min-height:28px}
+.switch input{width:18px;height:18px;accent-color:var(--admin-primary)}
+
+.status{
+  padding:9px 11px;
+  border-radius:10px;
+  background:rgba(226,232,240,.5)!important;
+  color:var(--admin-text)!important;
+  border:1px solid var(--admin-border);
+  font-size:.86rem!important;
+  line-height:1.7;
+  overflow-wrap:anywhere;
+}
+.status.ok{background:#dcfce7!important;color:#166534!important}
+.status.bad{background:#fee2e2!important;color:#991b1b!important}
+
+.tabs-note{
+  font-size:clamp(.75rem,.3vw + .7rem,.88rem);
+  color:var(--admin-muted);
+  line-height:1.8;
+  margin-top:-6px;
+  margin-bottom:14px;
+  overflow-wrap:anywhere;
+}
+
+/* =========================
+   8) Tables — no horizontal page overflow
+   ========================= */
+.table-wrap{
+  width:100%;
+  max-width:100%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-inline:contain;
+}
+.mini-table{
+  width:100%;
+  min-width:620px;
+  border-collapse:collapse;
+}
+.mini-table th,
+.mini-table td{
+  padding:10px;
+  border-bottom:1px solid var(--admin-border);
+  text-align:right;
+  white-space:nowrap;
+}
+.mini-table th{
+  color:var(--admin-muted);
+  font-size:clamp(.72rem,.3vw + .67rem,.82rem);
+}
+.badge{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  max-width:100%;
+  padding:4px 8px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#3730a3;
+  font-size:12px;
+  font-weight:800;
+  white-space:nowrap;
+}
+
+/* =========================
+   9) Studio
+   ========================= */
+.studio-toolbar{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:12px;
+  margin-bottom:14px;
+}
+.studio-project{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  min-width:0;
+}
+.studio-project select{max-width:none}
+.studio-project input{min-width:0}
+.studio-toolbar>.actions .btn{flex:1 1 auto}
+
+.studio-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:14px;
+  min-width:0;
+}
+.studio-grid>.card{min-width:0}
+.studio-panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:8px;
+  margin-bottom:11px;
+  min-width:0;
+}
+.studio-panel-head>*{min-width:0}
+.studio-search{margin-bottom:9px}
+.file-tree{
+  display:grid;
+  gap:4px;
+  max-width:100%;
+  max-height:590px;
+  overflow:auto;
+}
+.file-item{
+  width:100%;
+  min-width:0;
+  border:0;
+  background:transparent;
+  color:var(--admin-text);
+  text-align:right;
+  border-radius:9px;
+  padding:8px;
+  display:flex;
+  gap:7px;
+  align-items:center;
+  cursor:pointer;
+  font-size:.82rem;
+  direction:ltr;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.file-item:hover,
+.file-item.active{
+  background:rgba(34,197,94,.12);
+  color:var(--admin-primary);
+  font-weight:800;
+}
+.editor-panel,
+.preview-panel{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+}
+.code-editor{
+  direction:ltr;
+  text-align:left;
+  width:100%;
+  min-width:0;
+  min-height:450px;
+  resize:vertical;
+  border:1px solid var(--admin-border);
+  border-radius:12px;
+  background:#07130c;
+  color:#e2fbe8;
+  padding:14px;
+  font:clamp(11px,.3vw + 10px,13px)/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  outline:0;
+  tab-size:2;
+  overflow:auto;
+  overflow-wrap:normal;
+}
+.editor-status{
+  display:flex;
+  justify-content:space-between;
+  gap:8px;
+  flex-wrap:wrap;
+  color:var(--admin-muted);
+  font-size:.75rem;
+  margin-top:7px;
+}
+.preview-stage{
+  min-width:0;
+  min-height:420px;
+  background:#cbd5e1;
+  border-radius:12px;
+  padding:8px;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
+  overflow:auto;
+}
+.preview-stage iframe{
+  flex:0 0 auto;
+  width:100%;
+  min-width:0;
+  height:410px;
+  background:#fff;
+  border:0;
+  border-radius:8px;
+  box-shadow:0 10px 25px rgba(0,0,0,.16);
+}
+.preview-stage.size-tablet iframe{width:min(768px,100%)}
+.preview-stage.size-mobile iframe{width:min(390px,100%)}
+.preview-size.active{background:var(--admin-primary);color:#fff}
+.diff-box{
+  direction:ltr;
+  text-align:left;
+  background:#07130c;
+  color:#c7f9d2;
+  border-radius:12px;
+  padding:14px;
+  min-height:80px;
+  overflow:auto;
+  font:12px/1.6 ui-monospace,monospace;
+}
+.diff-line{
+  padding:4px 0;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  overflow-wrap:anywhere;
+}
+
+/* =========================
+   10) GitHub Workspace / File Manager
+   ========================= */
+.file-manager-hero,
+.github-connection{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:14px;
+  margin-bottom:14px;
+}
+.file-manager-hero>div:first-child,
+.github-connection>div:first-child{min-width:0}
+.github-connect-row{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+}
+.github-client-id{
+  min-width:0;
+  flex:1 1 220px;
+  border:1px solid var(--admin-border);
+  background:var(--admin-surface);
+  color:var(--admin-text);
+  border-radius:10px;
+  padding:10px;
+}
+.github-workspace-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:14px;
+  min-width:0;
+}
+.github-sidebar{min-height:0}
+.github-repo-list{
+  display:grid;
+  gap:5px;
+  max-height:360px;
+  overflow:auto;
+}
+.github-repo{
+  width:100%;
+  min-width:0;
+  border:1px solid transparent;
+  background:transparent;
+  color:var(--admin-text);
+  padding:10px;
+  border-radius:10px;
+  text-align:right;
+  cursor:pointer;
+  display:grid;
+  gap:3px;
+}
+.github-repo:hover,
+.github-repo.active{
+  background:rgba(34,197,94,.12);
+  border-color:rgba(34,197,94,.25);
+}
+.github-repo strong,
+.github-repo small{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+.github-repo strong{font-size:.85rem}
+.github-repo small{font-size:.7rem;color:var(--admin-muted)}
+.github-files-panel{min-width:0}
+.github-toolbar{
+  display:flex;
+  flex-direction:column;
+  align-items:stretch;
+  gap:10px;
+  margin-bottom:12px;
+}
+.github-toolbar>div:first-child{min-width:0}
+.github-files-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:12px;
+  min-width:0;
+}
+.github-tree-wrap{
+  min-width:0;
+  border-bottom:1px solid var(--admin-border);
+  padding-bottom:10px;
+}
+.github-code-wrap{min-width:0}
+.github-editor{min-height:400px}
+.github-commit-bar{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:9px;
+}
+.github-commit-bar input{flex:1}
+.github-bottom-grid{margin-top:14px}
+.github-security-note{
+  margin-top:14px;
+  border-right:3px solid var(--admin-primary);
+}
+.github-security-note p{
+  color:var(--admin-muted);
+  margin:6px 0 0;
+  font-size:.82rem;
+}
+
+/* =========================
+   11) Dark mode
+   ========================= */
+.admin-dark{
+  --admin-bg:#07130c;
+  --admin-surface:rgba(13,31,20,.94);
+  --admin-surface-2:#0b1c12;
+  --admin-text:#e9f7ed;
+  --admin-muted:#a5b8aa;
+  --admin-border:rgba(134,239,172,.14);
+  --admin-primary:#22c55e;
+  --admin-secondary:#86efac;
+  --admin-shadow:0 16px 42px rgba(0,0,0,.34);
+  --admin-shadow-lg:0 24px 65px rgba(0,0,0,.42);
+  --admin-glow:0 0 36px rgba(34,197,94,.08);
+}
+.admin-dark .topbar{
+  background:linear-gradient(to bottom,rgba(7,19,12,.97),rgba(7,19,12,.84),transparent);
+}
 .admin-dark .row{background:rgba(7,19,12,.32)}
 .admin-dark .status{background:rgba(30,41,59,.45)!important}
 .admin-dark .card:hover{box-shadow:0 22px 55px rgba(0,0,0,.38),var(--admin-glow)!important}
 
-/* Project Studio */
-.studio-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px;position:sticky;top:72px;z-index:8}
-.studio-project{display:flex;gap:8px;align-items:center;min-width:0;flex:1}.studio-project select{max-width:240px}.studio-project input{min-width:150px}
-.studio-grid{display:grid;grid-template-columns:minmax(190px,220px) minmax(300px,1fr) minmax(300px,1fr);gap:14px;min-height:680px}.studio-grid>.card{min-width:0}
-.studio-panel-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:11px;min-width:0}.studio-panel-head>*{min-width:0}
-.studio-search{margin-bottom:9px}.file-tree{display:grid;gap:4px;max-height:590px;overflow:auto}
-.file-item{border:0;background:transparent;color:var(--admin-text);text-align:right;border-radius:9px;padding:8px;display:flex;gap:7px;align-items:center;width:100%;cursor:pointer;font-size:.82rem;direction:ltr;overflow-wrap:anywhere}
-.file-item:hover,.file-item.active{background:rgba(34,197,94,.12);color:var(--admin-primary);font-weight:800}
-.editor-panel,.preview-panel{display:flex;flex-direction:column}.code-editor{direction:ltr;text-align:left;flex:1;width:100%;min-height:590px;resize:vertical;border:1px solid var(--admin-border);border-radius:12px;background:#07130c;color:#e2fbe8;padding:14px;font:13px/1.65 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;outline:0;tab-size:2}
-.editor-status{display:flex;justify-content:space-between;color:var(--admin-muted);font-size:.75rem;margin-top:7px}
-.preview-stage{min-height:590px;background:#cbd5e1;border-radius:12px;padding:12px;display:flex;justify-content:center;align-items:flex-start;overflow:auto}.preview-stage iframe{height:560px;width:100%;max-width:100%;background:#fff;border:0;border-radius:8px;box-shadow:0 10px 25px rgba(0,0,0,.16);transition:width .25s}.preview-stage.size-tablet iframe{width:768px}.preview-stage.size-mobile iframe{width:390px}.preview-size.active{background:var(--admin-primary);color:#fff}.diff-box{direction:ltr;text-align:left;background:#07130c;color:#c7f9d2;border-radius:12px;padding:14px;min-height:80px;font:12px/1.6 ui-monospace,monospace}.diff-line{padding:4px 0;border-bottom:1px solid rgba(255,255,255,.06)}
+/* =========================
+   12) Progressive enhancement
+   ========================= */
 
-/* GitHub Workspace + File Manager */
-.file-manager-hero,.github-connection{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:14px}
-.file-manager-hero>div:first-child,.github-connection>div:first-child{min-width:0}
-.github-connect-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.github-client-id{min-width:280px;border:1px solid var(--admin-border);background:var(--admin-surface);color:var(--admin-text);border-radius:10px;padding:10px}
-.github-workspace-grid{display:grid;grid-template-columns:minmax(220px,280px) minmax(0,1fr);gap:14px}.github-sidebar{min-height:650px}.github-repo-list{display:grid;gap:5px;max-height:590px;overflow:auto}
-.github-repo{border:1px solid transparent;background:transparent;color:var(--admin-text);padding:10px;border-radius:10px;text-align:right;cursor:pointer;display:grid;gap:3px;width:100%;min-width:0}.github-repo:hover,.github-repo.active{background:rgba(34,197,94,.12);border-color:rgba(34,197,94,.25)}.github-repo strong,.github-repo small{overflow-wrap:anywhere}
-.github-repo strong{font-size:.85rem}.github-repo small{font-size:.7rem;color:var(--admin-muted)}
-.github-files-panel{min-width:0}.github-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:12px}.github-toolbar>div:first-child{min-width:0}.github-files-layout{display:grid;grid-template-columns:minmax(210px,260px) minmax(0,1fr);gap:12px}.github-tree-wrap{border-left:1px solid var(--admin-border);padding-left:12px;min-width:0}.github-code-wrap{min-width:0}.github-editor{min-height:520px}.github-commit-bar{display:flex;gap:8px;margin-top:9px}.github-commit-bar input{flex:1}.github-bottom-grid{margin-top:14px}.github-security-note{margin-top:14px;border-right:3px solid var(--admin-primary)}.github-security-note p{color:var(--admin-muted);margin:6px 0 0;font-size:.82rem}
-
-/* Medium desktop / tablet */
-@media(max-width:1200px){
-  :root{--sidebar-w:245px}
+/* Small phones */
+@media (min-width:430px){
+  .main{padding:14px!important}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .studio-grid{grid-template-columns:190px minmax(0,1fr)}.preview-panel{grid-column:1/-1}.preview-stage{min-height:520px}.preview-stage iframe{height:500px}
-  .github-workspace-grid{grid-template-columns:1fr}.github-sidebar{min-height:auto}.github-repo-list{max-height:230px}
+  .row{align-items:center}
+  .studio-project{flex-direction:row;align-items:center}
+  .studio-project select{max-width:240px}
 }
-@media(max-width:900px){
-  .layout{grid-template-columns:1fr}
-  .sidebar{position:sticky;top:0;height:auto;min-height:0;padding:10px 12px!important;border-left:0;border-bottom:1px solid rgba(255,255,255,.08);box-shadow:0 10px 26px rgba(6,78,31,.16)}
-  .side-brand{padding:5px 4px 9px!important}
-  .nav{display:flex;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:6px;padding-bottom:4px;scroll-snap-type:x proximity}
-  .nav button{flex:0 0 auto;white-space:nowrap;scroll-snap-align:start}
-  .side-bottom{margin-top:8px;padding-top:0}.side-bottom .btn{width:auto;min-width:120px}
+
+/* Tablets */
+@media (min-width:700px){
   .main{padding:18px!important}
-  .topbar{top:0}
-  .studio-toolbar{position:static}.studio-grid{grid-template-columns:1fr}.file-panel{order:1}.editor-panel{order:2}.preview-panel{order:3}.code-editor{min-height:450px}
+  .topbar{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:20px;
+    padding:10px 4px;
+    background:linear-gradient(to bottom,rgba(244,248,245,.97),rgba(244,248,245,.84),transparent);
+    backdrop-filter:blur(10px);
+  }
+  .topbar .actions{width:auto}
+  .topbar .actions .btn,
+  .topbar .actions a{flex:0 1 auto}
+  .two{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .three{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .file-manager-hero,
+  .github-connection{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .github-toolbar{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .github-files-layout{grid-template-columns:minmax(210px,260px) minmax(0,1fr)}
+  .github-tree-wrap{
+    border-left:1px solid var(--admin-border);
+    border-bottom:0;
+    padding:0 12px 0 0;
+  }
+  .github-commit-bar{flex-direction:row}
+  .github-commit-bar input{min-width:0}
+  .studio-toolbar{
+    flex-direction:row;
+    align-items:center;
+    justify-content:space-between;
+    position:sticky;
+    top:0;
+    z-index:8;
+  }
+  .studio-toolbar>.actions{flex:0 0 auto}
+  .studio-grid{
+    grid-template-columns:minmax(190px,220px) minmax(300px,1fr);
+  }
+  .preview-panel{grid-column:1/-1}
 }
-@media(max-width:700px){
-  .main{padding:12px!important}
-  .topbar{position:relative;align-items:stretch;flex-direction:column;gap:10px;margin-bottom:14px;padding:0 0 4px;background:none;backdrop-filter:none}
-  .topbar .actions{width:100%}.topbar .actions .btn,.topbar .actions a{flex:1 1 auto;text-align:center}
-  .cards,.two,.three{grid-template-columns:1fr}
-  .card{border-radius:15px!important}
-  .row{align-items:stretch;flex-direction:column}.row-actions{width:100%}.row-actions .btn{flex:1 1 auto}
-  .file-manager-hero,.github-connection,.github-toolbar{flex-direction:column;align-items:stretch}
-  .file-manager-hero .actions,.github-connect-row{width:100%}.file-manager-hero .actions .btn,.github-connect-row .btn{flex:1 1 auto}
-  .github-files-layout{grid-template-columns:1fr}.github-tree-wrap{border-left:0;border-bottom:1px solid var(--admin-border);padding:0 0 10px}.github-editor{min-height:400px}.github-commit-bar{flex-direction:column}
-  .studio-project{flex-direction:column;align-items:stretch}.studio-project select{max-width:none}
-  .studio-toolbar>.actions .btn{flex:1 1 auto}
-  .preview-stage{min-height:440px;padding:8px}.preview-stage iframe{height:410px}.preview-stage.size-mobile iframe{width:390px}
-  .mini-table{min-width:560px}
+
+/* Desktop */
+@media (min-width:901px){
+  .layout{
+    grid-template-columns:var(--sidebar-w) minmax(0,1fr);
+  }
+  .sidebar{
+    position:sticky;
+    top:0;
+    min-height:100dvh;
+    padding:18px!important;
+    border-bottom:0;
+    border-left:1px solid rgba(255,255,255,.07);
+    box-shadow:14px 0 34px rgba(6,78,31,.12);
+  }
+  .side-brand{padding:8px 7px 20px!important}
+  .nav{
+    display:grid;
+    overflow:auto;
+    padding:2px;
+  }
+  .nav button{
+    white-space:normal;
+    font-size:.9rem!important;
+    padding:10px 11px;
+  }
+  .side-bottom{
+    margin-top:auto;
+    padding-top:16px;
+  }
+  .side-bottom .btn{width:auto}
+  .main{padding:clamp(20px,2.2vw,30px)!important}
+  .cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .three{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .studio-grid{
+    grid-template-columns:minmax(190px,220px) minmax(300px,1fr) minmax(300px,1fr);
+    min-height:0;
+  }
+  .preview-panel{
+    grid-column:auto;
+  }
+  .preview-stage{min-height:590px;padding:12px}
+  .preview-stage iframe{height:560px}
+  .github-workspace-grid{grid-template-columns:minmax(220px,280px) minmax(0,1fr)}
+  .github-sidebar{min-height:650px}
+  .github-repo-list{max-height:590px}
 }
-@media(max-width:430px){
-  .auth{padding:12px}.auth-card{border-radius:19px!important;padding:20px!important}
-  .side-brand{font-size:18px!important}
-  .nav button{font-size:.82rem!important;padding:9px 10px}
-  .main{padding:10px!important}.card{padding:13px!important}
-  .actions{gap:6px}.btn{padding:8px 10px!important;min-height:38px;font-size:.84rem!important}
-  .topbar h1{font-size:21px!important}
-  .section-title{font-size:17px!important}
-  .stat{font-size:24px!important}
-  .preview-stage.size-mobile iframe{width:360px}
+
+/* Wide screens */
+@media (min-width:1200px){
+  :root{--sidebar-w:280px}
+  .main{padding:clamp(24px,2.5vw,34px)!important}
 }
-@media(max-width:360px){
-  .topbar .actions{display:grid;grid-template-columns:1fr 1fr}.topbar .actions .btn,.topbar .actions a{width:100%}
-  .side-bottom .btn{width:100%}.preview-stage.size-mobile iframe{width:320px}
+
+/* =========================
+   13) Reduced motion
+   ========================= */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,
+  *::before,
+  *::after{
+    animation-duration:.001ms!important;
+    animation-iteration-count:1!important;
+    transition-duration:.001ms!important;
+  }
 }
+
+@keyframes adminIn{
+  from{opacity:0;transform:translateY(8px) scale(.99)}
+  to{opacity:1;transform:none}
+}
+@keyframes adminTab{
+  from{opacity:0;transform:translateY(4px)}
+  to{opacity:1;transform:none}
+}
+.tab{animation:adminTab .2s ease both}
