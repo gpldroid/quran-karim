@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة التحكم الاحترافية</title>
+  <!-- Tailwind CSS & Flowbite UI -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.3.0/flowbite.min.css" rel="stylesheet" />
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="bg-gray-900 text-white font-sans antialiased">
+
+  <!-- الشاشة عند عدم تسجيل الدخول -->
+  <div id="auth-section" class="flex min-h-screen items-center justify-center p-4">
+    <div class="w-full max-w-md bg-gray-800 p-6 rounded-lg shadow-xl border border-gray-700">
+      <h2 class="text-2xl font-bold mb-6 text-center text-blue-500">تسجيل الدخول للوحة التحكم</h2>
+      <form id="login-form" class="space-y-4">
+        <div>
+          <label class="block text-sm mb-1">البريد الإلكتروني</label>
+          <input type="email" id="email" class="w-full bg-gray-700 border border-gray-600 rounded p-2.5 text-white" required>
+        </div>
+        <div>
+          <label class="block text-sm mb-1">كلمة المرور</label>
+          <input type="password" id="password" class="w-full bg-gray-700 border border-gray-600 rounded p-2.5 text-white" required>
+        </div>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded transition">دخول</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- لوحة التحكم الرئيسية -->
+  <div id="dashboard-section" class="hidden min-h-screen flex">
+    
+    <!-- القائمة الجانبية -->
+    <aside class="w-64 bg-gray-800 border-l border-gray-700 p-4 space-y-2">
+      <h1 class="text-xl font-extrabold text-blue-500 mb-6">التحكم بالمشروع</h1>
+      <button onclick="switchTab('settings')" class="w-full text-right py-2.5 px-4 rounded hover:bg-gray-700 block">إعدادات الموقع والتطبيق</button>
+      <button onclick="switchTab('pages')" class="w-full text-right py-2.5 px-4 rounded hover:bg-gray-700 block">إدارة الصفحات</button>
+      <button onclick="switchTab('ads')" class="w-full text-right py-2.5 px-4 rounded hover:bg-gray-700 block">الإعلانات و Analytics</button>
+      <button onclick="logout()" class="w-full text-right py-2.5 px-4 rounded bg-red-600/20 text-red-400 hover:bg-red-600/40 block mt-8">تسجيل الخروج</button>
+    </aside>
+
+    <!-- منطقة المحتوى -->
+    <main class="flex-1 p-8 overflow-y-auto">
+      
+      <!-- تبويب الإعدادات والستايل -->
+      <section id="tab-settings" class="tab-content space-y-6">
+        <h2 class="text-2xl font-bold border-b border-gray-700 pb-2">ستايل وإعدادات التطبيق والموقع</h2>
+        <form id="settings-form" class="space-y-4 max-w-2xl">
+          <div>
+            <label class="block text-sm mb-1">عنوان الموقع الرئيسي</label>
+            <input type="text" id="site_title" class="w-full bg-gray-800 border border-gray-700 rounded p-2.5">
+          </div>
+          <div>
+            <label class="block text-sm mb-1">وصف Meta Description</label>
+            <textarea id="meta_description" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded p-2.5"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm mb-1">اللون الرئيسي للتطبيق (Primary Color)</label>
+              <input type="color" id="app_primary_color" class="w-full h-10 bg-gray-800 border border-gray-700 rounded p-1">
+            </div>
+            <div class="flex items-center mt-6">
+              <input type="checkbox" id="app_dark_mode" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded">
+              <label for="app_dark_mode" class="mr-2 text-sm font-medium">تفعيل الوضع الداكن الافتراضي بالتطبيق</label>
+            </div>
+          </div>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-bold">حفظ التغييرات</button>
+        </form>
+      </section>
+
+      <!-- تبويب الإعلانات والاحصائيات -->
+      <section id="tab-ads" class="tab-content hidden space-y-6">
+        <h2 class="text-2xl font-bold border-b border-gray-700 pb-2">الإعلانات و Google Analytics</h2>
+        <form id="ads-form" class="space-y-4 max-w-2xl">
+          <div>
+            <label class="block text-sm mb-1">Google Analytics ID</label>
+            <input type="text" id="google_analytics_id" placeholder="G-XXXXXXXXXX" class="w-full bg-gray-800 border border-gray-700 rounded p-2.5">
+          </div>
+          <div>
+            <label class="block text-sm mb-1">كود إعلان الهيدر (Header Ad Code)</label>
+            <textarea id="header_ad_code" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded p-2.5 font-mono text-xs"></textarea>
+          </div>
+          <div>
+            <label class="block text-sm mb-1">كود إعلان المحتوى (Body Ad Code)</label>
+            <textarea id="body_ad_code" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded p-2.5 font-mono text-xs"></textarea>
+          </div>
+          <button type="submit" class="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded font-bold">حفظ الأكواد</button>
+        </form>
+      </section>
+
+      <!-- تبويب نشر الصفحات -->
+      <section id="tab-pages" class="tab-content hidden space-y-6">
+        <h2 class="text-2xl font-bold border-b border-gray-700 pb-2">إضافة صفحة جديدة</h2>
+        <form id="page-form" class="space-y-4 max-w-2xl">
+          <div>
+            <label class="block text-sm mb-1">عنوان الصفحة</label>
+            <input type="text" id="page_title" class="w-full bg-gray-800 border border-gray-700 rounded p-2.5" required>
+          </div>
+          <div>
+            <label class="block text-sm mb-1">الرابط اللطيف (Slug)</label>
+            <input type="text" id="page_slug" placeholder="about-us" class="w-full bg-gray-800 border border-gray-700 rounded p-2.5" required>
+          </div>
+          <div>
+            <label class="block text-sm mb-1">محتوى الصفحة (HTML أو Text)</label>
+            <textarea id="page_content" rows="6" class="w-full bg-gray-800 border border-gray-700 rounded p-2.5" required></textarea>
+          </div>
+          <button type="submit" class="bg-green-600 hover:bg-green-700 px-6 py-2 rounded font-bold">نشر الصفحة</button>
+        </form>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    // 1. تهيئة Supabase Client
+    const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // 2. إدارة التبويبات
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+    }
+
+    // 3. التحقق من حالة تسجيل الدخول عند التحميل
+    window.addEventListener('DOMContentLoaded', async () => {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        showDashboard();
+      }
+    });
+
+    // 4. تسجيل الدخول
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert('خطأ في الدخول: ' + error.message);
+      } else {
+        showDashboard();
+      }
+    });
+
+    async function logout() {
+      await supabaseClient.auth.signOut();
+      window.location.reload();
+    }
+
+    // 5. عرض اللوحة وجلب البيانات
+    async function showDashboard() {
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('dashboard-section').classList.remove('hidden');
+      await loadSettings();
+    }
+
+    // 6. تحميل إعدادات الموقع والتطبيق من Supabase
+    async function loadSettings() {
+      const { data, error } = await supabaseClient
+        .from('global_settings')
+        .select('*')
+        .eq('id', 1)
+        .single();
+
+      if (data) {
+        document.getElementById('site_title').value = data.site_title || '';
+        document.getElementById('meta_description').value = data.meta_description || '';
+        document.getElementById('app_primary_color').value = data.app_primary_color || '#1d4ed8';
+        document.getElementById('app_dark_mode').checked = data.app_dark_mode;
+        document.getElementById('google_analytics_id').value = data.google_analytics_id || '';
+        document.getElementById('header_ad_code').value = data.header_ad_code || '';
+        document.getElementById('body_ad_code').value = data.body_ad_code || '';
+      }
+    }
+
+    // 7. حفظ إعدادات الستايل و SEO
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const updates = {
+        site_title: document.getElementById('site_title').value,
+        meta_description: document.getElementById('meta_description').value,
+        app_primary_color: document.getElementById('app_primary_color').value,
+        app_dark_mode: document.getElementById('app_dark_mode').checked,
+      };
+
+      const { error } = await supabaseClient.from('global_settings').update(updates).eq('id', 1);
+      if (error) alert('حدث خطأ أثناء الحفظ');
+      else alert('تم التحديث بنجاح!');
+    });
+
+    // 8. حفظ الإعلانات و Analytics
+    document.getElementById('ads-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const updates = {
+        google_analytics_id: document.getElementById('google_analytics_id').value,
+        header_ad_code: document.getElementById('header_ad_code').value,
+        body_ad_code: document.getElementById('body_ad_code').value,
+      };
+
+      const { error } = await supabaseClient.from('global_settings').update(updates).eq('id', 1);
+      if (error) alert('حدث خطأ أثناء الحفظ');
+      else alert('تم حفظ الإعلانات والاحصائيات!');
+    });
+
+    // 9. إضافة صفحة جديدة
+    document.getElementById('page-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const newPage = {
+        title: document.getElementById('page_title').value,
+        slug: document.getElementById('page_slug').value,
+        content: document.getElementById('page_content').value,
+      };
+
+      const { error } = await supabaseClient.from('pages').insert([newPage]);
+      if (error) alert('خطأ في إضافة الصفحة: ' + error.message);
+      else {
+        alert('تم نشر الصفحة بنجاح!');
+        e.target.reset();
+      }
+    });
+  </script>
+</body>
+</html>
