@@ -59,12 +59,7 @@ public class MainActivity extends Activity {
             () -> refreshRemoteConfig()
         );
 
-        realtimeScope.launch(new kotlin.jvm.functions.Function1<kotlin.coroutines.Continuation<? super kotlin.Unit>, Object>() {
-            @Override
-            public Object invoke(kotlin.coroutines.Continuation<? super kotlin.Unit> continuation) {
-                return realtimeEngine.startListening(continuation);
-            }
-        });
+        realtimeEngine.startListening();
 
         DynamicConfigHandler.fetch(new DynamicConfigHandler.Callback() {
             @Override
@@ -165,13 +160,8 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
-        if (realtimeEngine != null && realtimeScope != null) {
-            realtimeScope.launch(new kotlin.jvm.functions.Function1<kotlin.coroutines.Continuation<? super kotlin.Unit>, Object>() {
-                @Override
-                public Object invoke(kotlin.coroutines.Continuation<? super kotlin.Unit> continuation) {
-                    return realtimeEngine.stopListening(continuation);
-                }
-            });
+        if (realtimeEngine != null) {
+            realtimeEngine.stopListening();
         }
         if (realtimeScope != null) {
             realtimeScope.cancel(null);
