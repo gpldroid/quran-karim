@@ -7,10 +7,13 @@ import io.github.jan.supabase.realtime.Realtime
 import io.github.jan.supabase.realtime.channel
 import io.github.jan.supabase.realtime.postgresChangeFlow
 import io.github.jan.supabase.realtime.realtime
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.cancel
 
 /**
  * Keeps the Android client subscribed to Supabase database changes.
@@ -20,10 +23,11 @@ import kotlinx.coroutines.launch
  * the Android client to the exact JSON shape of theme_config/ad_code.
  */
 class SupabaseRealtimeEngine(
-    private val scope: CoroutineScope,
     private val onSettingsChanged: () -> Unit,
     private val onAdsChanged: () -> Unit
 ) {
+    private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+
     private val client = createSupabaseClient(
         supabaseUrl = BuildConfig.SUPABASE_URL,
         supabaseKey = BuildConfig.SUPABASE_ANON_KEY
