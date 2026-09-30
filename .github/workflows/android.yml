@@ -40,7 +40,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$ANDROID_KEYSTORE_BASE64"
-          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/wow-release.jks"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | tr -d '[:space:]' | base64 --decode --ignore-garbage > "$RUNNER_TEMP/wow-release.jks"
           chmod 600 "$RUNNER_TEMP/wow-release.jks"
           test -s "$RUNNER_TEMP/wow-release.jks"
 
