@@ -46,7 +46,7 @@ jobs:
 
       - name: Run dashboard viewport QA
         run: |
-          cat > /tmp/dashboard-responsive-qa.mjs <<'EOF'
+          cat > dashboard-responsive-qa.mjs <<'EOF'
           import { chromium } from 'playwright';
 
           const viewports = [
@@ -166,7 +166,8 @@ jobs:
             ' dashboard screens × ' + viewports.length + ' viewports.'
           );
           EOF
-          node /tmp/dashboard-responsive-qa.mjs
+          node dashboard-responsive-qa.mjs
+          rm -f dashboard-responsive-qa.mjs
 
       - name: Stop static server
         if: always()
