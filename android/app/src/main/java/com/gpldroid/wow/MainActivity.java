@@ -8,6 +8,7 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.graphics.Color;
+import android.webkit.ValueCallback;
 
 public class MainActivity extends Activity {
     private WebView webView;
@@ -44,6 +45,39 @@ public class MainActivity extends Activity {
         });
 
         webView.loadUrl("file:///android_asset/quran.html");
+
+        DynamicConfigHandler.fetch(new DynamicConfigHandler.Callback() {
+            @Override
+            public void onSuccess(DynamicConfigHandler.Config config) {
+                if (config.backgroundColor != null) {
+                    try {
+                        webView.setBackgroundColor(Color.parseColor(config.backgroundColor));
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                }
+
+                String primary = config.primaryColor;
+                String secondary = config.secondaryColor;
+                if (primary != null || secondary != null) {
+                    String script =
+                        "(function(){" +
+                        "var r=document.documentElement;" +
+                        (primary != null ? "r.style.setProperty('--wow-primary'," + JSONObjectQuote(primary) + ");" : "") +
+                        (secondary != null ? "r.style.setProperty('--wow-secondary'," + JSONObjectQuote(secondary) + ");" : "") +
+                        "})();";
+                    webView.evaluateJavascript(script, null);
+                }
+            }
+
+            @Override
+            public void onError(Exception error) {
+                // The bundled Quran experience remains fully usable when remote config is unavailable.
+            }
+        });
+    }
+
+    private static String JSONObjectQuote(String value) {
+        return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
     }
 
     private boolean handleLocalRoute(WebView view, String url) {
