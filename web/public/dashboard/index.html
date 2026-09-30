@@ -17,6 +17,8 @@
 .layout{min-height:100vh;display:grid;grid-template-columns:270px 1fr}.sidebar{background:#0f172a;color:#fff;padding:18px;position:sticky;top:0;height:100vh}.side-brand{font-size:21px;font-weight:900;padding:10px 8px 22px}.nav{display:grid;gap:7px}.nav button{border:0;background:transparent;color:#cbd5e1;text-align:right;padding:12px;border-radius:12px;font-weight:800}.nav button.active,.nav button:hover{background:#1e293b;color:#fff}.side-bottom{position:absolute;bottom:18px;left:18px;right:18px}.main{padding:22px;max-width:1500px;width:100%;margin:auto}.topbar{display:flex;justify-content:space-between;align-items:center;gap:15px;margin-bottom:20px}.topbar h1{margin:0;font-size:26px}.actions{display:flex;gap:8px;flex-wrap:wrap}.grid{display:grid;gap:16px}.cards{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:18px}.stat{font-size:28px;font-weight:900;margin-top:8px}.section-title{font-size:20px;font-weight:900;margin:0 0 16px}.two{grid-template-columns:1fr 1fr}.three{grid-template-columns:repeat(3,1fr)}.list{display:grid;gap:10px}.row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px;border:1px solid var(--border);border-radius:13px}.row-title{font-weight:900}.row small{display:block;color:var(--muted);margin-top:3px}.row-actions{display:flex;gap:6px;flex-wrap:wrap}.switch{display:flex;align-items:center;gap:10px}.switch input{width:18px;height:18px}.toast{position:fixed;top:18px;left:18px;z-index:99;background:#0f172a;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:var(--shadow);max-width:min(420px,calc(100% - 36px))}.status{padding:10px 12px;border-radius:10px;background:#f1f5f9;margin-bottom:12px}.status.ok{background:#dcfce7;color:#166534}.status.bad{background:#fee2e2;color:#991b1b}.tabs-note{font-size:13px;color:var(--muted);margin-top:-8px;margin-bottom:15px}.code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;direction:ltr;text-align:left}.table-wrap{overflow:auto}.mini-table{width:100%;border-collapse:collapse}.mini-table th,.mini-table td{padding:10px;border-bottom:1px solid var(--border);text-align:right;white-space:nowrap}.mini-table th{color:var(--muted);font-size:13px}.badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef2ff;color:#3730a3;font-size:12px;font-weight:800}
 @media(max-width:950px){.layout{grid-template-columns:1fr}.sidebar{position:static;height:auto}.side-bottom{position:static;margin-top:18px}.nav{grid-template-columns:repeat(2,1fr)}.cards,.two,.three{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.main{padding:14px}.cards,.two,.three{grid-template-columns:1fr}.topbar{align-items:flex-start;flex-direction:column}.nav{grid-template-columns:1fr 1fr}.row{align-items:flex-start;flex-direction:column}.row-actions{width:100%}}
+
+.file-manager-hero{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}.file-manager-hero .section-title{margin-bottom:6px}
 </style>
 <link rel="stylesheet" href="./ui.css">
 </head>
@@ -47,6 +49,7 @@
     <button data-tab="content">المحتوى</button>
     <button data-tab="categories">التصنيفات</button>
     <button data-tab="app">تحكم التطبيق</button>
+    <button data-tab="files">📁 File Manager</button>
     <button data-tab="studio">🧩 Project Studio</button>
     <button data-tab="github">🐙 GitHub</button>
     <button data-tab="templates">📦 القوالب</button>
@@ -110,6 +113,26 @@
 </div></section>
 
 <section id="tab-app" class="tab hidden"><div class="card"><h2 class="section-title">الصيانة والتحديث الإجباري</h2><p class="tabs-note">هذه القيم يقرأها تطبيق Android عند التشغيل. لا تحتاج لإعادة بناء التطبيق عند تغيير الرسالة أو الحد الأدنى للإصدار أو رابط التحديث.</p><form id="appForm"><div class="card" style="box-shadow:none;background:#fff7ed;border-color:#fed7aa;margin-bottom:16px"><label class="switch"><input id="maintenance_mode" type="checkbox"> تفعيل وضع الصيانة</label><div class="field" style="margin-top:12px"><label>رسالة الصيانة</label><textarea id="maintenance_message"></textarea></div></div><div class="grid two"><div class="field"><label>أدنى إصدار مطلوب</label><input id="min_required_version" placeholder="1.1.0"></div><div class="field"><label>رابط التحديث</label><input id="app_update_url" type="url" placeholder="https://play.google.com/store/apps/details?id=com.example.app"></div></div><button class="btn primary" type="submit">حفظ إعدادات التطبيق</button></form></div></section>
+
+<section id="tab-files" class="tab hidden">
+  <div class="card file-manager-hero">
+    <div><h2 class="section-title">📁 File Manager</h2><p class="tabs-note">متصفح ملفات مباشر للمستودع: Repository → Branch → الملفات. يدعم البحث، المعاينة، التنزيل، والانتقال إلى GitHub Workspace للتحرير والـCommit.</p></div>
+    <div class="actions"><button class="btn primary" id="fmOpenGithub">🐙 GitHub Workspace</button><button class="btn" id="fmRefresh">↻ تحديث</button></div>
+  </div>
+  <div class="grid two">
+    <div class="card"><h2 class="section-title">المستودع</h2>
+      <div class="field"><label>Repository</label><input id="fmRepo" value="gpldroid/wow" placeholder="owner/repository"></div>
+      <div class="field"><label>Branch</label><input id="fmBranch" value="main" placeholder="main"></div>
+      <div class="actions" style="margin-bottom:12px"><button class="btn primary" id="fmLoad">فتح المستودع</button><button class="btn" data-fm-repo="gpldroid/wow">WOW</button><button class="btn" data-fm-repo="gpldroid/apk-wpdf">APK-WPDF</button><button class="btn" data-fm-repo="gpldroid/mseo">MSEO</button><button class="btn" data-fm-repo="gpldroid/reviewer">Reviewer</button></div>
+      <div id="fmStatus" class="status">أدخل المستودع واضغط «فتح المستودع».</div><div id="fmRepoInfo" class="muted"></div>
+    </div>
+    <div class="card"><h2 class="section-title">الملف المحدد</h2><div id="fmCurrent" class="row"><div><div class="row-title">لم يتم اختيار ملف</div><small>اختر ملفًا من الشجرة.</small></div></div>
+      <div class="actions" style="margin-top:12px"><button class="btn primary" id="fmDownload" disabled>تنزيل الملف</button><button class="btn" id="fmGithubFile" disabled>فتح في GitHub</button></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px"><div class="studio-panel-head"><strong>🗂 شجرة الملفات</strong><span id="fmCount" class="badge">0 ملف</span></div><input id="fmSearch" class="studio-search" placeholder="بحث عن ملف أو مسار..."><div id="fmTree" class="file-tree" style="max-height:520px;overflow:auto"><div class="muted">لم يتم تحميل مستودع بعد.</div></div></div>
+  <div class="card" style="margin-top:16px"><div class="studio-panel-head"><strong id="fmPreviewTitle">معاينة الملف</strong><span id="fmPreviewMeta" class="muted"></span></div><pre id="fmPreview" class="code" style="white-space:pre-wrap;max-height:460px;overflow:auto;margin:0;padding:16px;background:var(--bg);border-radius:12px">اختر ملفًا نصيًا للمعاينة.</pre></div>
+</section>
 
 <section id="tab-studio" class="tab hidden">
   <div class="studio-toolbar card">
@@ -264,8 +287,27 @@ let settings=null, ads=[], seo=[], content=[], categories=[], role=null;
 
 function toast(msg,bad=false){const t=$("toast");t.textContent=msg;t.className="toast";setTimeout(()=>t.className="toast hidden",3500);if(bad)console.error(msg)}
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
-function switchTab(name){document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));$("tab-"+name).classList.remove("hidden");document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===name));const titles={overview:"نظرة عامة",settings:"إعدادات المنصة",theme:"المظهر والستايل",ads:"الإعلانات",seo:"الصفحات و SEO",content:"المحتوى",categories:"التصنيفات",app:"تحكم التطبيق"};$("pageTitle").textContent=titles[name]||name}
+function switchTab(name){document.querySelectorAll(".tab").forEach(x=>x.classList.add("hidden"));$("tab-"+name).classList.remove("hidden");document.querySelectorAll("#nav button").forEach(x=>x.classList.toggle("active",x.dataset.tab===name));const titles={overview:"نظرة عامة",settings:"إعدادات المنصة",theme:"المظهر والستايل",ads:"الإعلانات",seo:"الصفحات و SEO",content:"المحتوى",categories:"التصنيفات",app:"تحكم التطبيق",files:"📁 File Manager",studio:"🧩 Project Studio",github:"🐙 GitHub",templates:"📦 القوالب",history:"🕘 الإصدارات"};$("pageTitle").textContent=titles[name]||name}
 window.switchTab=switchTab;
+
+(function initFileManager(){
+ "use strict";
+ const el=id=>document.getElementById(id);
+ const escFm=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+ const API="https://api.github.com";
+ const state={repo:"gpldroid/wow",branch:"main",tree:[],file:null,content:""};
+ function headers(){const h={Accept:"application/vnd.github+json","X-GitHub-Api-Version":"2026-03-10"};const t=sessionStorage.getItem("wow_github_token");if(t)h.Authorization="Bearer "+t;return h}
+ async function api(path){const r=await fetch(API+path,{headers:headers()});let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.message||("GitHub API "+r.status));return d}
+ function status(m,bad=false){el("fmStatus").textContent=m;el("fmStatus").className="status "+(bad?"bad":"")}
+ function icon(p){if(/\.(html?|xhtml)$/i.test(p))return"🌐";if(/\.(css|scss|less)$/i.test(p))return"🎨";if(/\.(js|ts|jsx|tsx)$/i.test(p))return"⚙️";if(/\.(json|xml|yml|yaml)$/i.test(p))return"🧾";if(/\.(png|jpg|jpeg|webp|gif|svg|ico)$/i.test(p))return"🖼️";if(/\.(java|kt|gradle|properties)$/i.test(p))return"📱";return"📄"}
+ function render(){const q=(el("fmSearch").value||"").toLowerCase().trim();const a=state.tree.filter(x=>x.type==="blob"&&(!q||x.path.toLowerCase().includes(q)));el("fmCount").textContent=state.tree.filter(x=>x.type==="blob").length+" ملف";el("fmTree").innerHTML=a.length?a.map(x=>'<button class="file-item '+(state.file?.path===x.path?"active":"")+'" data-fm-path="'+escFm(x.path)+'"><span>'+icon(x.path)+'</span><span>'+escFm(x.path)+'</span><small style="margin-right:auto;color:var(--muted)">'+(x.size||0).toLocaleString()+" B"+'</small></button>').join(""):'<div class="muted">لا توجد ملفات مطابقة.</div>';el("fmTree").querySelectorAll("[data-fm-path]").forEach(b=>b.onclick=()=>openFile(b.dataset.fmPath))}
+ async function loadRepo(){const repo=el("fmRepo").value.trim().replace(/^https?:\/\/github\.com\//i,"").replace(/\.git\/?$/,"").replace(/\/$/,"");const branch=el("fmBranch").value.trim()||"main";if(!/^[^/]+\/[^/]+$/.test(repo)){status("صيغة Repository غير صحيحة. استخدم owner/repository.",true);return}state.repo=repo;state.branch=branch;state.file=null;setButtons(false);try{status("جارٍ قراءة "+repo+" / "+branch+"...");const meta=await api("/repos/"+repo);const d=await api("/repos/"+repo+"/git/trees/"+encodeURIComponent(branch)+"?recursive=1");state.tree=(d.tree||[]).filter(x=>x.type==="blob"&&Number(x.size||0)<=5000000);el("fmRepoInfo").innerHTML="<strong>"+escFm(meta.full_name)+"</strong> · "+(meta.private?"🔒 Private":"🌐 Public")+" · Default: "+escFm(meta.default_branch||branch)+"<br>"+escFm(meta.description||"");render();status("✓ تم تحميل "+state.tree.length+" ملفًا.");}catch(e){el("fmTree").innerHTML='<div class="muted">تعذر تحميل الملفات.</div>';status(e.message||"فشل تحميل المستودع.",true)}}
+ async function openFile(path){try{status("جارٍ فتح "+path+"...");const d=await api("/repos/"+state.repo+"/contents/"+path.split("/").map(encodeURIComponent).join("/")+"?ref="+encodeURIComponent(state.branch));state.file={path,sha:d.sha,html_url:d.html_url,download_url:d.download_url};if(d.encoding==="base64"){const bin=atob(d.content.replace(/\n/g,""));const bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));state.content=new TextDecoder("utf-8").decode(bytes);el("fmPreview").textContent=state.content.length>300000?state.content.slice(0,300000)+"\n\n[تم اختصار المعاينة]":state.content;el("fmPreviewMeta").textContent=(d.size||0).toLocaleString()+" B · "+d.sha.slice(0,10)}else{state.content="";el("fmPreview").textContent="هذا الملف غير متاح كنص عبر Contents API."}el("fmPreviewTitle").textContent=path;el("fmCurrent").innerHTML="<div><div class='row-title'>"+escFm(path)+"</div><small>"+escFm(state.repo)+" / "+escFm(state.branch)+"</small></div>";setButtons(true);render();status("✓ تم فتح الملف.");}catch(e){status(e.message||"تعذر فتح الملف.",true)}}
+ function setButtons(on){["fmDownload","fmGithubFile"].forEach(id=>el(id).disabled=!on)}
+ function download(){if(!state.file)return;const blob=new Blob([state.content],{type:"text/plain;charset=utf-8"}),a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=state.file.path.split("/").pop();a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+ function githubFile(){if(state.file)window.open("https://github.com/"+state.repo+"/blob/"+encodeURIComponent(state.branch)+"/"+state.file.path.split("/").map(encodeURIComponent).join("/"),"_blank","noopener")}
+ el("fmLoad").onclick=loadRepo;el("fmRefresh").onclick=loadRepo;el("fmSearch").oninput=render;el("fmDownload").onclick=download;el("fmGithubFile").onclick=githubFile;el("fmOpenGithub").onclick=()=>switchTab("github");document.querySelectorAll("[data-fm-repo]").forEach(b=>b.onclick=()=>{el("fmRepo").value=b.dataset.fmRepo;loadRepo()});loadRepo();
+})();
 
 async function requireAdmin(){if(!client)return false;const {data:{user}}=await client.auth.getUser();if(!user)return false;$("userEmail").textContent=user.email||"";const p=await client.from("profiles").select("role").eq("id",user.id).maybeSingle();role=p.data?.role||"editor";if(role!=="admin"){toast("هذا الحساب لا يملك صلاحيات المدير.",true);return false}return true}
 
