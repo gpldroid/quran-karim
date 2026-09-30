@@ -16,6 +16,9 @@ import android.webkit.WebViewClient;
 public class MainActivity extends Activity {
     private WebView webView;
     private SupabaseRealtimeEngine realtimeEngine;
+    private static final String REMOTE_WEB_URL = "https://gpldroid.github.io/wow/";
+    private boolean remoteLoadInProgress = false;
+    private long lastRemoteRefreshAt = 0L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +41,23 @@ public class MainActivity extends Activity {
 
         webView.setWebViewClient(new WebViewClient() {
             @Override
+            public void onPageFinished(WebView view, String url) {
+                remoteLoadInProgress = false;
+                super.onPageFinished(view, url);
+            }
+
+            @Override
+            public void onReceivedError(WebView view, int errorCode, String description, String failingUrl) {
+                if (remoteLoadInProgress && failingUrl != null && failingUrl.startsWith(REMOTE_WEB_URL)) {
+                    remoteLoadInProgress = false;
+                    Log.w("MainActivity", "Remote web update unavailable; using bundled offline copy: " + description);
+                    view.loadUrl("file:///android_asset/quran.html");
+                    return;
+                }
+                super.onReceivedError(view, errorCode, description, failingUrl);
+            }
+
+            @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 return handleLocalRoute(view, request.getUrl().toString());
             }
@@ -48,7 +68,7 @@ public class MainActivity extends Activity {
             }
         });
 
-        webView.loadUrl("file:///android_asset/quran.html");
+        loadRemoteWebApp();
 
         realtimeEngine = new SupabaseRealtimeEngine(
             () -> refreshRemoteConfig(),
@@ -67,6 +87,14 @@ public class MainActivity extends Activity {
                 Log.w("MainActivity", "Initial remote config failed", error);
             }
         });
+    }
+
+    private void loadRemoteWebApp() {
+        if (webView == null) return;
+        remoteLoadInProgress = true;
+        lastRemoteRefreshAt = System.currentTimeMillis();
+        String url = REMOTE_WEB_URL + "?app=android&v=" + System.currentTimeMillis();
+        webView.loadUrl(url);
     }
 
     private void refreshRemoteConfig() {
@@ -226,6 +254,14 @@ public class MainActivity extends Activity {
             return true;
         }
         return false;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (webView != null && System.currentTimeMillis() - lastRemoteRefreshAt > 5 * 60 * 1000L) {
+            loadRemoteWebApp();
+        }
     }
 
     @Override
