@@ -62,7 +62,7 @@ export default function Dashboard() {
     setAds((adsData ?? []) as Ad[]);
     setSeoPages((seoData ?? []) as SeoPage[]);
     if (profile?.role === "admin") {
-      const { data } = await supabase.from("app_settings").select("*").eq("id", true).single();
+      const { data } = await supabase.from("app_settings").select("*").eq("id", 1).single();
       if (data) setSettings({ ...data, theme_config: { ...defaultTheme, ...(data.theme_config ?? {}) } });
     }
     setLoading(false);
@@ -196,7 +196,7 @@ export default function Dashboard() {
       contact_email: settings.contact_email || null,
       google_analytics_id: settings.google_analytics_id || null,
       theme_config: settings.theme_config
-    }).eq("id", true);
+    }).eq("id", 1);
     setMessage(error?.message ?? "تم حفظ إعدادات المنصة."); setSaving(false);
   }
 
