@@ -39,7 +39,8 @@ function App(){
  if(!supabase)return <div className="grid min-h-screen place-items-center p-6" dir="rtl"><Card className="w-full max-w-md"><h1 className="mb-2 text-2xl font-bold">إعداد Supabase مفقود</h1><p className="text-slate-600">أضف VITE_SUPABASE_URL و VITE_SUPABASE_ANON_KEY إلى بيئة النشر.</p></Card></div>;
  if(!session)return <Login email={email} password={password} setEmail={setEmail} setPassword={setPassword} onSuccess={s=>setSession(s)} />;
 
- const nav: [string,string,LucideIcon][]=[["overview","نظرة عامة",BarChart3],...(role==="admin"?[["settings","الإعدادات",Settings],["theme","المظهر",Palette],["seo","الصفحات و SEO",FileText],["ads","الإعلانات",Megaphone]]:[])];
+ const nav: [string,string,LucideIcon][]=[["overview","نظرة عامة",BarChart3]];
+ if(role==="admin") nav.push(["settings","الإعدادات",Settings],["theme","المظهر",Palette],["seo","الصفحات و SEO",FileText],["ads","الإعلانات",Megaphone]);
  return <div className="min-h-screen bg-slate-50" dir="rtl">
    {toast&&<div role="status" className="fixed left-4 top-4 z-50 rounded-xl bg-slate-900 px-4 py-3 text-sm text-white shadow-xl">{toast}</div>}
    <div className="mx-auto grid min-h-screen max-w-7xl lg:grid-cols-[240px_1fr]">
