@@ -12,13 +12,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import kotlinx.coroutines.CoroutineScope;
-import kotlinx.coroutines.Dispatchers;
-import kotlinx.coroutines.SupervisorJob;
-
 public class MainActivity extends Activity {
     private WebView webView;
-    private CoroutineScope realtimeScope;
     private SupabaseRealtimeEngine realtimeEngine;
 
     @Override
@@ -54,9 +49,7 @@ public class MainActivity extends Activity {
 
         webView.loadUrl("file:///android_asset/quran.html");
 
-        realtimeScope = new CoroutineScope(Dispatchers.getMain().plus(new SupervisorJob()));
         realtimeEngine = new SupabaseRealtimeEngine(
-            realtimeScope,
             () -> refreshRemoteConfig(),
             () -> refreshRemoteConfig()
         );
@@ -222,7 +215,6 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         if (realtimeEngine != null) realtimeEngine.stopListening();
-        if (realtimeScope != null) realtimeScope.cancel(null);
         if (webView != null) {
             webView.loadUrl("about:blank");
             webView.destroy();
