@@ -848,3 +848,317 @@ a{overflow-wrap:anywhere}
   to{opacity:1;transform:none}
 }
 .tab{animation:adminTab .2s ease both}
+
+/* =========================================================
+   Responsive QA hardening — dashboard screens
+   ========================================================= */
+
+/* Shared containment: long GitHub paths, URLs, tokens and Arabic text
+   must never expand the page instead of the component that owns them. */
+.tab,
+.tab > *,
+.card > *,
+.topbar > *,
+.actions,
+.row,
+.row > *,
+.field,
+.field > *,
+.studio-panel-head,
+.github-panel-head,
+.github-files-panel,
+.github-code-wrap,
+.github-tree-wrap,
+.file-manager-hero,
+.file-manager-hero > *,
+.preview-panel,
+.editor-panel{
+  min-width:0;
+  max-width:100%;
+}
+
+.tab,
+.tab *{
+  overflow-wrap:anywhere;
+}
+
+input,
+textarea,
+select{
+  max-width:100%;
+}
+
+textarea,
+.code-editor,
+.github-editor,
+.fm-editor{
+  max-width:100%;
+}
+
+/* Login: keep the card usable when the Android keyboard reduces
+   the visual viewport. */
+.auth{
+  min-height:100svh;
+  min-height:100dvh;
+  padding:
+    max(12px,env(safe-area-inset-top))
+    max(12px,env(safe-area-inset-right))
+    max(12px,env(safe-area-inset-bottom))
+    max(12px,env(safe-area-inset-left));
+}
+.auth-card{
+  width:min(430px,100%);
+}
+
+/* Overview / Settings: action groups and form controls must shrink
+   rather than create a horizontal page overflow. */
+.topbar .actions{
+  min-width:0;
+}
+.settingsForm,
+#settingsForm,
+#themeForm,
+#appForm,
+#seoForm,
+#contentForm,
+#categoryForm,
+#adForm{
+  min-width:0;
+  max-width:100%;
+}
+
+/* File Manager: controls stack cleanly on narrow phones and long
+   repository names remain inside their cards. */
+#tab-files .actions{
+  min-width:0;
+}
+#tab-files .actions .btn{
+  min-width:0;
+  flex:1 1 150px;
+}
+#fmRepoInfo,
+#fmCurrent,
+#fmPreviewMeta,
+#fmSyncHint{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+#fmTree{
+  max-width:100%;
+  min-width:0;
+  overflow:auto;
+}
+#fmEditor{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+}
+
+/* Project Studio: never let the file tree/editor/preview establish
+   the width of the parent grid. */
+#tab-studio .studio-grid,
+#tab-studio .studio-toolbar{
+  min-width:0;
+  max-width:100%;
+}
+#tab-studio .studio-grid > *,
+#tab-studio .studio-toolbar > *{
+  min-width:0;
+  max-width:100%;
+}
+#studioFileSearch,
+#studioEditor,
+#studioPreview{
+  min-width:0;
+  max-width:100%;
+}
+
+/* GitHub Workspace: repository names, branches, paths and commit
+   messages are especially prone to overflow on mobile. */
+#tab-github .github-workspace-grid,
+#tab-github .github-files-layout,
+#tab-github .github-toolbar,
+#tab-github .github-commit-bar{
+  min-width:0;
+  max-width:100%;
+}
+#tab-github .github-workspace-grid > *,
+#tab-github .github-files-layout > *,
+#tab-github .github-toolbar > *{
+  min-width:0;
+  max-width:100%;
+}
+#githubSelectedRepo,
+#githubRepoMeta,
+#githubCurrentFile,
+#githubFileSha,
+#githubWriteStatus,
+#githubLiveDiff{
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+#githubTree{
+  min-width:0;
+  max-width:100%;
+  overflow:auto;
+}
+#githubEditor{
+  width:100%;
+  min-width:0;
+  max-width:100%;
+}
+
+/* Touch targets and action wrapping on phones. */
+@media (max-width:699px){
+  .btn,
+  .nav button{
+    min-height:42px;
+  }
+
+  .topbar .actions .btn,
+  .topbar .actions a{
+    flex:1 1 140px;
+    min-width:0;
+  }
+
+  .row{
+    align-items:stretch;
+  }
+
+  .row-actions{
+    width:100%;
+  }
+
+  .row-actions .btn{
+    flex:1 1 130px;
+    min-width:0;
+  }
+
+  .file-manager-hero .actions,
+  .github-connection .actions{
+    width:100%;
+  }
+
+  .file-manager-hero .actions .btn,
+  .github-connection .actions .btn{
+    flex:1 1 140px;
+  }
+
+  .studio-toolbar > .actions{
+    width:100%;
+  }
+
+  .studio-toolbar > .actions .btn{
+    flex:1 1 130px;
+  }
+
+  .github-toolbar > .actions{
+    width:100%;
+  }
+
+  .github-toolbar > .actions .btn{
+    flex:1 1 130px;
+  }
+
+  .github-files-layout{
+    grid-template-columns:minmax(0,1fr);
+  }
+
+  .github-tree-wrap{
+    max-height:280px;
+  }
+
+  .github-code-wrap{
+    min-width:0;
+  }
+
+  .code-editor,
+  .github-editor,
+  .fm-editor{
+    min-height:360px;
+  }
+
+  .preview-stage{
+    min-height:360px;
+  }
+
+  .preview-stage iframe{
+    height:360px;
+  }
+}
+
+/* Very narrow phones (320–380px): reduce chrome without changing
+   the desktop/tablet design. */
+@media (max-width:379px){
+  .main{
+    padding:10px!important;
+  }
+
+  .card{
+    padding:11px!important;
+    border-radius:14px!important;
+  }
+
+  .nav button{
+    padding-inline:8px;
+    font-size:.76rem!important;
+  }
+
+  .btn{
+    padding-inline:10px!important;
+  }
+
+  .topbar h1{
+    font-size:1.18rem!important;
+  }
+
+  .section-title{
+    font-size:.98rem!important;
+  }
+
+  .row-actions .btn,
+  .topbar .actions .btn,
+  .topbar .actions a{
+    flex-basis:100%;
+  }
+}
+
+/* Tablet boundary: keep editor and tree independent from the
+   viewport width, while retaining the existing two-column layout. */
+@media (min-width:700px) and (max-width:900px){
+  .studio-grid{
+    grid-template-columns:minmax(170px,220px) minmax(0,1fr);
+  }
+
+  .github-workspace-grid{
+    grid-template-columns:minmax(190px,250px) minmax(0,1fr);
+  }
+
+  .github-files-layout{
+    grid-template-columns:minmax(190px,230px) minmax(0,1fr);
+  }
+
+  .file-tree,
+  .github-repo-list,
+  #fmTree,
+  #githubTree{
+    max-width:100%;
+  }
+}
+
+/* Desktop: allow long code to scroll inside the editor only, never
+   on the document itself. */
+@media (min-width:901px){
+  .code-editor,
+  .github-editor,
+  .fm-editor{
+    overflow:auto;
+    overscroll-behavior:contain;
+  }
+
+  .studio-grid > *,
+  .github-workspace-grid > *,
+  .github-files-layout > *{
+    min-width:0;
+  }
+}
