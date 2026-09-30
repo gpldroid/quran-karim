@@ -49,6 +49,23 @@ jobs:
             exit 1
           fi
           echo "Supabase configuration: OK"
+      - name: Generate public runtime Supabase configuration
+        working-directory: web
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          node - <<'NODE'
+          const fs = require("fs");
+          const url = process.env.SUPABASE_URL;
+          const anonKey = process.env.SUPABASE_ANON_KEY;
+          fs.writeFileSync(
+            "public/runtime-config.js",
+            "window.WOW_SUPABASE_CONFIG=" + JSON.stringify({url, anonKey}) + ";\\n",
+            "utf8"
+          );
+          NODE
+
       - name: Build static site
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
