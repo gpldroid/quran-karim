@@ -48,6 +48,25 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public void onPageStarted(WebView view, String url, android.graphics.Bitmap favicon) {
+                // Keep only the application website inside WebView. If a page redirects
+                // to an external host, stop that navigation and open it outside the app.
+                if (url != null && isWebAppUrl(url)) {
+                    super.onPageStarted(view, url, favicon);
+                    return;
+                }
+
+                if (url != null && !url.startsWith("file:///android_asset/")) {
+                    Log.w("MainActivity", "Blocked external WebView navigation: " + url);
+                    view.stopLoading();
+                    openExternalUrl(url);
+                    return;
+                }
+
+                super.onPageStarted(view, url, favicon);
+            }
+
+            @Override
             public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
                 if (remoteLoadInProgress && request != null && request.isForMainFrame()
                     && request.getUrl() != null && request.getUrl().toString().startsWith(REMOTE_WEB_URL)) {
@@ -60,13 +79,26 @@ public class MainActivity extends Activity {
             }
 
             @Override
+            public void onSafeBrowsingHit(WebView view, WebResourceRequest request, int threatType,
+                                          android.webkit.SafeBrowsingResponse callback) {
+                String url = request != null && request.getUrl() != null
+                    ? request.getUrl().toString() : "unknown";
+                Log.e("MainActivity", "Safe Browsing blocked URL: " + url + " threatType=" + threatType);
+
+                // Never bypass Google's Safe Browsing protection. Return to safety instead.
+                if (callback != null) {
+                    callback.backToSafety(false);
+                }
+            }
+
+            @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                return handleLocalRoute(view, request.getUrl().toString());
+                return handleNavigation(view, request.getUrl() != null ? request.getUrl().toString() : null);
             }
 
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                return handleLocalRoute(view, url);
+                return handleNavigation(view, url);
             }
         });
 
@@ -247,6 +279,45 @@ public class MainActivity extends Activity {
 
     private static String JSONObjectQuote(String value) {
         return "\"" + value.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+    }
+
+    private boolean isWebAppUrl(String url) {
+        try {
+            Uri uri = Uri.parse(url);
+            String scheme = uri.getScheme();
+            String host = uri.getHost();
+            return ("https".equalsIgnoreCase(scheme) || "http".equalsIgnoreCase(scheme))
+                && "gpldroid.github.io".equalsIgnoreCase(host);
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    private boolean handleNavigation(WebView view, String url) {
+        if (url == null || url.trim().isEmpty()) return true;
+
+        if (url.startsWith("file:///android_asset/")) {
+            return handleLocalRoute(view, url);
+        }
+
+        if (isWebAppUrl(url)) {
+            return false;
+        }
+
+        // Do not load third-party destinations inside the application's WebView.
+        // This prevents an external/redirected destination from triggering a
+        // Safe Browsing warning inside the app while preserving normal links.
+        openExternalUrl(url);
+        return true;
+    }
+
+    private void openExternalUrl(String url) {
+        try {
+            Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.w("MainActivity", "Unable to open external URL: " + url, e);
+        }
     }
 
     private boolean handleLocalRoute(WebView view, String url) {
