@@ -7,7 +7,7 @@ const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "/wow";
 type Locale = "ar" | "en" | "fr";
 const data = {
   ar: {
-    dir:"rtl", language:"اللغة", home:"الرئيسية", quran:"القرآن الكريم", login:"دخول المستخدمين",
+    dir:"rtl", language:"اللغة", home:"الرئيسية", quran:"القرآن الكريم",
     eyebrow:"رفيقك الرقمي للمعرفة والعبادة", title:"كل ما تحتاجه لرحلتك الإيمانية،", accent:"في مكان واحد.",
     intro:"منصة إسلامية تجمع القرآن الكريم والتلاوات والأذكار والخدمات اليومية، بتجربة بسيطة ومتاحة على جميع أجهزتك.",
     explore:"اكتشف الخدمات", open:"افتح المصحف", daily:"مساحتك اليومية", services:"خدمات WOW",
@@ -18,7 +18,7 @@ const data = {
     cards:[["القرآن الكريم","المصحف والقراءة والبحث"],["الاستماع","القراء والتلاوات والإذاعات"],["التفسير","تفسير الآيات ومعانيها"],["الحديث النبوي","الأحاديث والتخريج والشرح"],["الأذكار","أذكار الصباح والمساء والنوم"],["مواقيت الصلاة","المواقيت حسب الموقع"],["القبلة","تحديد اتجاه القبلة"],["التقويم الهجري","التاريخ والمناسبات"],["خطة ختم القرآن","متابعة القراءة والإنجاز"],["أسماء الله الحسنى","الأسماء والمعاني"],["المكتبة الإسلامية","كتب ومحاضرات ومقالات"],["مساعد البحث الديني","بحث في النص القرآني مع المراجع"]]
   },
   en: {
-    dir:"ltr", language:"Language", home:"Home", quran:"The Quran", login:"Sign in",
+    dir:"ltr", language:"Language", home:"Home", quran:"The Quran",
     eyebrow:"Your digital companion for faith and learning", title:"Everything for your spiritual journey,", accent:"in one place.",
     intro:"A welcoming Islamic platform for Quran reading, recitations, remembrance and everyday services — designed for all your devices.",
     explore:"Explore services", open:"Open the Quran", daily:"Your daily space", services:"WOW services",
@@ -29,7 +29,7 @@ const data = {
     cards:[["The Quran","Read, explore and search"],["Listen","Reciters, recitations and radio"],["Tafsir","Verse explanations and meanings"],["Hadith","Hadith, references and explanations"],["Dhikr","Morning, evening and bedtime adhkar"],["Prayer times","Prayer times for your location"],["Qibla","Find the direction of prayer"],["Hijri calendar","Dates and Islamic occasions"],["Quran journey","Track your reading and progress"],["Names of Allah","The names and their meanings"],["Islamic library","Books, lectures and articles"],["Faith search","Quranic text search with references"]]
   },
   fr: {
-    dir:"ltr", language:"Langue", home:"Accueil", quran:"Le Coran", login:"Connexion",
+    dir:"ltr", language:"Langue", home:"Accueil", quran:"Le Coran",
     eyebrow:"Votre compagnon numérique pour apprendre et pratiquer", title:"Tout pour votre cheminement spirituel,", accent:"au même endroit.",
     intro:"Une plateforme islamique qui réunit lecture du Coran, récitations, invocations et services du quotidien, sur tous vos appareils.",
     explore:"Découvrir les services", open:"Ouvrir le Coran", daily:"Votre espace quotidien", services:"Les services WOW",
