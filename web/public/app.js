@@ -825,3 +825,69 @@ document.addEventListener("DOMContentLoaded",function(){if(window.WOWSiteConfigE
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initWOWNavigation);
   else initWOWNavigation();
 })();
+
+/* UI controls: lightweight theme switch, scroll controls and non-blocking consent. */
+(function(){
+  'use strict';
+  const THEME_KEY='wow_ui_theme_v1';
+
+  function applyMode(mode){
+    const dark=mode==='dark';
+    document.body.classList.toggle('night-mode',dark);
+    const button=document.getElementById('wowThemeToggle');
+    if(button){
+      button.setAttribute('aria-pressed',dark?'true':'false');
+      button.setAttribute('title',dark?'الوضع الفاتح':'الوضع الداكن');
+      button.innerHTML=dark?'<i class="fas fa-sun" aria-hidden="true"></i>':'<i class="fas fa-moon" aria-hidden="true"></i>';
+    }
+  }
+
+  function initTheme(){
+    const saved=localStorage.getItem(THEME_KEY);
+    const mode=saved==='dark'||saved==='light'?saved:(window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light');
+    applyMode(mode);
+    const header=document.querySelector('.header-content');
+    if(!header||document.getElementById('wowThemeToggle')) return;
+    const controls=document.createElement('div');
+    controls.className='wow-ui-controls';
+    controls.innerHTML='<button id="wowThemeToggle" class="wow-ui-btn" type="button" aria-label="تبديل الوضع الداكن والفاتح" aria-pressed="false"></button>';
+    header.appendChild(controls);
+    const button=controls.firstElementChild;
+    button.addEventListener('click',function(){
+      const next=document.body.classList.contains('night-mode')?'light':'dark';
+      localStorage.setItem(THEME_KEY,next);
+      applyMode(next);
+    });
+    applyMode(mode);
+  }
+
+  function initScroll(){
+    if(document.getElementById('wowScrollControls')) return;
+    const box=document.createElement('div');
+    box.id='wowScrollControls';
+    box.className='wow-scroll-controls';
+    box.innerHTML='<button id="wowScrollTop" class="wow-ui-btn" type="button" aria-label="العودة إلى أعلى الصفحة" title="إلى الأعلى"><i class="fas fa-arrow-up" aria-hidden="true"></i></button><button id="wowScrollBottom" class="wow-ui-btn" type="button" aria-label="الانتقال إلى أسفل الصفحة" title="إلى الأسفل"><i class="fas fa-arrow-down" aria-hidden="true"></i></button>';
+    document.body.appendChild(box);
+    document.getElementById('wowScrollTop').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
+    document.getElementById('wowScrollBottom').onclick=()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'});
+    const update=()=>box.classList.toggle('is-visible',window.scrollY>180);
+    window.addEventListener('scroll',update,{passive:true});
+    update();
+  }
+
+  function initConsentFast(){
+    const consent=window.WOWPrivacyConsent;
+    if(!consent) return;
+    const run=()=>consent.init();
+    if('requestIdleCallback' in window) requestIdleCallback(run,{timeout:1600});
+    else setTimeout(run,900);
+  }
+
+  function init(){
+    initTheme();
+    initScroll();
+    initConsentFast();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
+  else init();
+})();
