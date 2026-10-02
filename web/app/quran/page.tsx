@@ -1,8 +1,8 @@
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "/wow";
 
 export const metadata = {
-  title: "القرآن الكريم | WOW",
-  description: "افتح المصحف واستمع إلى التلاوات وتابع قراءتك عبر واجهة القرآن الحالية.",
+  title: "قراءة القرآن الكريم | WOW",
+  description: "قراءة المصحف كاملة مع أزرار السور، الترجمة والتفسير الميسر، دون مشغل صوتي.",
 };
 
 export default function QuranPage() {
@@ -10,16 +10,16 @@ export default function QuranPage() {
     <main className="wow-quran-shell">
       <div className="wow-quran-topbar">
         <a href={BASE + "/"} className="wow-quran-back">← العودة إلى WOW</a>
-        <span>WOW · القرآن الكريم</span>
+        <span>WOW · قراءة القرآن الكريم</span>
+        <a href={BASE + "/listen/"} className="wow-quran-back">الاستماع ←</a>
       </div>
       <iframe
         className="wow-quran-frame"
-        src={BASE + "/quran.html"}
-        title="واجهة القرآن الكريم الحالية"
+        src={BASE + "/quran-read.html"}
+        title="قراءة القرآن الكريم"
         loading="eager"
-        allow="autoplay; fullscreen"
       />
-      <noscript>يرجى تفعيل JavaScript لاستخدام مشغل القرآن الكريم.</noscript>
+      <noscript>يرجى تفعيل JavaScript لقراءة القرآن الكريم.</noscript>
     </main>
   );
 }
