@@ -176,3 +176,174 @@ body{background:var(--neo-bg);color:var(--neo-text)}
 
 /* WOW V2 service pages */
 .v2-page{min-height:100vh;background:#f7f8f4;color:#173a31;font-family:Arial,system-ui,sans-serif}.v2-inner{max-width:1160px;margin:auto;padding-inline:24px}.v2-header{height:72px;display:flex;align-items:center;gap:24px;border-bottom:1px solid #e3eae2}.v2-logo{font-size:24px;font-weight:900;color:#173a31}.v2-logo span{color:#c6a66a}.v2-header nav{display:flex;gap:14px;overflow:auto;flex:1}.v2-header nav a{font-size:11px;color:#607168;white-space:nowrap}.v2-login{font-size:11px;font-weight:800;color:#176b55;white-space:nowrap}.v2-title{padding-top:55px;padding-bottom:30px}.v2-title>a{font-size:11px;color:#176b55}.v2-title p{font-size:9px;letter-spacing:1.7px;color:#9aa69e;margin:28px 0 9px}.v2-title h1{font-family:Georgia,serif;font-size:44px;font-weight:500;margin:0 0 10px}.v2-title>div{color:#78867e;font-size:13px;line-height:1.9;max-width:650px}.v2-content{display:grid;gap:16px;padding-bottom:70px}.v2-card{background:white;border:1px solid #e3ebe4;border-radius:16px;padding:25px;box-shadow:0 10px 30px #173a3108}.v2-card h2{font-family:Georgia,serif;font-weight:500;margin:0 0 18px;font-size:23px}.v2-form{display:flex;gap:10px;flex-wrap:wrap}.v2-form input,.v2-form select,.v2-form button,.v2-card>button,.v2-button{border:1px solid #d6e2d8;background:white;border-radius:9px;padding:11px 14px;font-size:12px;color:#27463c}.v2-form button,.v2-card>button,.v2-button{background:#0d3e35;color:white;border-color:#0d3e35;cursor:pointer;display:inline-block}.v2-arabic{font-family:serif;font-size:25px;line-height:2.1}.v2-list-item{padding:15px 0;border-bottom:1px solid #edf1ed;display:grid;gap:6px}.v2-list-item small{color:#849087}.v2-tabs{display:flex;gap:8px;margin-bottom:0}.v2-tabs button{border:1px solid #dce7dd;background:#fff;border-radius:9px;padding:10px 18px;cursor:pointer}.v2-tabs button.active{background:#176b55;color:#fff}.v2-zikr{border-bottom:1px solid #edf1ed;padding:12px 0;display:flex;gap:16px;align-items:center}.v2-zikr p{flex:1}.v2-zikr button{border:0;border-radius:50%;width:50px;height:50px;background:#edf4ee;color:#176b55;cursor:pointer}.v2-prayers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.v2-prayers div{padding:18px;border-radius:12px;background:#f1f6f1;display:grid;gap:8px}.v2-prayers strong{font-size:20px}.qibla-compass{width:240px;height:240px;border:2px solid #c6d8c9;border-radius:50%;margin:30px auto;display:grid;place-items:center;position:relative}.qibla-arrow{font-size:80px;color:#176b55;transition:transform .5s}.v2-date{padding:25px 0;display:grid;gap:10px}.v2-date strong{font-family:Georgia,serif;font-size:30px}.v2-progress{height:15px;background:#e9eee9;border-radius:20px;overflow:hidden}.v2-progress span{display:block;height:100%;background:#176b55;border-radius:20px}.v2-name-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.v2-name-grid .v2-card{min-height:140px}.v2-library{line-height:2;color:#687970}.v2-chat{min-height:100px;max-height:350px;overflow:auto;background:#f7f9f6;border-radius:10px;padding:12px;margin-bottom:12px}.v2-chat p{padding:9px;border-bottom:1px solid #e5ebe5;font-size:12px;white-space:pre-wrap}.v2-surah-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.v2-surah-grid button{border:1px solid #e3ebe4;background:#fbfcfa;border-radius:8px;padding:10px;font-size:11px;cursor:pointer;color:#315047}.v2-audio{width:100%;margin-top:18px}.v2-footer{border-top:1px solid #e4ebe4;max-width:1160px;margin:auto;padding:25px 24px 40px;display:flex;gap:20px;color:#829088;font-size:11px}.v2-footer a{font-size:20px;font-weight:900;color:#173a31}.v2-footer a span{color:#c6a66a}@media(max-width:700px){.v2-header{height:auto;padding-block:14px;align-items:flex-start}.v2-header nav{display:none}.v2-title h1{font-size:36px}.v2-prayers,.v2-name-grid{grid-template-columns:1fr 1fr}.v2-surah-grid{grid-template-columns:repeat(2,1fr)}}
+
+/* Shared Quran site chrome — copied from the established public Quran header/footer visual language. */
+.site-header, header.site-header{
+  position:sticky;
+  top:0;
+  z-index:4000;
+  width:100%;
+  background:linear-gradient(135deg,#1b5e20,#2e7d32);
+  color:#fff;
+  box-shadow:0 10px 30px rgba(6,78,31,.20),0 1px 0 rgba(255,255,255,.14) inset;
+}
+.site-header .header-content{
+  max-width:1200px;
+  min-height:64px;
+  margin:auto;
+  padding:9px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  position:relative;
+}
+.site-header .logo{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#fff;
+  text-decoration:none;
+}
+.site-header .logo img{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  border:2px solid #fff;
+  box-shadow:0 0 0 3px rgba(255,255,255,.12),0 8px 22px rgba(0,0,0,.18);
+}
+.site-header .logo h1{
+  margin:0;
+  color:#fff;
+  font-size:clamp(.9rem,1.8vw,1.12rem);
+  line-height:1.35;
+  font-weight:800;
+}
+.site-header .nav-toggle{
+  display:none;
+  align-items:center;
+  justify-content:center;
+  width:42px;
+  height:42px;
+  border-radius:12px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.25);
+  color:#fff;
+  cursor:pointer;
+}
+.site-header .nav-links{
+  display:flex;
+  align-items:center;
+  gap:3px;
+  list-style:none;
+  margin:0;
+  padding:0;
+}
+.site-header .nav-links a{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  color:#fff;
+  text-decoration:none;
+  font-size:.88rem;
+  line-height:1.35;
+  font-weight:700;
+  padding:7px 9px;
+  border-radius:11px;
+  transition:transform .2s ease,background .2s ease,box-shadow .2s ease;
+}
+.site-header .nav-links a:hover{
+  background:rgba(255,255,255,.16);
+  transform:translateY(-1px);
+  box-shadow:0 7px 20px rgba(0,0,0,.10);
+}
+.site-footer{
+  margin-top:40px;
+  background:linear-gradient(135deg,#1b5e20,#2e7d32);
+  color:#fff;
+  padding:30px 18px 16px;
+  box-shadow:0 -12px 30px rgba(6,78,31,.12);
+}
+.site-footer-inner{
+  max-width:1200px;
+  margin:auto;
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:20px;
+}
+.site-footer h2,.site-footer h3{
+  color:#fff;
+  margin:0 0 8px;
+  font-size:1rem;
+  line-height:1.5;
+}
+.site-footer .footer-brand{font-size:1.05rem}
+.site-footer p{
+  margin:0;
+  font-size:.88rem;
+  line-height:1.85;
+  max-width:38rem;
+}
+.site-footer ul{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:grid;
+  gap:5px;
+  font-size:.86rem;
+  line-height:1.7;
+}
+.site-footer a{color:#fff;text-decoration:none}
+.site-footer a:hover{text-decoration:underline}
+.footer-social .social-links{display:flex;gap:10px;flex-wrap:wrap}
+.footer-social .social-links a{
+  width:42px;height:42px;border-radius:50%;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.20);
+  transition:transform .2s ease,background .2s ease,box-shadow .2s ease;
+}
+.footer-social .social-links a:hover{
+  transform:translateY(-3px) scale(1.05);
+  background:rgba(255,255,255,.20);
+  box-shadow:0 8px 20px rgba(0,0,0,.18);
+  text-decoration:none;
+}
+.copyright{
+  text-align:center;
+  border-top:1px solid rgba(255,255,255,.22);
+  margin-top:20px;
+  padding-top:13px;
+  font-size:.82rem;
+  font-weight:700;
+}
+@media(max-width:900px){
+  .site-header .header-content{min-height:62px;padding:8px 14px}
+  .site-header .nav-toggle{display:flex}
+  .site-header .nav-links{
+    display:none;
+    position:absolute;
+    top:calc(100% + 8px);
+    right:14px;
+    left:14px;
+    flex-direction:column;
+    gap:4px;
+    padding:8px;
+    margin:0;
+    border-radius:16px;
+    background:linear-gradient(160deg,#14532d,#166534);
+    border:1px solid rgba(255,255,255,.16);
+    box-shadow:0 18px 40px rgba(0,0,0,.24);
+  }
+  .site-header .nav-links.active{display:flex}
+  .site-header .nav-links li{width:100%}
+  .site-header .nav-links a{width:100%;padding:11px 12px}
+  .site-footer-inner{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:600px){
+  .site-header .logo img{width:40px;height:40px}
+  .site-header .logo h1{font-size:.9rem}
+  .site-footer-inner{grid-template-columns:1fr;text-align:center}
+  .footer-social .social-links{justify-content:center}
+  .site-footer{padding:26px 16px 14px}
+}
