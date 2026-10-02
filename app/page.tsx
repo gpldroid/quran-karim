@@ -1,3 +1,0 @@
-"use client";
-import {useEffect,useState} from "react"; import {supabase} from "../lib/supabase";
-export default function Home(){const[s,setS]=useState<any>(null);useEffect(()=>{load();if(!supabase)return;const c=supabase.channel("quran").on("postgres_changes",{event:"*",schema:"public",table:"quran_settings"},load).subscribe();return()=>{supabase.removeChannel(c)}},[]);async function load(){if(!supabase)return;const{data}=await supabase.from("quran_settings").select("*").eq("id",1).maybeSingle();setS(data)}return <main className="container"><div className="card"><h1>القرآن الكريم</h1>{s&&<><p>القارئ: {s.reader_name||s.reader_id}</p><p>السورة: {s.surah_number}</p>{s.audio_url&&<audio controls src={s.audio_url}/>}</>}</div></main>}
