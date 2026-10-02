@@ -41,7 +41,8 @@ const data = {
   }
 } as const;
 const icons = [BookOpen,Headphones,BookMarked,MoonStar,HeartHandshake,Clock3,Compass,CalendarDays,Target,Sparkles,LibraryBig,MessageCircleHeart];
-const active = new Set([0,1,2]);
+const active = new Set([0,1,2,3,4,5,6,7,8,9,10,11]);
+const routes = ["/quran/","/listen/","/tafsir/","/hadith/","/azkar/","/prayer/","/qibla/","/hijri/","/khatma/","/names/","/library/","/assistant/"];
 
 export default function Home() {
   const [locale,setLocale] = useState<Locale>("ar");
@@ -64,7 +65,7 @@ export default function Home() {
       <div className="wow-hero-bottom"><span>01 / 03</span><span className="wow-hero-bottom-rule"/><span>MADE FOR EVERY DAY</span></div>
     </section>
     <section className="wow-services" id="services"><div className="wow-section-heading"><div><span className="wow-section-kicker">{t.daily}</span><h2>{t.services}</h2></div><p>{t.hint}</p></div>
-      <div className="wow-service-grid">{t.cards.map((card,i)=>{const Icon=icons[i];const body=<><span className="wow-service-icon"><Icon size={23} strokeWidth={1.7}/></span><span className="wow-service-status">{active.has(i)?t.available:t.soon}</span><h3>{card[0]}</h3><p>{card[1]}</p></>;return active.has(i)?<a className="wow-service-card is-active" href={BASE+"/quran/"} key={card[0]}>{body}</a>:<article className="wow-service-card is-coming" key={card[0]} aria-label={card[0]+" — "+t.soon}>{body}</article>;})}</div>
+      <div className="wow-service-grid">{t.cards.map((card,i)=>{const Icon=icons[i];const body=<><span className="wow-service-icon"><Icon size={23} strokeWidth={1.7}/></span><span className="wow-service-status">{active.has(i)?t.available:t.soon}</span><h3>{card[0]}</h3><p>{card[1]}</p></>;return active.has(i)?<a className="wow-service-card is-active" href={BASE+routes[i]} key={card[0]}>{body}</a>:<article className="wow-service-card is-coming" key={card[0]} aria-label={card[0]+" — "+t.soon}>{body}</article>;})}</div>
     </section>
     <section className="wow-assistant"><div className="wow-assistant-icon"><MessageCircleHeart size={30}/></div><div className="wow-assistant-copy"><span className="wow-section-kicker">WOW AI · MULTILINGUAL</span><h2>{t.assistant}</h2><p>{t.assistantText}</p><small>{t.assistantNote}</small></div><span className="wow-assistant-pill"><Sparkles size={15}/>{t.assistantSoon}</span></section>
     <footer className="wow-footer"><a className="wow-footer-brand" href={BASE+"/"}>WOW<span>.</span></a><p>{t.footer}</p><a href={BASE+"/login/"}>{t.login}</a></footer>
