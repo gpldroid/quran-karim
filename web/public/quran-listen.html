@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الاستماع إلى القرآن الكريم | WOW</title>
+    <meta name="description" content="قراءة و الاستماع للقرآن الكريم مع توفير شرح الأحاديث النبوية و تفسير الآيات القرآنية على صفحة عماد الدين لمراني للقرآن الكريم">
+    <meta name="keywords" content="القرآن الكريم, قراءة القرآن, الاستماع للقرآن, تلاوة القرآن, المصحف الشريف, القرآن مكتوب, القرآن صوت, تفسير القرآن, تفسير الآيات, شرح الأحاديث النبوية, أحاديث نبوية, سور القرآن, آيات القرآن, قراء القرآن, تلاوات القرآن, عماد الدين لمراني">
+    <meta name="author" content="عماد الدين لمراني"><meta name="robots" content="index, follow"><meta name="googlebot" content="index, follow"><link rel="canonical" href="https://gpldroid.github.io/wow/"><meta property="og:type" content="website"><meta property="og:title" content="قراءة و الإستماع للقران الكريم"><meta property="og:description" content="قراءة و الاستماع للقرآن الكريم مع توفير شرح الأحاديث النبوية و تفسير الآيات القرآنية على صفحة عماد الدين لمراني للقرآن الكريم"><meta property="og:url" content="https://gpldroid.github.io/wow/"><meta property="og:locale" content="ar_AR"><meta property="og:site_name" content="عماد الدين لمراني للقرآن الكريم"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="قراءة و الإستماع للقران الكريم"><meta name="twitter:description" content="قراءة و الاستماع للقرآن الكريم مع توفير شرح الأحاديث النبوية و تفسير الآيات القرآنية على صفحة عماد الدين لمراني للقرآن الكريم"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"عماد الدين لمراني للقرآن الكريم","alternateName":"قراءة و الإستماع للقران الكريم","url":"https://gpldroid.github.io/wow/","inLanguage":"ar","description":"قراءة و الاستماع للقرآن الكريم مع توفير شرح الأحاديث النبوية و تفسير الآيات القرآنية على صفحة عماد الدين لمراني للقرآن الكريم","publisher":{"@type":"Person","name":"عماد الدين لمراني"}}</script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="./runtime-config.js"></script>
+    
+<link rel="stylesheet" href="./app.css">
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header>
+        <div class="header-content">
+            <div class="logo">
+                <img src="./logo.svg" alt="شعار القرآن الكريم" loading="eager">
+                <h1>الاستماع إلى القرآن الكريم</h1>
+            </div>
+            
+            <button class="nav-toggle" id="navToggle" aria-label="فتح قائمة التنقل" aria-controls="navLinks" aria-expanded="false">
+                <i class="fas fa-bars"></i>
+            </button>
+            
+            <ul class="nav-links" id="navLinks">
+                <li><a href="./index.html"><i class="fas fa-home"></i> الرئيسية</a></li>
+                <li><a href="./about.html"><i class="fas fa-circle-info"></i> من نحن</a></li>
+                <li><a href="./contact.html"><i class="fas fa-envelope"></i> اتصل بنا</a></li>
+                <li><a href="./privacy.html"><i class="fas fa-shield-halved"></i> الخصوصية</a></li>
+                <li><a href="./terms.html"><i class="fas fa-file-contract"></i> الشروط</a></li>
+                <li><a href="./cookies.html"><i class="fas fa-cookie-bite"></i> الكوكيز</a></li>
+            </ul>
+            
+        </div>
+    </header>
+
+    <div data-ad-placement="header" class="config-ad-slot" hidden></div>
+
+    <div class="container">
+        <div data-ad-placement="body_top" class="config-ad-slot" hidden></div>
+        <!-- Main Title -->
+        <div class="main-title">
+            <h1>الاستماع إلى القرآن الكريم</h1>
+            <div class="subtitle">اختر القارئ والسورة واستمع إلى التلاوة مع الانتقال التلقائي بين السور.</div>
+        </div>
+
+        <!-- Quran Player Container -->
+        <div id="quran-container">
+            <div class="quran-header">
+                <img class="quran-icon" alt="Quran Icon" src="./logo.svg"/>
+                
+                <div class="controls-section">
+                    <div class="reciter-selection">
+                        <label for="reciterSelect"><i class="fas fa-user"></i> القارئ</label>
+                        <select id="reciterSelect">
+                            <option value="ajm">أحمد العجمي</option>
+                            <option value="jleel">خالد الجليل</option>
+                            <option value="salman[11]">سلمان العتيبي</option>
+                            <option value="shur[7]">سعود الشريم</option>
+                            <option value="bu_khtr[8]">صلاح بو خاطر</option>
+                            <option value="basit[7]">عبد الباسط عبد الصمد</option>
+                            <option value="sds[11]">عبد الرحمن السديس</option>
+                            <option value="hthfi[9]">على عبد الرحمن الحذيفي</option>
+                            <option value="frs_a[8]">فارس عباد</option>
+                            <option value="maher[12]">ماهر المعيقلي</option>
+                            <option value="jbrl[8]">محمد جبريل</option>
+                            <option value="minsh" selected>محمد صديق المنشاوي</option>
+                            <option value="husr[13]">محمود خليل الحصري</option>
+                            <option value="afs[8]">مشاري العفاسي</option>
+                            <option value="mansor[11]">منصور السالمي</option>
+                            <option value="yasser[11]">ياسر الدوسري</option>
+                        </select>
+                    </div>
+
+                    <div class="player-section">
+                        <audio id="baPlayer" controls>
+                            <source id="audioSource" src="https://server10.mp3quran.net/minsh/001.mp3" type="audio/mpeg">
+                            متصفحك لا يدعم هذا المشغل 
+                        </audio>
+
+                        <div class="player-controls">
+                            <div class="autoplay-toggle">
+                                <span><i class="fas fa-play-circle"></i> التشغيل التلقائي</span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="autoplayCheckbox" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                            
+                            <div class="progress-save">
+                                <button id="saveProgressBtn">
+                                    <i class="fas fa-save"></i> حفظ التقدم
+                                </button>
+                                <span id="savedProgress">غير محفوظ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="playlist-section">
+                <div class="playlist-title">
+                    <i class="fas fa-list-ul"></i>
+                    <span>سور القرآن الكريم (114 سورة)</span>
+                </div>
+                
+                <div id="quran-playlist">
+                    <!-- سيتم ملء القائمة بواسطة JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Lyrics Section -->
+        <div class="lyrics-section">
+            <div class="lyrics-header">
+                <div class="lyrics-title">
+                    <i class="fas fa-book-open"></i>
+                    <span>النص القرآني</span>
+                </div>
+                <div class="current-surah" id="currentSurahName">الفاتحة</div>
+            </div>
+            
+            <div class="surah-info" id="surahInfo">
+                <div>
+                    <span>عدد الآيات:</span>
+                    <span id="versesCount">7</span>
+                </div>
+                <div>
+                    <span>النوع:</span>
+                    <span id="surahType">مكية</span>
+                </div>
+                <div>
+                    <span>ترتيب النزول:</span>
+                    <span id="revelationOrder">5</span>
+                </div>
+            </div>
+            
+            <div class="text-controls">
+                <button class="text-btn active" id="btnArabic">
+                    <i class="fas fa-font"></i> النص العربي
+                </button>
+                <button class="text-btn" id="btnTranslation">
+                    <i class="fas fa-language"></i> الترجمة
+                </button>
+                <button class="text-btn" id="btnTafsir">
+                    <i class="fas fa-book"></i> التفسير الميسر
+                </button>
+            </div>
+            
+            <div class="loader" id="lyricsLoader">
+                <div class="spinner"></div>
+                <p>جاري تحميل النص القرآني...</p>
+            </div>
+            
+            <div id="lyrics-content">
+                <div class="lyrics-placeholder">
+                    <i class="fas fa-quran" style="font-size: 3rem; margin-bottom: 15px; display: block; color: #cbd5e0;"></i>
+                    اختر سورة من القائمة لعرض نصها الكريم
+                </div>
+            </div>
+        </div>
+    </div><div data-ad-placement="body_bottom" class="config-ad-slot" hidden></div>
+
+    <footer class="site-footer">
+      <div class="site-footer-inner">
+        <section><h2 class="footer-brand">عماد الدين لمراني للقرآن الكريم</h2><p>منصة لقراءة القرآن الكريم والاستماع إلى التلاوات، مع محتوى إسلامي مساعد للقراءة والتدبر.</p></section>
+        <section><h3>روابط مهمة</h3><ul><li><a href="./index.html">الرئيسية</a></li><li><a href="./about.html">من نحن</a></li><li><a href="./contact.html">اتصل بنا</a></li></ul></section>
+        <section><h3>Legal Pages</h3><ul><li><a href="./privacy.html">سياسة الخصوصية</a></li><li><a href="./terms.html">الشروط والأحكام</a></li><li><a href="./cookies.html">سياسة ملفات تعريف الارتباط</a></li></ul></section>
+        <section class="footer-social"><h3>تواصل معنا</h3><div class="social-links" aria-label="روابط التواصل"><a href="./contact.html" aria-label="صفحة اتصل بنا" title="اتصل بنا"><i class="fas fa-envelope"></i></a><a href="https://github.com/gpldroid/wow" target="_blank" rel="noopener noreferrer" aria-label="GitHub" title="GitHub"><i class="fab fa-github"></i></a><a href="./about.html" aria-label="عن الموقع" title="عن الموقع"><i class="fas fa-globe"></i></a></div></section>
+      </div><div class="copyright">© 2026 عماد الدين لمراني</div>
+    </footer>
+
+    
+    <script src="./app.js"></script>
+</body>
+</html>
