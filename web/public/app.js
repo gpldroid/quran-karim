@@ -879,18 +879,9 @@ document.addEventListener("DOMContentLoaded",function(){if(window.WOWSiteConfigE
     update();
   }
 
-  function initConsentFast(){
-    const consent=window.WOWPrivacyConsent;
-    if(!consent) return;
-    const run=()=>consent.init();
-    if('requestIdleCallback' in window) requestIdleCallback(run,{timeout:1600});
-    else setTimeout(run,900);
-  }
-
   function init(){
     initTheme();
     initScroll();
-    initConsentFast();
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
