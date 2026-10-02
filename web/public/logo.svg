@@ -1,8 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="شعار القرآن الكريم">
-<circle cx="48" cy="48" r="46" fill="#1b5e20"/>
-<circle cx="48" cy="48" r="39" fill="none" stroke="#ffffff" stroke-width="3" opacity=".9"/>
-<path d="M27 29c7-4 14-4 21 1v38c-7-5-14-5-21-1z" fill="#fff"/>
-<path d="M69 29c-7-4-14-4-21 1v38c7-5 14-5 21-1z" fill="#e8f5e9"/>
-<path d="M48 30v38" stroke="#1b5e20" stroke-width="2"/>
-<path d="M34 39h10M34 45h10M34 51h8M52 39h10M52 45h10M52 51h8" stroke="#1b5e20" stroke-width="2" stroke-linecap="round"/>
-</svg>
