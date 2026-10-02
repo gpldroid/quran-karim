@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  /* Shared controls: dark mode + scroll to top/bottom on every public page. */
+  /* Shared controls. Reuse existing page controls instead of creating duplicates. */
   if (!document.getElementById('wow-shared-controls-style')) {
     const style = document.createElement('style');
     style.id = 'wow-shared-controls-style';
@@ -80,14 +80,24 @@ document.addEventListener('DOMContentLoaded', function () {
     return button;
   }
 
-  const themeButton = makeControl(
+  /* IMPORTANT: reuse the original controls on the Quran/home page. */
+  const existingThemeButton = document.querySelector('.night-mode-toggle');
+  const existingTopButton = document.getElementById('backToTop');
+
+  const themeButton = existingThemeButton || makeControl(
     'wowThemeControl',
     'wow-theme-control',
     'تبديل الوضع الليلي',
     'fas fa-moon'
   );
-  const topButton = document.getElementById('backToTop') ||
-    makeControl('wowScrollTop', 'wow-scroll-top', 'العودة إلى أعلى الصفحة', 'fas fa-arrow-up');
+
+  const topButton = existingTopButton || makeControl(
+    'wowScrollTop',
+    'wow-scroll-top',
+    'العودة إلى أعلى الصفحة',
+    'fas fa-arrow-up'
+  );
+
   const bottomButton = makeControl(
     'wowScrollBottom',
     'wow-scroll-bottom',
@@ -96,28 +106,28 @@ document.addEventListener('DOMContentLoaded', function () {
   );
 
   function updateThemeIcon() {
+    if (existingThemeButton) return;
     const night = document.body.classList.contains('night-mode');
     themeButton.innerHTML = '<i class="fas ' + (night ? 'fa-sun' : 'fa-moon') + '" aria-hidden="true"></i>';
     themeButton.setAttribute('aria-label', night ? 'تبديل إلى الوضع النهاري' : 'تبديل إلى الوضع الليلي');
     themeButton.title = night ? 'الوضع النهاري' : 'الوضع الليلي';
   }
 
-  themeButton.addEventListener('click', function () {
-    const existingToggle = document.querySelector('.night-mode-toggle');
-    if (existingToggle && existingToggle !== themeButton) {
-      existingToggle.click();
-    } else {
+  if (!existingThemeButton) {
+    themeButton.addEventListener('click', function () {
       const night = !document.body.classList.contains('night-mode');
       document.body.classList.toggle('night-mode', night);
       localStorage.setItem('nightMode', String(night));
       localStorage.setItem('wow_night_mode', night ? '1' : '0');
-    }
-    updateThemeIcon();
-  });
+      updateThemeIcon();
+    });
+  }
 
-  topButton.addEventListener('click', function () {
-    window.scrollTo({top: 0, behavior: 'smooth'});
-  });
+  if (!existingTopButton) {
+    topButton.addEventListener('click', function () {
+      window.scrollTo({top: 0, behavior: 'smooth'});
+    });
+  }
 
   bottomButton.addEventListener('click', function () {
     window.scrollTo({top: document.documentElement.scrollHeight, behavior: 'smooth'});
@@ -126,22 +136,24 @@ document.addEventListener('DOMContentLoaded', function () {
   function updateScrollControls() {
     const y = window.scrollY || window.pageYOffset || 0;
     const max = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    if (y > 220) {
-      topButton.classList.add('show');
-    } else {
-      topButton.classList.remove('show');
+
+    /* Existing Quran home controls keep their original behavior and position. */
+    if (!existingTopButton) {
+      if (y > 220) topButton.classList.add('show');
+      else topButton.classList.remove('show');
     }
+
     bottomButton.style.opacity = max - y > 220 ? '1' : '0';
     bottomButton.style.visibility = max - y > 220 ? 'visible' : 'hidden';
   }
 
-  /* Restore the saved theme on pages that do not already manage it themselves. */
+  /* Restore saved theme only where the page has no original theme control. */
   const savedNight = localStorage.getItem('nightMode') === 'true' ||
     localStorage.getItem('wow_night_mode') === '1';
+
   if (savedNight && !document.body.classList.contains('night-mode')) {
-    const existingToggle = document.querySelector('.night-mode-toggle');
-    if (existingToggle) {
-      existingToggle.click();
+    if (existingThemeButton) {
+      existingThemeButton.click();
     } else {
       document.body.classList.add('night-mode');
     }
