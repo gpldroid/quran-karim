@@ -1,0 +1,4 @@
+[functions.islamway]
+verify_jwt = false
+[functions.release-sync]
+verify_jwt = false
