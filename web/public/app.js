@@ -279,18 +279,7 @@
   }
 })();
 
-document.addEventListener('DOMContentLoaded',function(){
-  const toggle=document.getElementById('navToggle'),links=document.getElementById('navLinks');
-  const logo=document.querySelector('.logo'),logoImg=logo&&logo.querySelector('img');
-  if(logoImg&&logoImg.parentElement&&logoImg.parentElement.tagName!=='A'){
-    const a=document.createElement('a');a.href='./index.html';a.className='logo-home-link';a.setAttribute('aria-label','العودة إلى الصفحة الرئيسية');a.title='الصفحة الرئيسية';a.style.cssText='display:inline-flex;align-items:center;text-decoration:none;color:inherit;flex:none;';logoImg.parentNode.insertBefore(a,logoImg);a.appendChild(logoImg);
-  }
-  if(toggle&&links){
-    toggle.addEventListener('click',function(){const e=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!e));links.classList.toggle('active',!e)});
-    links.addEventListener('click',function(e){if(e.target.closest('a')){links.classList.remove('active');toggle.setAttribute('aria-expanded','false')}});
-    document.addEventListener('click',function(e){if(!toggle.contains(e.target)&&!links.contains(e.target)){links.classList.remove('active');toggle.setAttribute('aria-expanded','false')}});
-  }
-});
+
 
 if(document.getElementById('quran-playlist')){
 // بيانات السور مع معلومات إضافية
@@ -436,7 +425,8 @@ if(document.getElementById('quran-playlist')){
         const audioSource = document.getElementById('audioSource');
         const reciterSelect = document.getElementById('reciterSelect');
         const autoplayCheckbox = document.getElementById('autoplayCheckbox');
-        const quranPlaylist = document.getElementById('quran-playlist');const lyricsContent = document.getElementById('lyrics-content');
+        const quranPlaylist = document.getElementById('quran-playlist');
+        const lyricsContent = document.getElementById('lyrics-content');
         const currentSurahName = document.getElementById('currentSurahName');
         const lyricsLoader = document.getElementById('lyricsLoader');
         const versesCount = document.getElementById('versesCount');
@@ -445,7 +435,8 @@ if(document.getElementById('quran-playlist')){
         const btnArabic = document.getElementById('btnArabic');
         const btnTranslation = document.getElementById('btnTranslation');
         const btnTafsir = document.getElementById('btnTafsir');
-        const surahInfo = document.getElementById('surahInfo');const navToggle = document.getElementById('navToggle');
+        const surahInfo = document.getElementById('surahInfo');
+        const navToggle = document.getElementById('navToggle');
         const navLinks = document.getElementById('navLinks');
         const saveProgressBtn = document.getElementById('saveProgressBtn');
         const savedProgress = document.getElementById('savedProgress');
@@ -453,7 +444,8 @@ if(document.getElementById('quran-playlist')){
         // المتغيرات
         let currentReciter = "minsh";
         let currentSurahIndex = 0;
-        let currentTextMode = 'arabic';let userProgress = JSON.parse(localStorage.getItem('quranProgress')) || { surah: 1, time: 0 };
+        let currentTextMode = 'arabic';
+        let userProgress = JSON.parse(localStorage.getItem('quranProgress')) || { surah: 1, time: 0 };
         
         // تهيئة القائمة
         function initializePlaylist() {
@@ -712,7 +704,9 @@ if(document.getElementById('quran-playlist')){
                     <p>ميزة التفسير قيد التطوير</p>
                 </div>
             `;
-        }// إظهار إشعار
+        }
+        
+        // إظهار إشعار
         function showNotification(message) {
             // إنشاء عنصر الإشعار
             const notification = document.createElement('div');
@@ -772,17 +766,19 @@ if(document.getElementById('quran-playlist')){
             if (autoplayCheckbox.checked && currentSurahIndex < surahs.length - 1) {
                 selectSurah(currentSurahIndex + 1);
             }
-        });});
+        });
         
         btnArabic.addEventListener('click', () => setTextMode('arabic'));
         btnTranslation.addEventListener('click', () => setTextMode('translation'));
-        btnTafsir.addEventListener('click', () => setTextMode('tafsir'));// تتم إدارة القائمة الموحدة بواسطة الجزء المشترك من app.js.
+        btnTafsir.addEventListener('click', () => setTextMode('tafsir'));
+        
+        
+        // تتم إدارة القائمة الموحدة بواسطة الجزء المشترك من app.js.
         
         saveProgressBtn.addEventListener('click', saveProgress);
         
         // تهيئة التطبيق عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
-    
             // استعادة التقدم
             updateProgressDisplay();
             
