@@ -253,8 +253,14 @@ document.addEventListener('DOMContentLoaded', function () {
       window.dispatchEvent(new CustomEvent('wow:consent-changed',{detail:data}));
     }
 
-    if (saved) banner.hidden = true;
-    else banner.hidden = false;
+    if (saved) {
+      banner.hidden = true;
+      try {
+        window.dispatchEvent(new CustomEvent('wow:consent-changed',{detail:JSON.parse(saved)}));
+      } catch(e) {}
+    } else {
+      banner.hidden = false;
+    }
 
     banner.querySelector('[data-consent="all"]').addEventListener('click',function(){save('all');});
     banner.querySelector('[data-consent="essential"]').addEventListener('click',function(){save('essential');});
