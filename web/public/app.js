@@ -260,7 +260,11 @@
   function init() {
     ensureStyles();
     ensureManagerButton();
-    if (!read()) open("initial");
+    if (!read()) {
+      const show = function(){ if (!read()) open("initial"); };
+      if ("requestIdleCallback" in window) requestIdleCallback(show,{timeout:1800});
+      else setTimeout(show,1100);
+    }
   }
 
   window.WOWPrivacyConsent = {
