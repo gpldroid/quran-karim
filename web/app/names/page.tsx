@@ -1,0 +1,3 @@
+import {V2Page} from "@/src/components/V2Page"; import {V2Card} from "@/src/components/V2Card";
+const names=[["الرحمن","واسع الرحمة"],["الرحيم","كثير الرحمة بعباده"],["الملك","المالك المتصرف"],["القدوس","المنزه عن كل نقص"],["السلام","السالم من العيوب"],["المؤمن","المؤمِّن لعباده"],["العزيز","الغالب الذي لا يُغلب"],["الحكيم","المحكم لأفعاله"],["العليم","المحيط علمه بكل شيء"],["الغفور","كثير المغفرة"]];
+export default function Names(){return <V2Page title="أسماء الله الحسنى" subtitle="بطاقات مختصرة للاطلاع والتأمل."><div className="v2-name-grid">{names.map(([n,d])=><V2Card title={n} key={n}><p>{d}</p></V2Card>)}</div></V2Page>}
