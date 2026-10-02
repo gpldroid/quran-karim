@@ -1,0 +1,5 @@
+"use client";
+import {useState} from "react"; import {V2Page} from "@/src/components/V2Page"; import {V2Card} from "@/src/components/V2Card";
+const groups={morning:["أصبحنا وأصبح الملك لله.","اللهم بك أصبحنا وبك أمسينا وبك نحيا وبك نموت وإليك النشور."],evening:["أمسينا وأمسى الملك لله.","اللهم إني أمسيت أشهدك وأشهد حملة عرشك وملائكتك وجميع خلقك أنك أنت الله لا إله إلا أنت."],sleep:["باسمك اللهم أموت وأحيا.","اللهم قني عذابك يوم تبعث عبادك."]};
+export default function Azkar(){const [g,setG]=useState<keyof typeof groups>("morning");return <V2Page title="الأذكار" subtitle="أذكار يومية منظمة حسب الوقت مع عداد بسيط للمتابعة."><div className="v2-tabs">{Object.keys(groups).map(k=><button className={g===k?"active":""} onClick={()=>setG(k as any)} key={k}>{k==="morning"?"الصباح":k==="evening"?"المساء":"النوم"}</button>)}</div><V2Card title="الذكر">{groups[g].map((x,i)=><Z key={i} text={x}/>)}</V2Card></V2Page>}
+function Z({text}:{text:string}){const [n,setN]=useState(0);return <div className="v2-zikr"><p className="v2-arabic">{text}</p><button onClick={()=>setN(n+1)}>{n} ✓</button></div>}
