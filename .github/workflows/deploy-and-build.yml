@@ -1,0 +1,89 @@
+name: Deploy Dashboard and Build Android
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version_name:
+        required: false
+        default: ""
+      version_code:
+        required: false
+        default: ""
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  dashboard:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build dashboard
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_FUNCTIONS_URL: ${{ secrets.VITE_SUPABASE_FUNCTIONS_URL }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+  android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.10"
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          CODE="${{ inputs.version_code }}"
+          NAME="${{ inputs.version_name }}"
+          if [ -z "$CODE" ]; then CODE="$GITHUB_RUN_NUMBER"; fi
+          if [ -z "$NAME" ]; then NAME="1.0.$GITHUB_RUN_NUMBER"; fi
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "name=$NAME" >> "$GITHUB_OUTPUT"
+      - name: Build release APK
+        run: gradle -p android assembleRelease -PversionCode=${{ steps.version.outputs.code }} -PversionName=${{ steps.version.outputs.name }} --no-daemon
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: quran-karim-${{ steps.version.outputs.name }}
+          path: android/app/build/outputs/apk/release/*.apk
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TAG="v${{ steps.version.outputs.name }}"
+          APK="$(find android/app/build/outputs/apk/release -name '*.apk' | head -n 1)"
+          gh release create "$TAG" "$APK" --title "Quran Karim $TAG" --generate-notes
+      - name: Sync release to Supabase
+        env:
+          RELEASE_SYNC_URL: ${{ secrets.SUPABASE_RELEASE_SYNC_URL }}
+          RELEASE_SYNC_SECRET: ${{ secrets.SUPABASE_RELEASE_SYNC_SECRET }}
+        run: |
+          TAG="v${{ steps.version.outputs.name }}"
+          RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
+          DOWNLOAD_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/app-release.apk"
+          curl --fail-with-body -X POST "$RELEASE_SYNC_URL" -H "content-type: application/json" -H "x-release-secret: $RELEASE_SYNC_SECRET" -d "{"version_code":${{ steps.version.outputs.code }},"version_name":"${{ steps.version.outputs.name }}","release_tag":"$TAG","release_url":"$RELEASE_URL","download_url":"$DOWNLOAD_URL","artifact_url":"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID","github_run_id":$GITHUB_RUN_ID,"status":"published"}"
