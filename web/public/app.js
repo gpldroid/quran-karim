@@ -200,7 +200,9 @@
     return value[category] === true;
   }
 
-  function ensureStyles() {}\n\n  function open(mode) {
+  function ensureStyles() {}
+
+  function open(mode) {
     ensureStyles();
     close();
     const current = read() || DEFAULTS;
