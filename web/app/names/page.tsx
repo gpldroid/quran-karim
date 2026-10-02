@@ -1,3 +1,7 @@
-import {V2Page} from "@/src/components/V2Page"; import {V2Card} from "@/src/components/V2Card";
-const names=[["الرحمن","واسع الرحمة"],["الرحيم","كثير الرحمة بعباده"],["الملك","المالك المتصرف"],["القدوس","المنزه عن كل نقص"],["السلام","السالم من العيوب"],["المؤمن","المؤمِّن لعباده"],["العزيز","الغالب الذي لا يُغلب"],["الحكيم","المحكم لأفعاله"],["العليم","المحيط علمه بكل شيء"],["الغفور","كثير المغفرة"]];
-export default function Names(){return <V2Page title="أسماء الله الحسنى" subtitle="بطاقات مختصرة للاطلاع والتأمل."><div className="v2-name-grid">{names.map(([n,d])=><V2Card title={n} key={n}><p>{d}</p></V2Card>)}</div></V2Page>}
+"use client";
+import {useEffect,useState} from "react";import {V2Page} from "@/src/components/V2Page";import {V2Card} from "@/src/components/V2Card";
+type Name={number:number;name:string;transliteration:string;en:{meaning:string}};
+export default function Names(){const [items,setItems]=useState<Name[]>([]),[query,setQuery]=useState(""),[loading,setLoading]=useState(true),[error,setError]=useState("");
+ useEffect(()=>{fetch("https://api.aladhan.com/v1/asmaAlHusna").then(r=>r.json()).then(x=>{if(x.code!==200)throw new Error();setItems(x.data||[])}).catch(()=>setError("تعذر تحميل قائمة الأسماء حالياً.")).finally(()=>setLoading(false))},[]);
+ const filtered=items.filter(n=>(n.name+" "+n.transliteration+" "+n.en?.meaning).toLowerCase().includes(query.toLowerCase()));
+ return <V2Page title="أسماء الله الحسنى" subtitle="تصفح الأسماء ومعانيها المختصرة، مع طريقة النطق والمعنى الإنجليزي من مصدر البيانات. قد تختلف قوائم العدّ والترتيب في بعض المصادر."><V2Card title="البحث في الأسماء"><input className="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="ابحث بالاسم أو المعنى…"/><small>{filtered.length} اسماً {loading?"· جارٍ التحميل":""}</small>{error&&<p role="alert">{error}</p>}</V2Card><div className="v2-name-grid">{filtered.map(n=><V2Card title={n.name} key={n.number}><small>{n.number} · {n.transliteration}</small><p>{n.en?.meaning||"—"}</p></V2Card>)}</div><small>المصدر: AlAdhan Asma Al Husna API</small></V2Page>}
