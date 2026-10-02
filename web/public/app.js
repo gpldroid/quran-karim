@@ -885,36 +885,3 @@ document.addEventListener("DOMContentLoaded",function(){if(window.WOWSiteConfigE
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init,{once:true});
   else init();
 })();
-
-/* Unified public header for static pages. The Android WebView receives the same shell from the published web UI. */
-(function(){
-  "use strict";
-  function initPublicHeader(){
-    if(document.querySelector(".wow-site-header")) return;
-    if(location.pathname.indexOf("/dashboard/")!==-1) return;
-    const header=document.createElement("header");
-    header.className="wow-site-header";
-    header.dir="rtl";
-    header.innerHTML=
-      '<div class="wow-header-inner">'+
-        '<a class="wow-brand" href="./" aria-label="الصفحة الرئيسية"><img src="./logo.svg" alt="القرآن الكريم"><span>القرآن الكريم</span></a>'+
-        '<button class="wow-menu-toggle" type="button" aria-label="فتح القائمة" aria-expanded="false"><i class="fas fa-bars"></i></button>'+
-        '<nav class="wow-header-nav">'+
-          '<a class="wow-nav-link" href="./"><i class="fas fa-home"></i>الرئيسية</a>'+
-          '<div class="wow-header-menu"><button class="wow-nav-link wow-nav-trigger" type="button" aria-expanded="false"><i class="fas fa-book-open"></i>الأقسام<i class="fas fa-chevron-down"></i></button>'+
-            '<div class="wow-dropdown wow-services-dropdown">'+
-              '<a href="./quran/"><i class="fas fa-quran"></i>القرآن الكريم</a><a href="./listen/"><i class="fas fa-headphones"></i>الاستماع</a><a href="./tafsir/"><i class="fas fa-book"></i>التفسير</a><a href="./hadith/"><i class="fas fa-scroll"></i>الحديث</a><a href="./azkar/"><i class="fas fa-moon"></i>الأذكار</a><a href="./prayer/"><i class="fas fa-clock"></i>الصلاة</a><a href="./qibla/"><i class="fas fa-compass"></i>القبلة</a><a href="./hijri/"><i class="fas fa-calendar"></i>التقويم الهجري</a><a href="./khatma/"><i class="fas fa-bookmark"></i>خطة الختمة</a><a href="./names/"><i class="fas fa-star"></i>أسماء الله الحسنى</a><a href="./library/"><i class="fas fa-library"></i>المكتبة الإسلامية</a><a href="./assistant/"><i class="fas fa-comments"></i>مساعد البحث</a>'+
-            '</div></div>'+
-          '<div class="wow-header-menu"><button class="wow-nav-link wow-nav-trigger" type="button" aria-expanded="false"><i class="fas fa-scale-balanced"></i>الروابط الأساسية<i class="fas fa-chevron-down"></i></button>'+
-            '<div class="wow-dropdown wow-legal-dropdown"><a href="./about.html"><i class="fas fa-circle-info"></i>من نحن</a><a href="./contact.html"><i class="fas fa-envelope"></i>اتصل بنا</a><a href="./privacy.html"><i class="fas fa-shield-halved"></i>الخصوصية</a><a href="./terms.html"><i class="fas fa-scale-balanced"></i>الشروط والأحكام</a><a href="./cookies.html"><i class="fas fa-cookie-bite"></i>ملفات تعريف الارتباط</a></div></div>'+
-        '</nav><div class="wow-header-spacer"></div>'+
-      '</div>';
-    document.body.insertBefore(header,document.body.firstChild);
-    const mobile=header.querySelector(".wow-menu-toggle"), nav=header.querySelector(".wow-header-nav"), menus=header.querySelectorAll(".wow-header-menu");
-    mobile.addEventListener("click",function(e){e.stopPropagation();const on=nav.classList.toggle("is-open");mobile.setAttribute("aria-expanded",on?"true":"false");mobile.innerHTML=on?'<i class="fas fa-xmark"></i>':'<i class="fas fa-bars"></i>';});
-    menus.forEach(function(box){const btn=box.querySelector(".wow-nav-trigger");btn.addEventListener("click",function(e){e.stopPropagation();menus.forEach(function(other){if(other!==box)other.classList.remove("is-open")});box.classList.toggle("is-open");btn.setAttribute("aria-expanded",box.classList.contains("is-open")?"true":"false")})});
-    document.addEventListener("click",function(){menus.forEach(function(box){box.classList.remove("is-open")})});
-    nav.querySelectorAll("a").forEach(function(a){a.addEventListener("click",function(){menus.forEach(function(box){box.classList.remove("is-open")});nav.classList.remove("is-open");mobile.setAttribute("aria-expanded","false")})});
-  }
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",initPublicHeader,{once:true}); else initPublicHeader();
-})();
