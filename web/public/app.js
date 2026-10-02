@@ -285,19 +285,11 @@ document.addEventListener('DOMContentLoaded',function(){
   if(logoImg&&logoImg.parentElement&&logoImg.parentElement.tagName!=='A'){
     const a=document.createElement('a');a.href='./index.html';a.className='logo-home-link';a.setAttribute('aria-label','العودة إلى الصفحة الرئيسية');a.title='الصفحة الرئيسية';a.style.cssText='display:inline-flex;align-items:center;text-decoration:none;color:inherit;flex:none;';logoImg.parentNode.insertBefore(a,logoImg);a.appendChild(logoImg);
   }
-  if(toggle&&links){toggle.addEventListener('click',function(){const e=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!e));links.classList.toggle('active',!e)});links.addEventListener('click',function(e){if(e.target.closest('a')){links.classList.remove('active');toggle.setAttribute('aria-expanded','false')}});document.addEventListener('click',function(e){if(!toggle.contains(e.target)&&!links.contains(e.target)){links.classList.remove('active');toggle.setAttribute('aria-expanded','false')}})}
-  function makeControl(id,cls,label,icon){let b=document.getElementById(id);if(!b){b=document.createElement('button');b.id=id;b.type='button';b.className='wow-floating-control '+cls;b.setAttribute('aria-label',label);b.title=label;b.innerHTML='<i class="'+icon+'" aria-hidden="true"></i>';document.body.appendChild(b)}return b}
-  const existingTheme=document.querySelector('.night-mode-toggle'),existingTop=document.getElementById('backToTop');
-  const theme=existingTheme||makeControl('wowThemeControl','wow-theme-control','تبديل الوضع الليلي','fas fa-moon');
-  const top=existingTop||makeControl('wowScrollTop','wow-scroll-top','العودة إلى أعلى الصفحة','fas fa-arrow-up');
-  const bottom=makeControl('wowScrollBottom','wow-scroll-bottom','الانتقال إلى أسفل الصفحة','fas fa-arrow-down');
-  function setTheme(night){document.body.classList.toggle('night-mode',night);localStorage.setItem('nightMode',String(night));localStorage.setItem('wow_night_mode',night?'1':'0');if(!existingTheme){theme.innerHTML='<i class="fas '+(night?'fa-sun':'fa-moon')+'" aria-hidden="true"></i>';theme.setAttribute('aria-label',night?'تبديل إلى الوضع النهاري':'تبديل إلى الوضع الليلي');theme.title=night?'الوضع النهاري':'الوضع الليلي'}}
-  if(!existingTheme)theme.addEventListener('click',()=>setTheme(!document.body.classList.contains('night-mode')));
-  if(!existingTop)top.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-  bottom.addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
-  const saved=localStorage.getItem('nightMode')==='true'||localStorage.getItem('wow_night_mode')==='1';if(saved&&!existingTheme&&!document.body.classList.contains('night-mode'))setTheme(true)
-  function scroll(){const y=window.scrollY||0,max=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);if(!existingTop)top.classList.toggle('show',y>220);bottom.style.opacity=max-y>220?'1':'0';bottom.style.visibility=max-y>220?'visible':'hidden'}
-  scroll();window.addEventListener('scroll',scroll,{passive:true});window.addEventListener('resize',scroll);
+  if(toggle&&links){
+    toggle.addEventListener('click',function(){const e=toggle.getAttribute('aria-expanded')==='true';toggle.setAttribute('aria-expanded',String(!e));links.classList.toggle('active',!e)});
+    links.addEventListener('click',function(e){if(e.target.closest('a')){links.classList.remove('active');toggle.setAttribute('aria-expanded','false')}});
+    document.addEventListener('click',function(e){if(!toggle.contains(e.target)&&!links.contains(e.target)){links.classList.remove('active');toggle.setAttribute('aria-expanded','false')}});
+  }
 });
 
 if(document.getElementById('quran-playlist')){
@@ -444,9 +436,7 @@ if(document.getElementById('quran-playlist')){
         const audioSource = document.getElementById('audioSource');
         const reciterSelect = document.getElementById('reciterSelect');
         const autoplayCheckbox = document.getElementById('autoplayCheckbox');
-        const quranPlaylist = document.getElementById('quran-playlist');
-        const backToTopBtn = document.getElementById('backToTop');
-        const lyricsContent = document.getElementById('lyrics-content');
+        const quranPlaylist = document.getElementById('quran-playlist');const lyricsContent = document.getElementById('lyrics-content');
         const currentSurahName = document.getElementById('currentSurahName');
         const lyricsLoader = document.getElementById('lyricsLoader');
         const versesCount = document.getElementById('versesCount');
@@ -455,9 +445,7 @@ if(document.getElementById('quran-playlist')){
         const btnArabic = document.getElementById('btnArabic');
         const btnTranslation = document.getElementById('btnTranslation');
         const btnTafsir = document.getElementById('btnTafsir');
-        const surahInfo = document.getElementById('surahInfo');
-        const nightModeToggle = document.getElementById('nightModeToggle');
-        const navToggle = document.getElementById('navToggle');
+        const surahInfo = document.getElementById('surahInfo');const navToggle = document.getElementById('navToggle');
         const navLinks = document.getElementById('navLinks');
         const saveProgressBtn = document.getElementById('saveProgressBtn');
         const savedProgress = document.getElementById('savedProgress');
@@ -465,9 +453,7 @@ if(document.getElementById('quran-playlist')){
         // المتغيرات
         let currentReciter = "minsh";
         let currentSurahIndex = 0;
-        let currentTextMode = 'arabic';
-        let nightMode = false;
-        let userProgress = JSON.parse(localStorage.getItem('quranProgress')) || { surah: 1, time: 0 };
+        let currentTextMode = 'arabic';let userProgress = JSON.parse(localStorage.getItem('quranProgress')) || { surah: 1, time: 0 };
         
         // تهيئة القائمة
         function initializePlaylist() {
@@ -726,17 +712,7 @@ if(document.getElementById('quran-playlist')){
                     <p>ميزة التفسير قيد التطوير</p>
                 </div>
             `;
-        }
-        
-        // تبديل وضع الليل
-        function toggleNightMode() {
-            nightMode = !nightMode;
-            document.body.classList.toggle('night-mode', nightMode);
-            nightModeToggle.innerHTML = nightMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-            localStorage.setItem('nightMode', nightMode); localStorage.setItem('wow_night_mode', nightMode ? '1' : '0');
-        }
-        
-        // إظهار إشعار
+        }// إظهار إشعار
         function showNotification(message) {
             // إنشاء عنصر الإشعار
             const notification = document.createElement('div');
@@ -796,41 +772,17 @@ if(document.getElementById('quran-playlist')){
             if (autoplayCheckbox.checked && currentSurahIndex < surahs.length - 1) {
                 selectSurah(currentSurahIndex + 1);
             }
-        });
-        
-        window.addEventListener('scroll', function() {
-            if (window.pageYOffset > 300) {
-                backToTopBtn.classList.add('show');
-            } else {
-                backToTopBtn.classList.remove('show');
-            }
-        });
-        
-        backToTopBtn.addEventListener('click', function() {
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-        });
+        });});
         
         btnArabic.addEventListener('click', () => setTextMode('arabic'));
         btnTranslation.addEventListener('click', () => setTextMode('translation'));
-        btnTafsir.addEventListener('click', () => setTextMode('tafsir'));
-        
-        nightModeToggle.addEventListener('click', toggleNightMode);
-        
-        // تتم إدارة القائمة الموحدة بواسطة الجزء المشترك من app.js.
+        btnTafsir.addEventListener('click', () => setTextMode('tafsir'));// تتم إدارة القائمة الموحدة بواسطة الجزء المشترك من app.js.
         
         saveProgressBtn.addEventListener('click', saveProgress);
         
         // تهيئة التطبيق عند تحميل الصفحة
         document.addEventListener('DOMContentLoaded', function() {
-            // استعادة وضع الليل
-            const savedNightMode = localStorage.getItem('nightMode') === 'true' || localStorage.getItem('wow_night_mode') === '1';
-            if (savedNightMode) {
-                toggleNightMode();
-            }
-            
+    
             // استعادة التقدم
             updateProgressDisplay();
             
