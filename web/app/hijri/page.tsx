@@ -1,0 +1,3 @@
+"use client";
+import {useState} from "react"; import {V2Page} from "@/src/components/V2Page"; import {V2Card} from "@/src/components/V2Card";
+export default function Hijri(){const [d,setD]=useState<any>();const go=()=>{const x=new Date();fetch("https://api.aladhan.com/v1/gToH?date="+String(x.getDate()).padStart(2,"0")+"-"+String(x.getMonth()+1).padStart(2,"0")+"-"+x.getFullYear()).then(r=>r.json()).then(x=>setD(x.data.hijri))};return <V2Page title="التقويم الهجري" subtitle="تحويل التاريخ الميلادي إلى الهجري وعرض بيانات اليوم."><V2Card title="تاريخ اليوم"><button onClick={go}>احسب التاريخ الهجري</button>{d&&<div className="v2-date"><strong>{d.day} {d.month.ar} {d.year}</strong><span>{d.weekday.ar}</span></div>}</V2Card></V2Page>}
