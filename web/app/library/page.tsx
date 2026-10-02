@@ -1,0 +1,2 @@
+import {V2Page} from "@/src/components/V2Page"; import {V2Card} from "@/src/components/V2Card";
+export default function Library(){return <V2Page title="المكتبة الإسلامية" subtitle="مساحة تجمع لاحقاً الكتب والمحاضرات والمقالات مع روابط مصادرها وتراخيصها."><V2Card title="المصادر"><div className="v2-library"><p>سيتم إدراج مواد مرخصة أو مرتبطة بمصادرها الأصلية فقط.</p><p>لا يتم نسخ محتوى محمي بحقوق النشر إلى WOW دون ترخيص.</p></div></V2Card></V2Page>}
