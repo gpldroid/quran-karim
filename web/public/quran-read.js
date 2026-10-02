@@ -46,9 +46,6 @@
 
   function renderAyahs(ayahs, title) {
     let html = '<div class="quran-text">';
-    if (currentIndex + 1 !== 9 && mode === "arabic") {
-      html += '<div class="verse"><div class="verse-number">ب</div>بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>';
-    }
     ayahs.forEach((ayah, i) => {
       const text = escapeHtml(ayah.text).replace(/\n/g, "<br>");
       const number = ayah.numberInSurah || i + 1;
@@ -73,7 +70,7 @@
     loader.classList.add("active");
     content.innerHTML = "";
     try {
-      const edition = mode === "arabic" ? "ar.alafasy" : mode === "translation" ? "en.asad" : "ar.muyassar";
+      const edition = mode === "arabic" ? "quran-uthmani" : mode === "translation" ? "en.asad" : "ar.muyassar";
       const data = await fetchEdition(surah.number, edition);
       renderAyahs(data.ayahs, mode === "arabic" ? "النص العربي" : mode === "translation" ? "English translation" : "التفسير الميسر");
     } catch (error) {
