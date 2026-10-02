@@ -295,7 +295,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(!existingTheme)theme.addEventListener('click',()=>setTheme(!document.body.classList.contains('night-mode')));
   if(!existingTop)top.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
   bottom.addEventListener('click',()=>window.scrollTo({top:document.documentElement.scrollHeight,behavior:'smooth'}));
-  const saved=localStorage.getItem('nightMode')==='true'||localStorage.getItem('wow_night_mode')==='1';if(saved&&!document.body.classList.contains('night-mode')){if(existingTheme)existingTheme.click();else setTheme(true)}
+  const saved=localStorage.getItem('nightMode')==='true'||localStorage.getItem('wow_night_mode')==='1';if(saved&&!existingTheme&&!document.body.classList.contains('night-mode'))setTheme(true)
   function scroll(){const y=window.scrollY||0,max=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);if(!existingTop)top.classList.toggle('show',y>220);bottom.style.opacity=max-y>220?'1':'0';bottom.style.visibility=max-y>220?'visible':'hidden'}
   scroll();window.addEventListener('scroll',scroll,{passive:true});window.addEventListener('resize',scroll);
 });
@@ -819,17 +819,7 @@ if(document.getElementById('quran-playlist')){
         
         nightModeToggle.addEventListener('click', toggleNightMode);
         
-        navToggle.addEventListener('click', () => {
-            navLinks.classList.toggle('active');
-            navToggle.setAttribute('aria-expanded', navLinks.classList.contains('active') ? 'true' : 'false');
-        });
-        
-        // إغلاق القائمة عند النقر خارجها
-        document.addEventListener('click', (e) => {
-            if (!navToggle.contains(e.target) && !navLinks.contains(e.target)) {
-                navLinks.classList.remove('active');
-            }
-        });
+        // تتم إدارة القائمة الموحدة بواسطة الجزء المشترك من app.js.
         
         saveProgressBtn.addEventListener('click', saveProgress);
         
