@@ -799,3 +799,29 @@ if(document.getElementById('quran-playlist')){
 }
 
 document.addEventListener("DOMContentLoaded",function(){if(window.WOWSiteConfigEngine&&document.getElementById("quran-playlist"))window.WOWSiteConfigEngine.load("/");});
+
+/* Shared header/navigation behavior — no theme or scroll controls. */
+(function(){
+  function initWOWNavigation(){
+    const toggle=document.getElementById('navToggle');
+    const menu=document.getElementById('navLinks');
+    if(!toggle||!menu||toggle.dataset.wowNavReady==='1') return;
+    toggle.dataset.wowNavReady='1';
+    const close=()=>{menu.classList.remove('active');toggle.setAttribute('aria-expanded','false');};
+    toggle.addEventListener('click',function(e){
+      e.preventDefault();
+      const open=menu.classList.toggle('active');
+      toggle.setAttribute('aria-expanded',open?'true':'false');
+    });
+    menu.querySelectorAll('a').forEach(a=>a.addEventListener('click',close));
+    document.addEventListener('click',function(e){
+      if(!menu.classList.contains('active')) return;
+      if(!menu.contains(e.target)&&!toggle.contains(e.target)) close();
+    });
+    document.addEventListener('keydown',function(e){
+      if(e.key==='Escape') close();
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initWOWNavigation);
+  else initWOWNavigation();
+})();
