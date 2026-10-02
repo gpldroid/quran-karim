@@ -14,7 +14,6 @@ const data = {
     hint:"اختر ما تريد، وسنرافقك بتجربة واضحة وسهلة.", available:"متاح الآن", soon:"قريباً",
     assistant:"مساعد البحث الديني", assistantText:"بحث متعدد اللغات في النص القرآني يعرض الآيات ومراجعها من مصدر مفتوح.",
     assistantNote:"لا يصدر فتاوى أو إجابات مولدة؛ سيضاف الذكاء الاصطناعي التوليدي بعد تجهيز خادم آمن.", assistantSoon:"بحث موثق متاح",
-    footer:"منصة رقمية للمعرفة والعبادة — تُبنى بعناية لتكون أقرب إليك.",
     cards:[["القرآن الكريم","المصحف والقراءة والبحث"],["الاستماع","القراء والتلاوات والإذاعات"],["التفسير","تفسير الآيات ومعانيها"],["الحديث النبوي","الأحاديث والتخريج والشرح"],["الأذكار","أذكار الصباح والمساء والنوم"],["مواقيت الصلاة","المواقيت حسب الموقع"],["القبلة","تحديد اتجاه القبلة"],["التقويم الهجري","التاريخ والمناسبات"],["خطة ختم القرآن","متابعة القراءة والإنجاز"],["أسماء الله الحسنى","الأسماء والمعاني"],["المكتبة الإسلامية","كتب ومحاضرات ومقالات"],["مساعد البحث الديني","بحث في النص القرآني مع المراجع"]]
   },
   en: {
@@ -25,7 +24,6 @@ const data = {
     hint:"Choose what you need and enjoy a clear, simple experience.", available:"Available now", soon:"Coming soon",
     assistant:"Faith & knowledge search", assistantText:"Multilingual search across Quranic text, showing matching verses and source references.",
     assistantNote:"It does not generate fatwas or AI answers; generative AI may be added through a secure backend later.", assistantSoon:"Source search available",
-    footer:"A digital space for learning and worship — thoughtfully built around you.",
     cards:[["The Quran","Read, explore and search"],["Listen","Reciters, recitations and radio"],["Tafsir","Verse explanations and meanings"],["Hadith","Hadith, references and explanations"],["Dhikr","Morning, evening and bedtime adhkar"],["Prayer times","Prayer times for your location"],["Qibla","Find the direction of prayer"],["Hijri calendar","Dates and Islamic occasions"],["Quran journey","Track your reading and progress"],["Names of Allah","The names and their meanings"],["Islamic library","Books, lectures and articles"],["Faith search","Quranic text search with references"]]
   },
   fr: {
@@ -36,7 +34,6 @@ const data = {
     hint:"Choisissez votre service et profitez d’une expérience simple et claire.", available:"Disponible", soon:"Bientôt",
     assistant:"Recherche religieuse", assistantText:"Recherche multilingue dans le texte coranique avec versets correspondants et références.",
     assistantNote:"Aucune fatwa ni réponse générée automatiquement ; une IA générative nécessitera un serveur sécurisé.", assistantSoon:"Recherche sourcée disponible",
-    footer:"Un espace numérique de connaissance et de spiritualité, conçu avec attention.",
     cards:[["Le Coran","Lecture, consultation et recherche"],["Écouter","Récitateurs, récitations et radios"],["Tafsir","Explication des versets"],["Hadith","Hadiths, références et explications"],["Invocations","Invocations du matin, du soir et du coucher"],["Horaires de prière","Horaires selon votre position"],["Qibla","Trouver la direction de la prière"],["Calendrier hégirien","Dates et événements islamiques"],["Parcours coranique","Suivre votre lecture et vos progrès"],["Noms d’Allah","Les noms et leurs significations"],["Bibliothèque islamique","Livres, conférences et articles"],["Recherche religieuse","Recherche coranique avec références"]]
   }
 } as const;
