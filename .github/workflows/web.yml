@@ -3,6 +3,8 @@ name: Web Pages Deploy
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
     paths:
       - "web/**"
       - ".github/workflows/web.yml"
@@ -58,8 +60,6 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ env.SUPABASE_ANON_KEY }}
           NEXT_PUBLIC_BASE_PATH: /wow
         run: npm run build
-      - name: Copy unified public shell
-        run: cp public/quran.html out/index.html
       - name: Verify Supabase configuration is embedded
         working-directory: .
         run: |
@@ -74,6 +74,7 @@ jobs:
           path: web/out
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     needs: build
     runs-on: ubuntu-latest
     environment:
