@@ -1,0 +1,7 @@
+"use client";
+import{useEffect,useState}from"react";import{supabase}from"../../lib/supabase";
+export default function Quran(){const[s,setS]=useState<any>({id:1,reader_id:"",reader_name:"",surah_number:1,audio_url:"",autoplay:false});const[msg,setMsg]=useState("");
+useEffect(()=>{load();if(!supabase)return;const c=supabase.channel("quran-admin").on("postgres_changes",{event:"*",schema:"public",table:"quran_settings"},p=>p.new&&setS(p.new)).subscribe();return()=>{supabase.removeChannel(c)}},[]);
+async function load(){if(!supabase)return;const{data}=await supabase.from("quran_settings").select("*").eq("id",1).maybeSingle();if(data)setS(data)}
+async function save(){if(!supabase)return;const{data:{session}}=await supabase.auth.getSession();if(!session){setMsg("يجب تسجيل الدخول");return}const{error}=await supabase.from("quran_settings").upsert(s);setMsg(error?"تعذر الحفظ": "تم الحفظ")}
+return <main className="container"><h1>إدارة القرآن</h1><div className="card"><p>القارئ</p><input value={s.reader_name||""} onChange={e=>setS({...s,reader_name:e.target.value,reader_id:e.target.value})}/><p>السورة (1-114)</p><input type="number" min="1" max="114" value={s.surah_number} onChange={e=>setS({...s,surah_number:Number(e.target.value)})}/><p>رابط الصوت</p><input style={{width:"100%"}} value={s.audio_url||""} onChange={e=>setS({...s,audio_url:e.target.value})}/><p><label><input type="checkbox" checked={!!s.autoplay} onChange={e=>setS({...s,autoplay:e.target.checked})}/> تشغيل تلقائي</label></p><button onClick={save}>حفظ</button><span> {msg}</span></div></main>}
