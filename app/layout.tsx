@@ -1,2 +1,0 @@
-import "./globals.css"; import Link from "next/link";
-export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="ar" dir="rtl"><body><nav className="nav"><Link href="/">الرئيسية</Link><Link href="/quran">القرآن</Link><Link href="/app">التطبيق</Link><Link href="/admin">لوحة التحكم</Link></nav>{children}</body></html>}
