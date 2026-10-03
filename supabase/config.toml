@@ -1,4 +1,11 @@
 [functions.islamway]
 verify_jwt = false
+
 [functions.release-sync]
+verify_jwt = false
+
+[functions.github-dispatch]
+verify_jwt = false
+
+[functions.health]
 verify_jwt = false
