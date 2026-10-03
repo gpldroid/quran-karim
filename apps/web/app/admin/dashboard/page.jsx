@@ -8,7 +8,7 @@ import ApkReleaseManager from "../../../components/ApkReleaseManager";
 import QuranSettingsEditor from "../../../components/QuranSettingsEditor";
 import { supabase } from "../../../lib/supabaseClient";
 
-const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const base = process.env.NEXT_PUBLIC_BASE_PATH || (process.env.GITHUB_ACTIONS === "true" ? "/quran-karim" : "");
 
 export default function Dashboard() {
   const [state, setState] = useState("checking");
