@@ -1,0 +1,2 @@
+import Link from "next/link";
+export default function Home(){return <main className="min-h-screen bg-zinc-950 p-8 text-white"><section className="mx-auto max-w-5xl rounded-3xl border border-zinc-800 bg-zinc-900 p-10"><p className="text-sm text-emerald-400">Quran Karim Platform</p><h1 className="mt-3 text-4xl font-bold">منصة القرآن الكريم</h1><p className="mt-4 text-zinc-400">منصة إدارة الوسائط والإصدارات.</p><Link href="/admin" className="mt-8 inline-block rounded-xl bg-emerald-500 px-6 py-3 font-bold text-black">لوحة التحكم</Link></section></main>;}
