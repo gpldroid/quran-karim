@@ -1,0 +1,1 @@
+<resources><style name="Theme.QuranKarim" parent="android:style/Theme.Material.Light.NoActionBar"><item name="android:fontFamily">sans</item><item name="android:colorAccent">#00A884</item></style></resources>
