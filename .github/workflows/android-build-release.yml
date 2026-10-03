@@ -65,14 +65,9 @@ jobs:
           fi
       - name: Sync release to Supabase
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          RELEASE_SYNC_URL: https://tqmjueqdfdyhiukhbant.supabase.co/functions/v1/release-sync
         shell: bash
         run: |
           set -euo pipefail
           TAG="v${{ steps.version.outputs.name }}"
-          ASSET="${{ steps.apk.outputs.name }}"
-          RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
-          DOWNLOAD_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$ASSET"
-          PAYLOAD="$(jq -n             --arg version_name "${{ steps.version.outputs.name }}"             --arg release_tag "$TAG"             --arg release_url "$RELEASE_URL"             --arg download_url "$DOWNLOAD_URL"             --arg artifact_url "https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"             --argjson version_code "${{ steps.version.outputs.code }}"             --argjson github_run_id "$GITHUB_RUN_ID"             '{version_code:$version_code,version_name:$version_name,release_tag:$release_tag,release_url:$release_url,download_url:$download_url,artifact_url:$artifact_url,github_run_id:$github_run_id,status:"published"}')"
-          curl --fail-with-body --retry 4 --retry-delay 2 --max-time 30 -X POST "$SUPABASE_URL/rest/v1/app_releases?on_conflict=version_code" -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" -H "Content-Type: application/json" -H "Prefer: resolution=merge-duplicates,return=representation" -d "$PAYLOAD"
+          curl --fail-with-body --retry 4 --retry-delay 2 --max-time 30 -X POST "$RELEASE_SYNC_URL" -H "content-type: application/json" -d "{\"tag\":\"$TAG\"}"
