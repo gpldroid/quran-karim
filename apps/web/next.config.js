@@ -1,12 +1,2 @@
-const repositoryName = "quran-karim";
-const isGitHubPages = process.env.GITHUB_ACTIONS === "true";
-
-module.exports = {
-  output: "export",
-  trailingSlash: true,
-  images: {
-    unoptimized: true,
-  },
-  basePath: isGitHubPages ? `/${repositoryName}` : "",
-  assetPrefix: isGitHubPages ? `/${repositoryName}/` : "",
-};
+/** @type {import('next').NextConfig} */
+const nextConfig={output:"export",trailingSlash:true,images:{unoptimized:true},basePath:process.env.NEXT_PUBLIC_BASE_PATH||"/quran-karim",assetPrefix:process.env.NEXT_PUBLIC_BASE_PATH||"/quran-karim"};module.exports=nextConfig;

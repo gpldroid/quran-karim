@@ -1,1 +1,0 @@
-"use client";import QuranExplorer from "./QuranExplorer";export default function QuranPlayer({readerId,compact=false}){return <QuranExplorer compact={compact} readerId={readerId}/>}
