@@ -1,0 +1,1 @@
+import "./globals.css";export const metadata={title:"Quran Karim",description:"القرآن الكريم — قراءة واستماع وإدارة الإصدارات"};export default function RootLayout({children}){return <html lang="ar" dir="rtl" className="dark"><body>{children}</body></html>}
