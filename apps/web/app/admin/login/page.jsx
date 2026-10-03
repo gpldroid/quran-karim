@@ -2,9 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { AlertCircle, KeyRound, LogIn, ShieldCheck } from "lucide-react";
-import { supabase } from "../../../lib/supabaseClient";
+import { checkAdmin, supabase } from "../../../lib/supabaseClient";
 
-const base = process.env.NEXT_PUBLIC_BASE_PATH || (process.env.GITHUB_ACTIONS === "true" ? "/quran-karim" : "");
+const base =
+  process.env.NEXT_PUBLIC_BASE_PATH ||
+  (process.env.GITHUB_ACTIONS === "true" ? "/quran-karim" : "");
+
+function adminUrl(path) {
+  return `${base}${path}`;
+}
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -14,18 +20,41 @@ export default function Login() {
   const [mode, setMode] = useState("login");
 
   useEffect(() => {
-    (async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    let active = true;
 
-      const { data: isAdmin, error } = await supabase.rpc("is_admin");
-      if (!error && isAdmin === true) {
-        window.location.assign(base + "/admin/dashboard/");
+    (async () => {
+      const result = await checkAdmin();
+
+      if (!active || !result.user) return;
+
+      if (result.isAdmin) {
+        window.location.replace(adminUrl("/admin/dashboard/"));
         return;
       }
 
       await supabase.auth.signOut();
-    })();
+    })().catch(() => {
+      // A stale/expired browser session should not prevent the login form
+      // from rendering.
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (!active || !["SIGNED_IN", "TOKEN_REFRESHED"].includes(event)) return;
+
+      setTimeout(async () => {
+        const result = await checkAdmin();
+        if (active && result.isAdmin) {
+          window.location.replace(adminUrl("/admin/dashboard/"));
+        }
+      }, 0);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   async function submit(e) {
@@ -33,48 +62,57 @@ export default function Login() {
     setLoading(true);
     setMessage("");
 
-    if (mode === "reset") {
-      const redirectTo = window.location.origin + base + "/admin/reset-password/";
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo,
+    try {
+      if (mode === "reset") {
+        const redirectTo =
+          window.location.origin + adminUrl("/admin/reset-password/");
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo,
+        });
+
+        setMessage(
+          error
+            ? "تعذر إرسال رابط استعادة كلمة المرور: " + error.message
+            : "تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني. افتح الرابط ثم عيّن كلمة مرور جديدة."
+        );
+        return;
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
       });
 
+      if (error) {
+        setMessage("فشل تسجيل الدخول: " + error.message);
+        return;
+      }
+
+      const result = await checkAdmin();
+
+      if (result.error) {
+        await supabase.auth.signOut();
+        setMessage(
+          "تم تسجيل الدخول، لكن تعذر التحقق من صلاحية الإدارة: " +
+            result.error.message
+        );
+        return;
+      }
+
+      if (!result.isAdmin) {
+        await supabase.auth.signOut();
+        setMessage(
+          "تم تسجيل الدخول بنجاح، لكن هذا الحساب ليس مسؤولاً في قاعدة البيانات."
+        );
+        return;
+      }
+
+      window.location.replace(adminUrl("/admin/dashboard/"));
+    } catch (error) {
+      setMessage("حدث خطأ غير متوقع: " + (error?.message || "Unknown error"));
+    } finally {
       setLoading(false);
-      setMessage(
-        error
-          ? "تعذر إرسال رابط استعادة كلمة المرور: " + error.message
-          : "تم إرسال رابط استعادة كلمة المرور إلى بريدك الإلكتروني. افتح الرابط ثم عيّن كلمة مرور جديدة."
-      );
-      return;
     }
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-
-    if (error) {
-      setMessage("فشل تسجيل الدخول: " + error.message);
-      setLoading(false);
-      return;
-    }
-
-    const { data: isAdmin, error: rpcError } = await supabase.rpc("is_admin");
-
-    if (rpcError) {
-      await supabase.auth.signOut();
-      setMessage("تعذر التحقق من صلاحية الإدارة: " + rpcError.message);
-      setLoading(false);
-      return;
-    }
-
-    if (isAdmin !== true) {
-      await supabase.auth.signOut();
-      setMessage(
-        "تم تسجيل الدخول بنجاح، لكن هذا الحساب ليس مسؤولاً بعد. يجب إضافته إلى user_roles بدور Super Admin أو إلى admin_users."
-      );
-      setLoading(false);
-      return;
-    }
-
-    window.location.assign(base + "/admin/dashboard/");
   }
 
   return (
@@ -84,14 +122,14 @@ export default function Login() {
         className="mx-auto mt-16 max-w-md rounded-3xl border border-zinc-800 bg-zinc-900 p-8"
       >
         <ShieldCheck className="text-emerald-400" size={32} />
-
         <h1 className="mt-4 text-2xl font-bold">تسجيل دخول الإدارة</h1>
-
         <p className="mt-2 text-sm text-zinc-400">
-          تسجيل الدخول يتم عبر Supabase ثم يتم التحقق من صلاحية الإدارة عبر RPC ‏is_admin().
+          تسجيل الدخول عبر Supabase ثم التحقق من صلاحية الإدارة عبر RPC is_admin().
         </p>
 
-        <label className="mt-6 block text-sm text-zinc-300">البريد الإلكتروني</label>
+        <label className="mt-6 block text-sm text-zinc-300">
+          البريد الإلكتروني
+        </label>
         <input
           required
           type="email"
@@ -104,7 +142,9 @@ export default function Login() {
 
         {mode === "login" && (
           <>
-            <label className="mt-3 block text-sm text-zinc-300">كلمة المرور</label>
+            <label className="mt-3 block text-sm text-zinc-300">
+              كلمة المرور
+            </label>
             <input
               required
               type="password"
