@@ -20,6 +20,10 @@ export const supabase = createClient(url, key, {
   },
 });
 
+// All application tables live in the public schema. Keep the schema explicit
+// so the browser does not depend on PostgREST schema ordering/configuration.
+export const publicDb = supabase.schema("public");
+
 export async function checkAdmin() {
   const {
     data: { user },
@@ -33,11 +37,7 @@ export async function checkAdmin() {
     };
   }
 
-  // Browser authorization deliberately uses the authenticated user's own
-  // admin_users row instead of depending on PostgREST's RPC schema cache.
-  // This avoids blocking login when the database function exists but the
-  // REST schema cache is stale.
-  const { data: adminRow, error: adminError } = await supabase
+  const { data: adminRow, error: adminError } = await publicDb
     .from("admin_users")
     .select("user_id")
     .eq("user_id", user.id)
@@ -55,7 +55,7 @@ export async function checkAdmin() {
 }
 
 export function subscribeToTable(table, callback) {
-  const channel = supabase
+  return supabase
     .channel("dashboard-" + table)
     .on(
       "postgres_changes",
@@ -63,6 +63,4 @@ export function subscribeToTable(table, callback) {
       callback
     )
     .subscribe();
-
-  return channel;
 }
