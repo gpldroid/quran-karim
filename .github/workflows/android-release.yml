@@ -50,11 +50,19 @@ jobs:
           gradle -p android :app:assembleRelease \
             -PversionName="${{ steps.version.outputs.name }}" \
             -PversionCode="${{ steps.version.outputs.code }}"
+      - name: Locate APK
+        id: apk
+        shell: bash
+        run: |
+          APK="$(find android/app/build/outputs/apk/release -type f -name "*.apk" | head -n 1)"
+          test -n "$APK"
+          echo "path=$APK" >> "$GITHUB_OUTPUT"
+          echo "name=$(basename "$APK")" >> "$GITHUB_OUTPUT"
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: quran-karim-${{ steps.version.outputs.name }}
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: ${{ steps.apk.outputs.path }}
           if-no-files-found: error
           retention-days: 14
       - name: Publish GitHub Release
@@ -64,7 +72,7 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${{ steps.version.outputs.name }}"
-          APK="android/app/build/outputs/apk/release/app-release.apk"
+          APK="${{ steps.apk.outputs.path }}"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber
           else
@@ -83,4 +91,4 @@ jobs:
             -X POST "$RELEASE_SYNC_URL" \
             -H "content-type: application/json" \
             -H "x-release-secret: $RELEASE_SYNC_SECRET" \
-            -d "{\"version_code\":${{ steps.version.outputs.code }},\"version_name\":\"${{ steps.version.outputs.name }}\",\"release_tag\":\"$TAG\",\"release_url\":\"https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG\",\"download_url\":\"https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/quran-karim-${{ steps.version.outputs.name }}.apk\",\"artifact_url\":\"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\",\"status\":\"published\",\"github_run_id\":$GITHUB_RUN_ID}"
+            -d "{\"version_code\":${{ steps.version.outputs.code }},\"version_name\":\"${{ steps.version.outputs.name }}\",\"release_tag\":\"$TAG\",\"release_url\":\"https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG\",\"download_url\":\"https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/${{ steps.apk.outputs.name }}\",\"artifact_url\":\"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\",\"status\":\"published\",\"github_run_id\":$GITHUB_RUN_ID}"
