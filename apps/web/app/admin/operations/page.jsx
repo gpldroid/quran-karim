@@ -3,6 +3,7 @@
 import {useEffect,useMemo,useState} from "react";
 import Link from "next/link";
 import {supabase,islamway} from "../../../lib/supabase";
+import RepositoryEditor from "./RepositoryEditor";
 
 const roleNames=["Super Admin","Content Manager","Release Manager"];
 const books=[
@@ -18,7 +19,7 @@ export default function Operations(){
   const [users,setUsers]=useState([]),[cache,setCache]=useState([]),[settings,setSettings]=useState([]),[preview,setPreview]=useState("");
   const [quranReaders,setQuranReaders]=useState([]),[quranSurahs,setQuranSurahs]=useState([]);
 
-  const tabs=[["sites","المواقع"],["github","GitHub"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["cache","Islamway والكاش"],["preview","Live Preview"],["android","Android والإعدادات"]];
+  const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["github","GitHub"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["cache","Islamway والكاش"],["preview","Live Preview"],["android","Android والإعدادات"]];
 
   function flash(x){setMessage(x);setTimeout(()=>setMessage(""),2800)}
   function fail(x){setError(x?.message||String(x));setTimeout(()=>setError(""),5000)}
@@ -145,7 +146,8 @@ export default function Operations(){
     if(error)fail(error);else{flash("تم مسح الكاش.");loadCache()}
   }
   async function saveSetting(key,value){
-    const {error}=await supabase.from("quran_app_settings").upsert({key,value,updated_by:user.id},{onConflict:"key"});
+    let parsed=value; try{parsed=typeof value==="string"?JSON.parse(value):value}catch{parsed=value}
+    const {error}=await supabase.from("quran_app_settings").upsert({key,value:parsed,updated_by:user.id},{onConflict:"key"});
     if(error)fail(error);else{flash("تم حفظ الإعداد.");loadSettings()}
   }
 
@@ -169,7 +171,7 @@ export default function Operations(){
         <div className="list">{sites.map(s=><div className="row" key={s.id}><div><strong>{s.name}</strong><div className="muted small">{s.repo_full_name} · {s.default_branch}</div></div><div className="actions"><button className="link-btn" onClick={()=>chooseSite(s)}>تشغيل</button>{role==="Super Admin"&&<button className="danger-btn" onClick={()=>deleteSite(s.id)}>حذف</button>}</div></div>)}</div>
       </section>}
 
-      {tab==="github"&&<section className="panel">
+      {tab==="editor"&&<RepositoryEditor site={site} role={role} onMessage={flash} onError={fail}/>}\n\n      {tab==="github"&&<section className="panel">
         <div className="panel-head"><div><h2>GitHub Releases / Artifacts</h2><p className="muted">{site?.repo_full_name||"اختر مستودعاً من تبويب المواقع."}</p></div><button className="btn" disabled={!site||gh.loading} onClick={()=>loadGithub()}>{gh.loading?"جارٍ...":"تحديث GitHub"}</button></div>
         {site?<><div className="stats"><div className="stat"><span>Repository</span><strong>{gh.summary?.stargazers_count??"—"}</strong><small>Stars</small></div><div className="stat"><span>Releases</span><strong>{gh.releases.length}</strong><small>آخر 20</small></div><div className="stat"><span>Artifacts</span><strong>{gh.artifacts.length}</strong><small>آخر 20</small></div><div className="stat"><span>Workflows</span><strong>{gh.workflows.length}</strong><small>متاحة</small></div></div><div className="grid-two"><section className="panel"><h3>Releases</h3>{gh.releases.map(r=><div className="row" key={r.id}><div><strong>{r.name||r.tag_name}</strong><div className="muted small">{r.tag_name}</div></div><a className="link-btn" href={r.html_url} target="_blank" rel="noreferrer">فتح</a></div>)}<button className="btn" onClick={syncReleases}>مزامنة Releases إلى Supabase</button></section><section className="panel"><h3>Artifacts</h3>{gh.artifacts.map(a=><div className="row" key={a.id}><div><strong>{a.name}</strong><div className="muted small">{a.expired?"منتهي":"صالح"} · {Math.round((a.size_in_bytes||0)/1024)} KB</div></div></div>)}</section></div></>:<p className="muted">أضف مستودعاً أولاً.</p>}
       </section>}
