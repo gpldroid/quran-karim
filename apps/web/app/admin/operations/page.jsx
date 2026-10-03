@@ -154,7 +154,11 @@ export default function Operations(){
         <div className="list">{sites.map(s=><div className="row" key={s.id}><div><strong>{s.name}</strong><div className="muted small">{s.repo_full_name} · {s.default_branch}</div></div><div className="actions"><button className="link-btn" onClick={()=>chooseSite(s)}>تشغيل</button>{role==="Super Admin"&&<button className="danger-btn" onClick={()=>deleteSite(s.id)}>حذف</button>}</div></div>)}</div>
       </section>}
 
-      {tab==="editor"&&<RepositoryEditor site={site} role={role} onMessage={flash} onError={fail}/>}\n\n      {tab==="control"&&<GitHubControlCenter site={site} role={role} onMessage={flash} onError={fail}/>}\n\n      {tab==="github"&&<section className="panel">
+      {tab==="editor"&&<RepositoryEditor site={site} role={role} onMessage={flash} onError={fail}/>}
+
+      {tab==="control"&&<GitHubControlCenter site={site} role={role} onMessage={flash} onError={fail}/>}
+
+      {tab==="github"&&<section className="panel">
         <div className="panel-head"><div><h2>GitHub Releases / Artifacts</h2><p className="muted">{site?.repo_full_name||"اختر مستودعاً من تبويب المواقع."}</p></div><button className="btn" disabled={!site||gh.loading} onClick={()=>loadGithub()}>{gh.loading?"جارٍ...":"تحديث GitHub"}</button></div>
         {site?<><div className="stats"><div className="stat"><span>Repository</span><strong>{gh.summary?.stargazers_count??"—"}</strong><small>Stars</small></div><div className="stat"><span>Releases</span><strong>{gh.releases.length}</strong><small>آخر 20</small></div><div className="stat"><span>Artifacts</span><strong>{gh.artifacts.length}</strong><small>آخر 20</small></div><div className="stat"><span>Workflows</span><strong>{gh.workflows.length}</strong><small>متاحة</small></div></div><div className="grid-two"><section className="panel"><h3>Releases</h3>{gh.releases.map(r=><div className="row" key={r.id}><div><strong>{r.name||r.tag_name}</strong><div className="muted small">{r.tag_name}</div></div><a className="link-btn" href={r.html_url} target="_blank" rel="noreferrer">فتح</a></div>)}<button className="btn" onClick={syncReleases}>مزامنة Releases إلى Supabase</button></section><section className="panel"><h3>Artifacts</h3>{gh.artifacts.map(a=><div className="row" key={a.id}><div><strong>{a.name}</strong><div className="muted small">{a.expired?"منتهي":"صالح"} · {Math.round((a.size_in_bytes||0)/1024)} KB</div></div></div>)}</section></div></>:<p className="muted">أضف مستودعاً أولاً.</p>}
       </section>}
