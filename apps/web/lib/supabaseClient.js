@@ -1,17 +1,17 @@
 import { createClient } from "@supabase/supabase-js";
 
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const key =
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://tqmjueqdfdyhiukhbant.supabase.co";
+
+// This is a Supabase publishable key. It is intentionally safe for browser use.
+// Authorization is enforced by Supabase Auth + Postgres RLS, not by hiding this key.
+const SUPABASE_PUBLISHABLE_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "sb_publishable_xfJu5T9gZ4UsysK6LxWcFQ_FkG6nmbh";
 
-if (!url || !key) {
-  throw new Error(
-    "Missing NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/NEXT_PUBLIC_SUPABASE_ANON_KEY"
-  );
-}
-
-export const supabase = createClient(url, key, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
@@ -20,8 +20,6 @@ export const supabase = createClient(url, key, {
   },
 });
 
-// All application tables live in the public schema. Keep the schema explicit
-// so the browser does not depend on PostgREST schema ordering/configuration.
 export const publicDb = supabase.schema("public");
 
 export async function checkAdmin() {
@@ -37,14 +35,18 @@ export async function checkAdmin() {
     };
   }
 
-  const { data: isAdmin, error: adminError } = await publicDb.rpc("is_admin");
+  const { data, error: adminError } = await publicDb
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   if (adminError) {
     return { isAdmin: false, error: adminError, user };
   }
 
   return {
-    isAdmin: isAdmin === true,
+    isAdmin: Boolean(data),
     error: null,
     user,
   };
