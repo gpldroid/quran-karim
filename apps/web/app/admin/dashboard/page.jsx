@@ -6,7 +6,7 @@ import LivePreview from "../../../components/LivePreview";
 import QuranPlayer from "../../../components/QuranPlayer";
 import ApkReleaseManager from "../../../components/ApkReleaseManager";
 import QuranSettingsEditor from "../../../components/QuranSettingsEditor";
-import { checkAdmin, supabase } from "../../../lib/supabaseClient";
+import { checkAdmin, publicDb, supabase } from "../../../lib/supabaseClient";
 
 const base =
   process.env.NEXT_PUBLIC_BASE_PATH ||
@@ -34,12 +34,12 @@ export default function Dashboard() {
 
       const [{ data: s, error: settingsError }, { data: r, error: releaseError }] =
         await Promise.all([
-          supabase
+          publicDb
             .from("quran_settings")
             .select("*")
             .eq("id", 1)
             .maybeSingle(),
-          supabase
+          publicDb
             .from("app_releases")
             .select("*")
             .order("created_at", { ascending: false })
