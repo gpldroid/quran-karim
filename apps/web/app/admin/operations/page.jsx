@@ -49,10 +49,6 @@ export default function Operations(){
     const {data,error}=await supabase.functions.invoke("admin-users",{body:{action:"list"}});
     if(error)fail(error); else setUsers(data?.users||[]);
   }
-  async function loadCache(){
-    const {data,error}=await supabase.from("islamway_cache").select("cache_key,expires_at,updated_at").order("updated_at",{ascending:false}).limit(100);
-    if(error)fail(error); else setCache(data||[]);
-  }
   async function loadSettings(){
     const {data,error}=await supabase.from("quran_app_settings").select("*").order("key");
     if(error)fail(error); else setSettings(data||[]);
@@ -170,7 +166,7 @@ export default function Operations(){
 
       {tab==="preview"&&<section className="panel"><div className="panel-head"><div><h2>Live Preview</h2><p className="muted">معاينة الموقع المحدد من نفس مركز التحكم.</p></div></div><Field label="رابط المعاينة"><input type="url" value={preview} onChange={e=>setPreview(e.target.value)} placeholder="https://example.github.io/site/"/></Field>{preview?<iframe title="Live Preview" src={preview} style={{width:"100%",height:"70vh",border:"1px solid #dce7e0",borderRadius:16}}/>:<p className="muted">اختر موقعاً وأضف deployment URL.</p>}</section>}
 
-      {tab==="android"&&<section className="panel"><div className="panel-head"><div><h2>Android وإعدادات التطبيق</h2><p className="muted">الإعدادات المركزية التي يمكن للتطبيق والمواقع قراءتها.</p></div></div><div className="grid-two"><section className="panel"><h3>إعدادات التطبيق</h3>{settings.map(s=><div className="row" key={s.key}><div><strong>{s.key}</strong><div className="muted small">{JSON.stringify(s.value)}</div></div><button className="link-btn" onClick={()=>saveSetting(s.key,prompt("قيمة JSON",JSON.stringify(s.value))||JSON.stringify(s.value))}>تعديل</button></div>)}</section><section className="panel"><h3>حالة تكامل القرآن</h3><p className="muted">غير مفعّل حالياً. سيتم ربط API Islamway بعد اكتمال موقع القرآن للقراءة والاستماع.</p></section><section className="panel"><h3>آخر Android Releases</h3>{gh.releases.slice(0,5).map(r=><div className="row" key={r.id}><div><strong>{r.name||r.tag_name}</strong><div className="muted small">{r.tag_name}</div></div><button className="link-btn" onClick={syncReleases}>مزامنة</button></div>)}</section></div></section>}
+      {tab==="android"&&<section className="panel"><div className="panel-head"><div><h2>Android وإعدادات التطبيق</h2><p className="muted">الإعدادات المركزية التي يمكن للتطبيق والمواقع قراءتها.</p></div></div><div className="grid-two"><section className="panel"><h3>إعدادات التطبيق</h3>{settings.map(s=><div className="row" key={s.key}><div><strong>{s.key}</strong><div className="muted small">{JSON.stringify(s.value)}</div></div><button className="link-btn" onClick={()=>saveSetting(s.key,prompt("قيمة JSON",JSON.stringify(s.value))||JSON.stringify(s.value))}>تعديل</button></div>)}</section><section className="panel"><h3>مشروع القرآن</h3><p className="muted">هذا المركز لا يتصل بمصادر القرآن الخارجية. أضف موقع القرآن كمستودع مستقل عند بدء مرحلته.</p></section><section className="panel"><h3>آخر Android Releases</h3>{gh.releases.slice(0,5).map(r=><div className="row" key={r.id}><div><strong>{r.name||r.tag_name}</strong><div className="muted small">{r.tag_name}</div></div><button className="link-btn" onClick={syncReleases}>مزامنة</button></div>)}</section></div></section>}
     </section>
   </main>
 }
