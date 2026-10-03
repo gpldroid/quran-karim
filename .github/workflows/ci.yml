@@ -8,7 +8,6 @@ on:
       - "lib/**"
       - "public/**"
       - "package.json"
-      - "package-lock.json"
       - "next.config.mjs"
       - "tailwind.config.*"
       - ".github/workflows/**"
@@ -20,7 +19,6 @@ on:
       - "lib/**"
       - "public/**"
       - "package.json"
-      - "package-lock.json"
       - "next.config.mjs"
       - "tailwind.config.*"
 jobs:
@@ -31,8 +29,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+      - run: npm install --no-audit --no-fund
       - run: npm run build
         env:
           NEXT_PUBLIC_SUPABASE_URL: https://tqmjueqdfdyhiukhbant.supabase.co
