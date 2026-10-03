@@ -79,7 +79,6 @@ jobs:
             gh release create "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --title "Quran Karim $TAG" --generate-notes
           fi
       - name: Sync release to Supabase
-        if: ${{ secrets.SUPABASE_RELEASE_SYNC_SECRET != '' }}
         env:
           RELEASE_SYNC_URL: https://tqmjueqdfdyhiukhbant.supabase.co/functions/v1/release-sync
           RELEASE_SYNC_SECRET: ${{ secrets.SUPABASE_RELEASE_SYNC_SECRET }}
