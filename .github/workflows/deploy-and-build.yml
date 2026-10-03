@@ -83,10 +83,14 @@ jobs:
           gh release create "$TAG" "$APK" --title "Quran Karim $TAG" --generate-notes
       - name: Sync release to Supabase
         env:
-          RELEASE_SYNC_URL: ${{ secrets.SUPABASE_RELEASE_SYNC_URL }}
+          SUPABASE_FUNCTIONS_URL: ${{ secrets.VITE_SUPABASE_FUNCTIONS_URL }}
           RELEASE_SYNC_SECRET: ${{ secrets.SUPABASE_RELEASE_SYNC_SECRET }}
         run: |
+          set -euo pipefail
+          test -n "$SUPABASE_FUNCTIONS_URL"
+          test -n "$RELEASE_SYNC_SECRET"
+          RELEASE_SYNC_URL="${SUPABASE_FUNCTIONS_URL%/}/release-sync"
           TAG="v${{ steps.version.outputs.name }}"
           RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
           DOWNLOAD_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/app-release.apk"
-          curl --fail-with-body -X POST "$RELEASE_SYNC_URL" -H "content-type: application/json" -H "x-release-secret: $RELEASE_SYNC_SECRET" -d "{\"version_code\":${{ steps.version.outputs.code }},\"version_name\":\"${{ steps.version.outputs.name }}\",\"release_tag\":\"$TAG\",\"release_url\":\"$RELEASE_URL\",\"download_url\":\"$DOWNLOAD_URL\",\"artifact_url\":\"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\",\"github_run_id\":$GITHUB_RUN_ID,\"status\":\"published\"}"
+          curl --fail-with-body --retry 3 --retry-delay 2 --max-time 30 -X POST "$RELEASE_SYNC_URL" -H "content-type: application/json" -H "x-release-secret: $RELEASE_SYNC_SECRET" -d "{\"version_code\":${{ steps.version.outputs.code }},\"version_name\":\"${{ steps.version.outputs.name }}\",\"release_tag\":\"$TAG\",\"release_url\":\"$RELEASE_URL\",\"download_url\":\"$DOWNLOAD_URL\",\"artifact_url\":\"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\",\"github_run_id\":$GITHUB_RUN_ID,\"status\":\"published\"}"
