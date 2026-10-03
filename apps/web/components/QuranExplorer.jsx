@@ -45,9 +45,6 @@ export default function QuranExplorer({ compact = false, readerId }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "quran_settings" }, ({ new: row }) => {
         if (!row) return;
         setSelected(Math.min(114, Math.max(1, Number(row.default_surah) || 1)));
-        if (!readerId && row.default_reader_id) {
-          setReader((current) => readers.find((r) => String(r.id) === String(row.default_reader_id)) || current);
-        }
       })
       .subscribe();
 
