@@ -1,0 +1,40 @@
+name: Supabase JSON Backup
+on:
+  schedule:
+    - cron: "43 2 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Export selected Supabase tables
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p backup
+          export_table() {
+            local table="$1"
+            curl --fail-with-body --silent --show-error --retry 3 --retry-delay 2 --max-time 60 -H "apikey: $SUPABASE_SECRET_KEY" -H "Authorization: Bearer $SUPABASE_SECRET_KEY" -H "Accept: application/json" "$SUPABASE_URL/rest/v1/$table?select=*" -o "backup/$table.json"
+          }
+          export_table quran_settings
+          export_table app_releases
+          export_table site_config
+          cat > backup/manifest.json <<EOF
+          {
+            "created_at": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+            "repository": "$GITHUB_REPOSITORY",
+            "run_id": "$GITHUB_RUN_ID",
+            "tables": ["quran_settings", "app_releases", "site_config"]
+          }
+          EOF
+      - name: Upload JSON backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-json-backup-${{ github.run_id }}
+          path: backup/
+          retention-days: 7
