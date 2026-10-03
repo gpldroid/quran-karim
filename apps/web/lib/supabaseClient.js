@@ -37,18 +37,14 @@ export async function checkAdmin() {
     };
   }
 
-  const { data: adminRow, error: adminError } = await publicDb
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  const { data: isAdmin, error: adminError } = await publicDb.rpc("is_admin");
 
   if (adminError) {
     return { isAdmin: false, error: adminError, user };
   }
 
   return {
-    isAdmin: adminRow?.user_id === user.id,
+    isAdmin: isAdmin === true,
     error: null,
     user,
   };
