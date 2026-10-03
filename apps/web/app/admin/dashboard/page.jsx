@@ -98,7 +98,7 @@ export default function Dashboard(){
   return <main className="admin-shell">
     <aside className="sidebar">
       <div className="brand"><div className="brand-mark">ق</div><div><strong>القرآن الكريم</strong><small>مركز التحكم</small></div></div>
-      <nav>{tabs.map(([id,label,icon])=><button key={id} className={tab===id?"side-link active":"side-link"} onClick={()=>setTab(id)}><span>{icon}</span>{label}</button>)}</nav>
+      <nav>{tabs.map(([id,label,icon])=><button key={id} className={tab===id?"side-link active":"side-link"} onClick={()=>setTab(id)}><span>{icon}</span>{label}</button>)}<Link className="side-link" href="/admin/operations/"><span>⌘</span>مركز التشغيل والمحرر</Link></nav>
       <div className="sidebar-foot"><div className="online-dot"/> الاتصال وRealtime نشط</div>
     </aside>
     <section className="admin-main">
