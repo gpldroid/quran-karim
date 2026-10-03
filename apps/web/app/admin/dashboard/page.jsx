@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useState} from "react";
 import Link from "next/link";
 import {isAdmin,supabase} from "../../../lib/supabase";
 
@@ -19,7 +19,7 @@ const emptySite={site_name:"القرآن الكريم",description:"منصة ا�
 export default function Dashboard(){
   const [user,setUser]=useState(null),[tab,setTab]=useState("overview"),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
   const [quran,setQuran]=useState(emptyQuran),[site,setSite]=useState(emptySite),[releases,setReleases]=useState([]),[builds,setBuilds]=useState([]),[content,setContent]=useState([]),[audit,setAudit]=useState([]);
-  const [readerSearch,setReaderSearch]=useState(""),[surahSearch,setSurahSearch]=useState(""),[contentDraft,setContentDraft]=useState({id:null,kind:"site",title:"",body:"",source:"",published:true});
+  const [contentDraft,setContentDraft]=useState({id:null,kind:"site",title:"",body:"",source:"",published:true});
   const [releaseDraft,setReleaseDraft]=useState({version_code:"",version_name:"",release_tag:"",release_url:"",download_url:"",artifact_url:"",changelog:"",status:"draft"});
 
   async function load(){
@@ -55,9 +55,6 @@ export default function Dashboard(){
       .subscribe();
     return()=>{supabase.removeChannel(channel)};
   },[user]);
-
-  const filteredReaders=useMemo(()=>readers.filter(x=>String(x.name).toLowerCase().includes(readerSearch.toLowerCase())),[readers,readerSearch]);
-  const filteredSurahs=useMemo(()=>surahs.filter(x=>String(x.name).includes(surahSearch)||String(x.number).includes(surahSearch)),[surahs,surahSearch]);
 
   function flash(text){setMessage(text);setTimeout(()=>setMessage(""),2500)}
   async function saveQuran(){
@@ -107,6 +104,6 @@ export default function Dashboard(){
       {message&&<div className="success">{message}</div>}
       {error&&<div className="error">{error}</div>}
 
-      {tab==="overview"&&<Overview quran={quran} releases={releases} builds={builds} content={content} readers={readers} onTab={setTab}/>}
+      {tab==="overview"&&<Overview quran={quran} releases={releases} builds={builds} content={content} onTab={setTab}/>}
       {tab==="quran"&&<section className="panel">
         <div className="panel-head"><div><h2>إعدادات المصحف</h2><p className="muted">إعدادات محلية فقط. لم يتم تفعيل اتصال Islamway في هذه المرحلة.</p></div><button className="btn" onClick={saveQuran} disabled={saving}>{saving?"حفظ...":"حفظ الإعدادات"}</button></div>
