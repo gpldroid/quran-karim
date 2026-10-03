@@ -8,21 +8,23 @@ on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: "Android versionName, for example 2.0.1"
-        required: false
-        type: string
+        description: Android version name
+        required: true
+        default: "2.0.0"
       version_code:
-        description: "Android versionCode, for example 201"
-        required: false
-        type: string
+        description: Android version code
+        required: true
+        default: "1"
+
 permissions:
   contents: write
+
 concurrency:
-  group: android-release
+  group: android-release-${{ github.ref }}
   cancel-in-progress: false
+
 jobs:
-  build-release:
-    name: Build APK and publish GitHub Release
+  build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -33,86 +35,86 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: gradle
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v4
-        with:
-          packages: "platform-tools platforms;android-35 build-tools;35.0.0"
+      - name: Configure Android SDK
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6
-        with:
-          gradle-version: "8.9"
-          cache-provider: basic
       - name: Resolve release version
         id: version
         shell: bash
         run: |
-          set -euo pipefail
-          VERSION_NAME="${{ inputs.version_name }}"
-          VERSION_CODE="${{ inputs.version_code }}"
-          if [ -z "$VERSION_NAME" ]; then VERSION_NAME="2.0.$GITHUB_RUN_NUMBER"; fi
-          if [ -z "$VERSION_CODE" ]; then VERSION_CODE="$GITHUB_RUN_NUMBER"; fi
-          if ! [[ "$VERSION_CODE" =~ ^[1-9][0-9]*$ ]]; then echo "version_code must be a positive integer."; exit 1; fi
-          if ! [[ "$VERSION_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?$ ]]; then echo "version_name must be a valid semantic version such as 2.0.1."; exit 1; fi
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSION_NAME="${{ inputs.version_name }}"
+            VERSION_CODE="${{ inputs.version_code }}"
+          else
+            VERSION_NAME="2.0.$GITHUB_RUN_NUMBER"
+            VERSION_CODE="$GITHUB_RUN_NUMBER"
+          fi
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
           echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
-          echo "tag=v$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "release_tag=v$VERSION_NAME" >> "$GITHUB_OUTPUT"
       - name: Build release APK
         working-directory: apps/android/android
+        env:
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          VERSION_CODE: ${{ steps.version.outputs.version_code }}
         run: |
-          set -euo pipefail
-          gradle --no-daemon clean :app:assembleRelease -PversionName="${{ steps.version.outputs.version_name }}" -PversionCode="${{ steps.version.outputs.version_code }}"
+          gradle :app:assembleRelease -PversionName="$VERSION_NAME" -PversionCode="$VERSION_CODE"
       - name: Locate APK
         id: apk
         shell: bash
         run: |
-          set -euo pipefail
-          APK="$(find apps/android/android/app/build/outputs/apk/release -type f -name "*.apk" -print -quit)"
-          test -n "$APK"
-          echo "path=$APK" >> "$GITHUB_OUTPUT"
-          echo "name=$(basename "$APK")" >> "$GITHUB_OUTPUT"
+          APK_PATH="$(find apps/android/android/app/build/outputs/apk/release -type f -name '*.apk' -print -quit)"
+          test -n "$APK_PATH"
+          echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
+          echo "filename=$(basename "$APK_PATH")" >> "$GITHUB_OUTPUT"
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@v5
         with:
-          name: quran-karim-android-v${{ steps.version.outputs.version_name }}
+          name: quran-karim-${{ steps.version.outputs.version_name }}
           path: ${{ steps.apk.outputs.path }}
           if-no-files-found: error
           retention-days: 30
-      - name: Create GitHub Release and upload APK
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
-          VERSION_NAME: ${{ steps.version.outputs.version_name }}
-          VERSION_CODE: ${{ steps.version.outputs.version_code }}
-          APK_PATH: ${{ steps.apk.outputs.path }}
-        run: |
-          set -euo pipefail
-          gh release create "$RELEASE_TAG" "$APK_PATH" --repo "$GITHUB_REPOSITORY" --title "Quran Karim $RELEASE_TAG" --notes "Android release $VERSION_NAME (versionCode $VERSION_CODE)."
-      - name: Read GitHub Release metadata
+      - name: Create GitHub Release
         id: release
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
         run: |
-          set -euo pipefail
-          RELEASE_JSON="$(gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json databaseId,url,publishedAt)"
-          echo "release_id=$(jq -r '.databaseId' <<< "$RELEASE_JSON")" >> "$GITHUB_OUTPUT"
-          echo "release_url=$(jq -r '.url' <<< "$RELEASE_JSON")" >> "$GITHUB_OUTPUT"
-          echo "published_at=$(jq -r '.publishedAt' <<< "$RELEASE_JSON")" >> "$GITHUB_OUTPUT"
+          gh release create "${{ steps.version.outputs.release_tag }}" "${{ steps.apk.outputs.path }}" --repo "$GITHUB_REPOSITORY" --title "Quran Karim ${{ steps.version.outputs.release_tag }}" --generate-notes
       - name: Update Supabase app_builds
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          VERSION_NAME: ${{ steps.version.outputs.version_name }}
           VERSION_CODE: ${{ steps.version.outputs.version_code }}
-          RELEASE_TAG: ${{ steps.version.outputs.tag }}
-          RELEASE_ID: ${{ steps.release.outputs.release_id }}
-          RELEASE_URL: ${{ steps.release.outputs.release_url }}
-          PUBLISHED_AT: ${{ steps.release.outputs.published_at }}
-          APK_NAME: ${{ steps.apk.outputs.name }}
+          VERSION_NAME: ${{ steps.version.outputs.version_name }}
+          RELEASE_TAG: ${{ steps.version.outputs.release_tag }}
+          APK_FILENAME: ${{ steps.apk.outputs.filename }}
+          GITHUB_RELEASE_ID: ${{ steps.release.outputs.id }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        shell: bash
         run: |
           set -euo pipefail
-          test -n "$SUPABASE_URL"
-          test -n "$SUPABASE_SERVICE_ROLE_KEY"
-          DOWNLOAD_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/$APK_NAME"
-          PAYLOAD="$(jq -n --arg version_name "$VERSION_NAME" --argjson version_code "$VERSION_CODE" --arg release_tag "$RELEASE_TAG" --arg release_url "$RELEASE_URL" --arg download_url "$DOWNLOAD_URL" --arg release_date "$PUBLISHED_AT" --argjson github_release_id "$RELEASE_ID" --arg github_run_id "$GITHUB_RUN_ID" '{version_name:$version_name,version_code:$version_code,release_tag:$release_tag,release_url:$release_url,download_url:$download_url,release_date:$release_date,github_release_id:$github_release_id,github_run_id:$github_run_id}')"
-          curl --fail-with-body --silent --show-error --retry 4 --retry-delay 2 --request POST --url "$SUPABASE_URL/rest/v1/app_builds?on_conflict=version_code" --header "apikey: $SUPABASE_SERVICE_ROLE_KEY" --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" --header "Content-Type: application/json" --header "Prefer: resolution=merge-duplicates,return=minimal" --data "$PAYLOAD"
+          if [ -z "$GITHUB_RELEASE_ID" ]; then GITHUB_RELEASE_ID=0; fi
+          RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
+          DOWNLOAD_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/$APK_FILENAME"
+          RELEASE_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          curl --fail-with-body --retry 4 --retry-delay 3 --max-time 30 \
+            --request POST \
+            --url "$SUPABASE_URL/rest/v1/app_builds?on_conflict=version_code" \
+            --header "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            --header "Content-Type: application/json" \
+            --header "Prefer: resolution=merge-duplicates,return=minimal" \
+            --data "$(jq -n \
+              --argjson version_code "$VERSION_CODE" \
+              --arg version_name "$VERSION_NAME" \
+              --arg release_tag "$RELEASE_TAG" \
+              --arg release_url "$RELEASE_URL" \
+              --arg download_url "$DOWNLOAD_URL" \
+              --arg release_date "$RELEASE_DATE" \
+              --argjson github_release_id "$GITHUB_RELEASE_ID" \
+              --argjson github_run_id "$GITHUB_RUN_ID" \
+              '{version_code:$version_code,version_name:$version_name,release_tag:$release_tag,release_url:$release_url,download_url:$download_url,release_date:$release_date,github_release_id:$github_release_id,github_run_id:$github_run_id}')"
