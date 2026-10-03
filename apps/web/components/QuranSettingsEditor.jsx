@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Save } from "lucide-react";
-import { supabase } from "../lib/supabaseClient";
+import { publicDb } from "../lib/supabaseClient";
 import { islamwayApi } from "../lib/islamwayApi";
 
 export default function QuranSettingsEditor({ settings, onSaved }) {
@@ -29,7 +29,7 @@ export default function QuranSettingsEditor({ settings, onSaved }) {
     e.preventDefault();
     setSaving(true);
     setMessage("");
-    const { data, error } = await supabase
+    const { data, error } = await publicDb
       .from("quran_settings")
       .upsert({
         id: 1,
