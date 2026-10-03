@@ -1,6 +1,6 @@
 "use client";
 
-import {useEffect,useMemo,useState} from "react";
+import {useEffect,useState} from "react";
 import Link from "next/link";
 import {supabase} from "../../../lib/supabase";
 import RepositoryEditor from "./RepositoryEditor";
@@ -12,7 +12,7 @@ export default function Operations(){
   const [direction,setDirection]=useState(()=>typeof window!=="undefined"&&localStorage.getItem("admin-direction")||"rtl");
   const [sites,setSites]=useState([]),[site,setSite]=useState(null),[siteDraft,setSiteDraft]=useState({name:"",repo_full_name:"",default_branch:"main",base_path:"/",deployment_url:"",supabase_project_ref:"",enabled:true});
   const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],deployments:[],pages:null,loading:false});
-  const [users,setUsers]=useState([]),[settings,setSettings]=useState([]),[preview,setPreview]=useState("");
+  const [users,setUsers]=useState([]),[preview,setPreview]=useState("");
 
   const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["control","GitHub Control Center"],["github","GitHub"],["deployments","Deployments"],["actions","Actions"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["settings","إعدادات المشروع"]];
 
