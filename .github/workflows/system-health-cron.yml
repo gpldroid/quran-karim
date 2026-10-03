@@ -20,13 +20,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release view --repo "$GITHUB_REPOSITORY"
       - name: Notify Discord
-        if: failure() && secrets.DISCORD_WEBHOOK_URL != ''
+        if: failure()
         env:
           WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
           curl -sS -X POST "$WEBHOOK" -H "content-type: application/json"             -d '{"content":"Quran Dashboard health check failed: '"$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"'"}'
       - name: Notify Telegram
-        if: failure() && secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != ''
+        if: failure()
         env:
           TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT: ${{ secrets.TELEGRAM_CHAT_ID }}
