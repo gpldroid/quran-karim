@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, Headphones, Loader2, Search } from "lucide-react";
 import { quranApi } from "../lib/quranApi";
 import { islamwayApi } from "../lib/islamwayApi";
@@ -16,6 +16,8 @@ export default function QuranExplorer({ compact = false, readerId }) {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [autoplay, setAutoplay] = useState(false);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     let active = true;
@@ -29,6 +31,7 @@ export default function QuranExplorer({ compact = false, readerId }) {
         if (!active) return;
         const initialSurah = Math.min(114, Math.max(1, Number(settings?.default_surah) || 1));
         setSelected(initialSurah);
+        setAutoplay(Boolean(settings?.autoplay));
         setSurahs(s || []);
         setReaders(r || []);
         const preferred = readerId || settings?.default_reader_id;
@@ -45,6 +48,10 @@ export default function QuranExplorer({ compact = false, readerId }) {
       .on("postgres_changes", { event: "*", schema: "public", table: "quran_settings" }, ({ new: row }) => {
         if (!row) return;
         setSelected(Math.min(114, Math.max(1, Number(row.default_surah) || 1)));
+        setAutoplay(Boolean(row.autoplay));
+        if (row.default_reader_id && readers.length) {
+          setReader(readers.find((x) => String(x.id) === String(row.default_reader_id)) || null);
+        }
       })
       .subscribe();
 
@@ -118,7 +125,7 @@ export default function QuranExplorer({ compact = false, readerId }) {
               <option value="">اختر القارئ</option>
               {readers.map((r) => <option key={r.id} value={r.id}>{r.name}</option>)}
             </select>
-            {audio?.audioUrl ? <audio controls src={audio.audioUrl} className="min-w-[240px] flex-1" /> : <span className="text-sm text-zinc-500">اختر قارئاً متاحاً.</span>}
+{audio?.audioUrl ? <audio ref={audioRef} controls autoPlay={autoplay} src={audio.audioUrl} className="min-w-[240px] flex-1" /> : <span className="text-sm text-zinc-500">اختر قارئاً متاحاً.</span>}
           </div>
           <div className="space-y-5">
             {chapter.ayahs?.map((a) => (
