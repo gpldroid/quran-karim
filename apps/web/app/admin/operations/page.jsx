@@ -20,7 +20,7 @@ export default function Operations(){
   const [hadith,setHadith]=useState([]),[hadithDraft,setHadithDraft]=useState({id:null,collection:"bukhari",book_number:"",hadith_number:"",title:"",body:"",source:"",grade:"",published:true}),[hadithSearch,setHadithSearch]=useState("");
   const [users,setUsers]=useState([]),[settings,setSettings]=useState([]),[preview,setPreview]=useState("");
 
-  const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["control","GitHub Control Center"],["github","GitHub"],["deployments","Deployments"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["android","Android والإعدادات"]];
+  const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["control","GitHub Control Center"],["github","GitHub"],["deployments","Deployments"],["actions","Actions"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["settings","إعدادات المشروع"]];
 
   function toggleDirection(){const d=direction==="rtl"?"ltr":"rtl";setDirection(d);try{localStorage.setItem("admin-direction",d)}catch{}}
   function flash(x){setMessage(x);setTimeout(()=>setMessage(""),2800)}
@@ -130,10 +130,10 @@ export default function Operations(){
   }
   async function removeRole(userId){if(!confirm("إزالة الدور الإداري؟"))return;const {data,error}=await supabase.functions.invoke("admin-users",{body:{action:"remove_role",user_id:userId}});if(error)fail(error);else if(data?.error)fail(data.error);else loadUsers()}
 
-  async function saveSetting(key,value){
-    let parsed=value; try{parsed=typeof value==="string"?JSON.parse(value):value}catch{parsed=value}
-    const {error}=await supabase.from("quran_app_settings").upsert({key,value:parsed,updated_by:user.id},{onConflict:"key"});
-    if(error)fail(error);else{flash("تم حفظ الإعداد.");loadSettings()}
+  async function saveProjectSettings(patch){
+    if(role!=="Super Admin")return fail("إعدادات المشروع متاحة لـ Super Admin فقط.");
+    const {error}=await supabase.from("managed_sites").update(patch).eq("id",site.id);
+    if(error)fail(error);else{flash("تم حفظ إعدادات المشروع.");boot()}
   }
 
   const filteredHadith=useMemo(()=>hadith.filter(x=>(x.title+" "+x.body+" "+x.collection).toLowerCase().includes(hadithSearch.toLowerCase())),[hadith,hadithSearch]);
@@ -199,7 +199,7 @@ export default function Operations(){
 
       {tab==="preview"&&<section className="panel"><div className="panel-head"><div><h2>Live Preview</h2><p className="muted">معاينة الموقع المحدد من نفس مركز التحكم.</p></div></div><Field label="رابط المعاينة"><input type="url" value={preview} onChange={e=>setPreview(e.target.value)} placeholder="https://example.github.io/site/"/></Field>{preview?<iframe title="Live Preview" src={preview} style={{width:"100%",height:"70vh",border:"1px solid #dce7e0",borderRadius:16}}/>:<p className="muted">اختر موقعاً وأضف deployment URL.</p>}</section>}
 
-      {tab==="android"&&<section className="panel"><div className="panel-head"><div><h2>Android وإعدادات التطبيق</h2><p className="muted">الإعدادات المركزية التي يمكن للتطبيق والمواقع قراءتها.</p></div></div><div className="grid-two"><section className="panel"><h3>إعدادات التطبيق</h3>{settings.map(s=><div className="row" key={s.key}><div><strong>{s.key}</strong><div className="muted small">{JSON.stringify(s.value)}</div></div><button className="link-btn" onClick={()=>saveSetting(s.key,prompt("قيمة JSON",JSON.stringify(s.value))||JSON.stringify(s.value))}>تعديل</button></div>)}</section><section className="panel"><h3>مشروع القرآن</h3><p className="muted">هذا المركز لا يتصل بمصادر القرآن الخارجية. أضف موقع القرآن كمستودع مستقل عند بدء مرحلته.</p></section><section className="panel"><h3>آخر Android Releases</h3>{gh.releases.slice(0,5).map(r=><div className="row" key={r.id}><div><strong>{r.name||r.tag_name}</strong><div className="muted small">{r.tag_name}</div></div><button className="link-btn" onClick={syncReleases}>مزامنة</button></div>)}</section></div></section>}
+      {tab==="settings"&&<section className="panel"><div className="panel-head"><div><h2>إعدادات المشروع</h2><p className="muted">إعدادات مستقلة لكل repository بدون أي اعتماد على مشروع أو API خارجي.</p></div></div>{site?<div className="editor"><div className="form-grid"><Field label="اسم المشروع"><input value={site.name||""} onChange={e=>setSite({...site,name:e.target.value})}/></Field><Field label="Repository"><input value={site.repo_full_name||""} readOnly/></Field><Field label="Default branch"><input value={site.default_branch||"main"} onChange={e=>setSite({...site,default_branch:e.target.value})}/></Field><Field label="Base path"><input value={site.base_path||"/"} onChange={e=>setSite({...site,base_path:e.target.value})}/></Field><Field label="Production URL"><input type="url" value={site.deployment_url||""} onChange={e=>setSite({...site,deployment_url:e.target.value})}/></Field><Field label="Enabled"><select value={site.enabled?"true":"false"} onChange={e=>setSite({...site,enabled:e.target.value==="true"})}><option value="true">Enabled</option><option value="false">Disabled</option></select></Field></div><div className="actions"><button className="btn" onClick={()=>saveProjectSettings({name:site.name,default_branch:site.default_branch,base_path:site.base_path,deployment_url:site.deployment_url||null,enabled:site.enabled})} disabled={role!=="Super Admin"}>حفظ الإعدادات</button><button className="btn alt" onClick={()=>setPreview(site.deployment_url||"")}>استخدام رابط النشر كـ Preview</button></div></div>:<p className="muted">اختر مستودعاً أولاً.</p>}</section>}
     </section>
   </main>
 }
