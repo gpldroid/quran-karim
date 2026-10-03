@@ -1,1 +1,74 @@
-"use client";import{useEffect,useState}from"react";import Link from"next/link";import{supabase,isAdmin}from"../../../lib/supabase";export default function Dashboard(){const[user,setUser]=useState(null),[settings,setSettings]=useState([]),[content,setContent]=useState([]),[error,setError]=useState("");useEffect(()=>{(async()=>{try{const{data,error}=await supabase.auth.getUser();if(error||!data.user)throw new Error("انتهت الجلسة. سجل الدخول من جديد.");if(!(await isAdmin(data.user.id)))throw new Error("لا توجد صلاحية مدير.");setUser(data.user);const s=await supabase.from("quran_app_settings").select("key,value,updated_at").order("key");if(s.error)throw s.error;setSettings(s.data||[]);const c=await supabase.from("quran_app_content").select("id,kind,title,source,published,updated_at").order("updated_at",{ascending:false});if(c.error)throw c.error;setContent(c.data||[])}catch(e){setError(e.message)}})()},[]);async function save(key,value){const{error}=await supabase.from("quran_app_settings").upsert({key,value,updated_by:user.id});if(error)setError(error.message);else alert("تم الحفظ")}async function add(){const title=prompt("عنوان المحتوى");if(!title)return;const{error}=await supabase.from("quran_app_content").insert({kind:"site",title,body:"",created_by:user.id});if(error)setError(error.message);else location.reload()}async function logout(){await supabase.auth.signOut();location.href="/admin/login/"}if(error&&!user)return <main className="wrap"><div className="error">{error}</div><Link className="btn" href="/admin/login/">العودة للدخول</Link></main>;return <main className="wrap"><div className="top"><div><h1>لوحة التحكم الجديدة</h1><p className="muted">{user?.email}</p></div><button className="btn alt" onClick={logout}>تسجيل الخروج</button></div><div className="grid" style={{marginTop:24}}><section className="card"><h2>إعدادات الموقع</h2>{settings.map(x=><div className="row" key={x.key}><div><b>{x.key}</b><div className="muted small">{JSON.stringify(x.value)}</div></div><button className="btn" onClick={()=>save(x.key,x.value)}>حفظ</button></div>)}</section><section className="card"><div className="top"><h2>المحتوى</h2><button className="btn" onClick={add}>إضافة</button></div><div className="list">{content.map(x=><div className="row" key={x.id}><span>{x.title}</span><span className="muted small">{x.kind}</span></div>)}{!content.length&&<p className="muted">لا يوجد محتوى مضاف بعد.</p>}</div></section></div></main>}
+"use client";
+
+import{useEffect,useState}from"react";
+import Link from"next/link";
+import{supabase,isAdmin}from"../../../lib/supabase";
+
+export default function Dashboard(){
+  const[user,setUser]=useState(null),[settings,setSettings]=useState([]),[content,setContent]=useState([]),[error,setError]=useState("");
+
+  useEffect(()=>{
+    (async()=>{
+      try{
+        const{data,error}=await supabase.auth.getUser();
+        if(error||!data.user)throw new Error("انتهت الجلسة. سجل الدخول من جديد.");
+        if(!(await isAdmin(data.user.id)))throw new Error("لا توجد صلاحية مدير.");
+        setUser(data.user);
+
+        const s=await supabase.from("quran_app_settings").select("key,value,updated_at").order("key");
+        if(s.error)throw s.error;
+        setSettings(s.data||[]);
+
+        const c=await supabase.from("quran_app_content").select("id,kind,title,source,published,updated_at").order("updated_at",{ascending:false});
+        if(c.error)throw c.error;
+        setContent(c.data||[]);
+      }catch(e){
+        setError(e?.message||"تعذر تحميل لوحة التحكم.");
+      }
+    })();
+  },[]);
+
+  async function save(key,value){
+    if(!user)return;
+    const{error}=await supabase.from("quran_app_settings").upsert({key,value,updated_by:user.id});
+    if(error)setError(error.message);else alert("تم الحفظ");
+  }
+
+  async function add(){
+    if(!user)return;
+    const title=prompt("عنوان المحتوى");
+    if(!title)return;
+    const{error}=await supabase.from("quran_app_content").insert({kind:"site",title,body:"",created_by:user.id});
+    if(error)setError(error.message);else location.reload();
+  }
+
+  async function logout(){
+    await supabase.auth.signOut();
+    window.location.assign((process.env.NEXT_PUBLIC_BASE_PATH||"")+"/admin/login/");
+  }
+
+  if(error&&!user)return <main className="wrap"><div className="error">{error}</div><Link className="btn" href="/admin/login/">العودة للدخول</Link></main>;
+
+  return <main className="wrap">
+    <div className="top">
+      <div><h1>لوحة التحكم الجديدة</h1><p className="muted">{user?.email}</p></div>
+      <button className="btn alt" onClick={logout}>تسجيل الخروج</button>
+    </div>
+    <div className="grid" style={{marginTop:24}}>
+      <section className="card">
+        <h2>إعدادات الموقع</h2>
+        {settings.map(x=><div className="row" key={x.key}>
+          <div><b>{x.key}</b><div className="muted small">{JSON.stringify(x.value)}</div></div>
+          <button className="btn" onClick={()=>save(x.key,x.value)}>حفظ</button>
+        </div>)}
+      </section>
+      <section className="card">
+        <div className="top"><h2>المحتوى</h2><button className="btn" onClick={add}>إضافة</button></div>
+        <div className="list">
+          {content.map(x=><div className="row" key={x.id}><span>{x.title}</span><span className="muted small">{x.kind}</span></div>)}
+          {!content.length&&<p className="muted">لا يوجد محتوى مضاف بعد.</p>}
+        </div>
+      </section>
+    </div>
+  </main>;
+}
