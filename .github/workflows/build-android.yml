@@ -5,6 +5,9 @@ on:
     paths:
       - "apps/android/**"
       - ".github/workflows/build-android.yml"
+  release:
+    types:
+      - published
   workflow_dispatch:
     inputs:
       version_name:
@@ -83,16 +86,23 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "${{ steps.version.outputs.release_tag }}" "${{ steps.apk.outputs.path }}" --repo "$GITHUB_REPOSITORY" --title "Quran Karim ${{ steps.version.outputs.release_tag }}" --generate-notes
+          TAG="${{ steps.version.outputs.release_tag }}"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "${{ steps.apk.outputs.path }}" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "${{ steps.apk.outputs.path }}" --repo "$GITHUB_REPOSITORY" --title "Quran Karim $TAG" --generate-notes
+          fi
+          RELEASE_ID="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json databaseId --jq '.databaseId')"
+          echo "release_id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
       - name: Update Supabase app_builds
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           VERSION_CODE: ${{ steps.version.outputs.version_code }}
           VERSION_NAME: ${{ steps.version.outputs.version_name }}
           RELEASE_TAG: ${{ steps.version.outputs.release_tag }}
           APK_FILENAME: ${{ steps.apk.outputs.filename }}
-          GITHUB_RELEASE_ID: ${{ steps.release.outputs.id }}
+          GITHUB_RELEASE_ID: ${{ steps.release.outputs.release_id }}
           GITHUB_RUN_ID: ${{ github.run_id }}
         shell: bash
         run: |
