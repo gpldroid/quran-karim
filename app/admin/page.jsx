@@ -14,15 +14,26 @@ export default function AdminPage(){
    if(!supabase){if(!cancelled){setAdmin(false);setAdminLoading(false)}return}
    if(!session){if(!cancelled){setAdmin(false);setAdminLoading(false)}return}
    setAdminLoading(true);setMessage("");
+   const {data:userData,error:userError}=await supabase.auth.getUser();
+   if(cancelled)return;
+   const user=userData?.user;
+   if(userError||!user||user.id!==session.user.id){
+    setAdmin(false);setAdminLoading(false);setMessage(userError?.message||"انتهت جلسة الدخول، أعد تسجيل الدخول.");return;
+   }
    const {data:rpcData,error:rpcError}=await supabase.rpc("is_admin");
    if(cancelled)return;
    if(!rpcError&&rpcData===true){setAdmin(true);setAdminLoading(false);return}
-   const {data:roleRows,error:roleError}=await supabase.from("user_roles").select("role").eq("user_id",session.user.id).limit(1);
+   const [{data:adminRows,error:adminError},{data:roleRows,error:roleError}]=await Promise.all([
+    supabase.from("admin_users").select("user_id").eq("user_id",user.id).limit(1),
+    supabase.from("user_roles").select("role").eq("user_id",user.id).limit(1)
+   ]);
    if(cancelled)return;
+   const isAdminUser=!adminError&&adminRows?.some(r=>r.user_id===user.id);
    const hasRole=!roleError&&roleRows?.some(r=>["Super Admin","Content Manager","Release Manager"].includes(r.role));
-   setAdmin(Boolean(hasRole));
+   const allowed=isAdminUser||hasRole;
+   setAdmin(allowed);
    setAdminLoading(false);
-   if(!hasRole)setMessage(rpcError?.message||roleError?.message||"تعذر التحقق من صلاحية الإدارة");
+   if(!allowed)setMessage(rpcError?.message||adminError?.message||roleError?.message||"الحساب مسجل الدخول لكنه غير موجود ضمن صلاحيات الإدارة.");
   }
   checkAdmin();
   return()=>{cancelled=true};
