@@ -33,5 +33,5 @@ export default function Home(){
       <article className="card"><h2>موقع القرآن الكريم</h2><p>واجهة القرآن الكريم قيد الإنشاء. سيتم ربط مصادر القراءة والاستماع وواجهة Islamway API لاحقاً عند اكتمال موقع القرآن المتخصص.</p></article>
       <article className="card"><h2>الحديث الشريف</h2><p>مساحة مستقلة قابلة للإدارة من لوحة التحكم الجديدة.</p></article>
     </section>
-/main>;
+</main>;
 }
