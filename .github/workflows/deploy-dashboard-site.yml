@@ -33,6 +33,7 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'sb_publishable_xfJu5T9gZ4UsysK6LxWcFQ_FkG6nmbh' }}
           NEXT_PUBLIC_ISLAMWAY_API_URL: https://quranapi.islamway.net
           NEXT_PUBLIC_SITE_URL: ${{ secrets.NEXT_PUBLIC_SITE_URL || 'https://gpldroid.github.io/quran-karim' }}
+          NEXT_PUBLIC_BASE_PATH: /quran-karim
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
