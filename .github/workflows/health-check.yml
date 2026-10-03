@@ -1,0 +1,45 @@
+name: System Health Check
+on:
+  schedule:
+    - cron: "0 06 * * 0"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  health-check:
+    name: Check Website and Supabase
+    runs-on: ubuntu-latest
+    env:
+      SITE_URL: https://gpldroid.github.io/quran-karim/
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+    steps:
+      - name: Check GitHub Pages
+        id: website
+        shell: bash
+        run: |
+          set +e
+          HTTP_CODE="$(curl --silent --show-error --location --output /dev/null --write-out "%{http_code}" --max-time 30 "$SITE_URL")"
+          CURL_STATUS=$?
+          if [ "$CURL_STATUS" -eq 0 ] && [[ "$HTTP_CODE" =~ ^2[0-9][0-9]$ ]]; then echo "status=ok" >> "$GITHUB_OUTPUT"; else echo "status=failed" >> "$GITHUB_OUTPUT"; fi
+      - name: Check Supabase REST API
+        id: supabase
+        shell: bash
+        run: |
+          set +e
+          if [ -z "$SUPABASE_URL" ]; then echo "status=failed" >> "$GITHUB_OUTPUT"; exit 0; fi
+          HTTP_CODE="$(curl --silent --show-error --location --output /dev/null --write-out "%{http_code}" --max-time 30 "$SUPABASE_URL/rest/v1/app_builds?select=version_code&limit=1")"
+          CURL_STATUS=$?
+          if [ "$CURL_STATUS" -eq 0 ] && [[ "$HTTP_CODE" =~ ^2[0-9][0-9]$ ]]; then echo "status=ok" >> "$GITHUB_OUTPUT"; else echo "status=failed" >> "$GITHUB_OUTPUT"; fi
+      - name: Send Telegram notification on failure
+        if: steps.website.outputs.status == 'failed' || steps.supabase.outputs.status == 'failed'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$TELEGRAM_BOT_TOKEN" ] || [ -z "$TELEGRAM_CHAT_ID" ]; then echo "Telegram notification skipped because Telegram secrets are missing."; exit 0; fi
+          MESSAGE="Quran Karim health check failed. Website=${{ steps.website.outputs.status }} Supabase=${{ steps.supabase.outputs.status }} Run=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          curl --fail-with-body --silent --show-error --request POST --url "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" --data-urlencode "chat_id=$TELEGRAM_CHAT_ID" --data-urlencode "text=$MESSAGE"
+      - name: Fail health check when a dependency is unhealthy
+        if: steps.website.outputs.status == 'failed' || steps.supabase.outputs.status == 'failed'
+        run: exit 1
