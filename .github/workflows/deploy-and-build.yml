@@ -83,7 +83,7 @@ jobs:
           gh release create "$TAG" "$APK" --title "Quran Karim $TAG" --generate-notes
       - name: Sync release to Supabase
         env:
-          RELEASE_SYNC_URL: ${{ secrets.VITE_SUPABASE_URL }}/functions/v1/release-sync
+          RELEASE_SYNC_URL: https://tqmjueqdfdyhiukhbant.supabase.co/functions/v1/release-sync
         run: |
           set -euo pipefail
           TAG="v${{ steps.version.outputs.name }}"
