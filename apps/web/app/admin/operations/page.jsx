@@ -12,7 +12,7 @@ const books=[
 ];
 
 export default function Operations(){
-  const [tab,setTab]=useState("sites"),[user,setUser]=useState(null),[role,setRole]=useState(""),[loading,setLoading]=useState(true),[error,setError]=useState(""),[message,setMessage]=useState("");
+  const [tab,setTab]=useState("sites"),[user,setUser]=useState(null),[role,setCurrentRole]=useState(""),[loading,setLoading]=useState(true),[error,setError]=useState(""),[message,setMessage]=useState("");
   const [sites,setSites]=useState([]),[site,setSite]=useState(null),[siteDraft,setSiteDraft]=useState({name:"",repo_full_name:"",default_branch:"main",base_path:"/",deployment_url:"",supabase_project_ref:"",enabled:true});
   const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],loading:false}),[selectedRun,setSelectedRun]=useState(null);
   const [hadith,setHadith]=useState([]),[hadithDraft,setHadithDraft]=useState({id:null,collection:"bukhari",book_number:"",hadith_number:"",title:"",body:"",source:"",grade:"",published:true}),[hadithSearch,setHadithSearch]=useState("");
@@ -31,7 +31,7 @@ export default function Operations(){
       const {data:r}=await supabase.from("user_roles").select("role").eq("user_id",data.user.id).maybeSingle();
       const {data:a}=await supabase.from("quran_app_admins").select("user_id").eq("user_id",data.user.id).maybeSingle();
       if(!a&&!r?.role)throw new Error("لا توجد صلاحية للوحة التشغيل.");
-      setUser(data.user);setRole(a?"Super Admin":r.role);
+      setUser(data.user);setCurrentRole(a?"Super Admin":r.role);
       const {data:s,error:se}=await supabase.from("managed_sites").select("*").order("created_at",{ascending:true});
       if(se)throw se; setSites(s||[]);
       if((s||[]).length)setSite(s[0]);
