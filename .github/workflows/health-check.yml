@@ -1,0 +1,49 @@
+name: System Health Check
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error --retry 3 --retry-delay 2 --max-time 20 -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" "$SUPABASE_URL/rest/v1/quran_settings?select=id&limit=1" -o /tmp/supabase.json
+          test -s /tmp/supabase.json
+      - name: Check Islamway API
+        run: |
+          set -euo pipefail
+          curl --fail-with-body --silent --show-error --retry 3 --retry-delay 2 --max-time 20 -H "accept: application/json" "https://quranapi.islamway.net/readers" -o /tmp/islamway.json
+          test -s /tmp/islamway.json
+      - name: Check latest APK release
+        env:
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          RELEASE="$(curl --fail-with-body --silent --show-error -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GH_TOKEN" -H "X-GitHub-Api-Version: 2026-03-10" "https://api.github.com/repos/$REPOSITORY/releases/latest")"
+          APK_URL="$(printf '%s' "$RELEASE" | jq -r '.assets[] | select(.name | endswith(".apk")) | .browser_download_url' | head -n 1)"
+          test -n "$APK_URL"
+          curl --fail --silent --show-error --location --max-time 60 -o /tmp/latest.apk "$APK_URL"
+          test -s /tmp/latest.apk
+      - name: Send Discord notification on failure
+        if: ${{ failure() && secrets.DISCORD_WEBHOOK_URL != '' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          curl --fail --silent --show-error -H "Content-Type: application/json" -d "{\"content\":\"❌ Quran Karim health check failed: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\"}" "$DISCORD_WEBHOOK_URL"
+      - name: Send Telegram notification on failure
+        if: ${{ failure() && secrets.TELEGRAM_BOT_TOKEN != '' && secrets.TELEGRAM_CHAT_ID != '' }}
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          curl --fail --silent --show-error -X POST "https://api.telegram.org/bot$TELEGRAM_BOT_TOKEN/sendMessage" -d "chat_id=$TELEGRAM_CHAT_ID" --data-urlencode "text=❌ Quran Karim health check failed: https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
