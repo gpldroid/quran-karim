@@ -3,16 +3,17 @@ import {useEffect,useMemo,useState} from "react";
 import {supabase} from "../../../lib/supabase";
 
 export default function GitHubControlCenter({site,role,onMessage,onError}){
-  const [tab,setTab]=useState("branches"),[data,setData]=useState({}),[loading,setLoading]=useState(false);
+  const [tab,setTab]=useState("deploy"),[data,setData]=useState({}),[loading,setLoading]=useState(false);
   const [base,setBase]=useState(""),[head,setHead]=useState(""),[issueTitle,setIssueTitle]=useState(""),[issueBody,setIssueBody]=useState("");
   const [prTitle,setPrTitle]=useState(""),[prBody,setPrBody]=useState(""),[prHead,setPrHead]=useState(""),[prBase,setPrBase]=useState(site?.default_branch||"main");
   const [secretName,setSecretName]=useState(""),[secretValue,setSecretValue]=useState(""),[varName,setVarName]=useState(""),[varValue,setVarValue]=useState("");
+  const [workflow,setWorkflow]=useState(""),[deployRef,setDeployRef]=useState(site?.default_branch||"main"),[environment,setEnvironment]=useState("production");
   const canWrite=role!=="Content Manager",superAdmin=role==="Super Admin";
   const invoke=async(action,extra={})=>{const {data,error}=await supabase.functions.invoke("github-ops",{body:{action,repo:site.repo_full_name,...extra}});if(error)throw error;if(data?.error)throw new Error(data.error+(data.details?.message?": "+data.details.message:""));return data.data};
   const load=async(kind=tab)=>{
     if(!site)return;
     setLoading(true);try{
-      const d=await invoke(kind==="branches"?"branches":kind==="commits"?"commits":kind==="issues"?"issues":kind==="prs"?"prs":kind==="ci"?"runs":kind==="secrets"?"secrets":"variables");
+      const d=await invoke(kind==="deploy"?"runs":kind==="branches"?"branches":kind==="commits"?"commits":kind==="issues"?"issues":kind==="prs"?"prs":kind==="ci"?"runs":kind==="workflows"?"workflows":kind==="deployments"?"deployments":kind==="pages"?"pages":kind==="secrets"?"secrets":"variables");
       setData(x=>({...x,[kind]:d})); if(kind==="branches"){const names=(d||[]).map(x=>x.name);if(names.length&&!base)setBase(names[0]);if(names.length&&!head)setHead(names[0]);}
     }catch(e){onError?.(e)}finally{setLoading(false)}
   };
@@ -20,7 +21,7 @@ export default function GitHubControlCenter({site,role,onMessage,onError}){
   useEffect(()=>{if(site)load(tab)},[tab,site?.id]);
 
   const branches=data.branches||[], commits=data.commits||[], issues=data.issues||[], prs=data.prs||[], runs=data.ci||[];
-  const secrets=data.secrets?.secrets||[], variables=data.variables?.variables||[];
+  const secrets=data.secrets?.secrets||[], variables=data.variables?.variables||[], workflows=data.workflows?.workflows||[], deployments=data.deployments||[], pages=data.pages||null;
   const compare=data.compare;
   async function compareRefs(){try{setLoading(true);const d=await invoke("compare",{base,head});setData(x=>({...x,compare:d}))}catch(e){onError?.(e)}finally{setLoading(false)}}
   async function createIssue(){if(!canWrite)return;try{await invoke("create_issue",{title:issueTitle,body:issueBody});setIssueTitle("");setIssueBody("");onMessage?.("تم إنشاء Issue.");load("issues")}catch(e){onError?.(e)}}
@@ -29,12 +30,31 @@ export default function GitHubControlCenter({site,role,onMessage,onError}){
   async function saveSecret(){if(!superAdmin)return onError?.("Secrets متاحة لـ Super Admin فقط.");try{await invoke("set_secret",{name:secretName,value:secretValue});setSecretName("");setSecretValue("");onMessage?.("تم تحديث Secret بأمان. القيمة لا تُعرض في المتصفح.");load("secrets")}catch(e){onError?.(e)}}
   async function deleteSecret(name){if(!superAdmin||!confirm("حذف Secret "+name+"؟"))return;try{await invoke("delete_secret",{name});load("secrets")}catch(e){onError?.(e)}}
   async function saveVariable(){if(!canWrite)return;try{await invoke("set_variable",{name:varName,value:varValue});setVarName("");setVarValue("");onMessage?.("تم حفظ Variable.");load("variables")}catch(e){onError?.(e)}}
+  async function dispatch(){if(!canWrite||!workflow)return;try{await invoke("dispatch",{workflow,ref:deployRef,inputs:{environment}});onMessage?.("تم تشغيل Workflow.");setTimeout(()=>load("ci"),1200)}catch(e){onError?.(e)}}
+  async function rerun(id){if(!canWrite)return;try{await invoke("rerun_failed",{run_id:id});onMessage?.("تمت إعادة تشغيل المهام الفاشلة.");load("ci")}catch(e){onError?.(e)}}
   async function deleteVariable(name){if(!canWrite)return;if(!confirm("حذف Variable "+name+"؟"))return;try{await invoke("delete_variable",{name});load("variables")}catch(e){onError?.(e)}}
-  const tabs=[["branches","الفروع"],["commits","Commits"],["compare","Diff / Compare"],["prs","Pull Requests"],["issues","Issues"],["ci","CI/CD"],["secrets","Secrets"],["variables","Variables"]];
+  const tabs=[["deploy","Deployment"],["branches","الفروع"],["commits","Commits"],["compare","Diff / Compare"],["prs","Pull Requests"],["issues","Issues"],["ci","CI/CD"],["secrets","Secrets"],["variables","Variables"]];
 
   return <section className="panel">
     <div className="panel-head"><div><h2>GitHub Control Center</h2><p className="muted">{site?.repo_full_name||"اختر مستودعاً"} · {role}</p></div><button className="btn" onClick={()=>load(tab)} disabled={loading}>{loading?"جارٍ...":"تحديث"}</button></div>
     <div className="ops-tabs">{tabs.map(([id,label])=><button key={id} className={"link-btn "+(tab===id?"active":"")} onClick={()=>setTab(id)}>{label}</button>)}</div>
+
+    {tab==="deploy"&&<div>
+      <div className="grid-two">
+        <section className="panel"><h3>Deployment Control</h3>
+          <div className="form-grid">
+            <Field label="Workflow"><select value={workflow} onChange={e=>setWorkflow(e.target.value)}><option value="">اختر Workflow</option>{workflows.map(w=><option key={w.id} value={w.path}>{w.name} · {w.state}</option>)}</select></Field>
+            <Field label="Branch / Ref"><select value={deployRef} onChange={e=>setDeployRef(e.target.value)}>{branches.map(b=><option key={b.name}>{b.name}</option>)}</select></Field>
+            <Field label="Environment"><select value={environment} onChange={e=>setEnvironment(e.target.value)}><option value="production">production</option><option value="staging">staging</option><option value="preview">preview</option></select></Field>
+          </div>
+          <div className="actions"><button className="btn" onClick={dispatch} disabled={!canWrite||!workflow}>تشغيل النشر الآن</button><button className="btn alt" onClick={()=>{load("workflows");load("pages");load("deployments");load("ci")}}>تحديث الحالة</button></div>
+          <p className="muted small">يتم تشغيل Workflow المختار على الفرع المختار. بيانات Secrets لا تمر إلى الواجهة.</p>
+        </section>
+        <section className="panel"><h3>Live Deployment</h3>{pages?.html_url?<><strong>{pages.html_url}</strong><p className="muted">{pages.status||"active"} · {pages.cname||"GitHub Pages"}</p><a className="btn alt" href={pages.html_url} target="_blank" rel="noreferrer">فتح الموقع ↗</a></>:<p className="muted">لا توجد GitHub Pages مفعلة أو لا يملك Token صلاحية قراءتها.</p>}</section>
+      </div>
+      <section className="panel"><h3>آخر عمليات النشر</h3>{deployments.map(d=><div className="row" key={d.id}><div><strong>{d.environment||"deployment"} · {d.ref}</strong><div className="muted small">{d.description||"GitHub deployment"} · {d.created_at?new Date(d.created_at).toLocaleString("ar-MA"):"—"}</div></div><a className="link-btn" href={d.repository_url} target="_blank" rel="noreferrer">Repository ↗</a></div>)}</section>
+      <section className="panel"><h3>Workflow Runs</h3>{runs.map(r=><div className="row" key={r.id}><div><strong>{r.name}</strong><div className="muted small">{r.head_branch} · {r.status} · {r.conclusion||"قيد التنفيذ"}</div></div><div className="actions"><a className="link-btn" href={r.html_url} target="_blank" rel="noreferrer">Run ↗</a>{["failure","cancelled","timed_out","action_required"].includes(r.conclusion)&&<button className="btn alt" onClick={()=>rerun(r.id)} disabled={!canWrite}>إعادة الفاشل</button>}</div></div>)}</section>
+    </div>}
 
     {tab==="branches"&&<div className="grid-two"><section className="panel"><h3>Branches</h3>{branches.map(b=><div className="row" key={b.name}><div><strong>{b.name}</strong><div className="muted small">{b.protected?"Protected":""}</div></div><button className="link-btn" onClick={()=>{setBase(b.name);setHead(b.name)}}>اختيار</button></div>)}</section><section className="panel"><h3>Branch management</h3><p className="muted">إنشاء/حذف الفروع متاح من محرر الملفات أيضاً. الفرع الافتراضي محمي من الحذف.</p><a className="link-btn" href={"https://github.com/"+site.repo_full_name+"/branches"} target="_blank" rel="noreferrer">فتح Branches على GitHub ↗</a></section></div>}
 
