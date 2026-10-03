@@ -13,11 +13,11 @@ export default function GitHubControlCenter({site,role,onMessage,onError}){
   const load=async(kind=tab)=>{
     if(!site)return;
     setLoading(true);try{
-      const d=await invoke(kind==="deploy"?"runs":kind==="branches"?"branches":kind==="commits"?"commits":kind==="issues"?"issues":kind==="prs"?"prs":kind==="ci"?"runs":kind==="workflows"?"workflows":kind==="deployments"?"deployments":kind==="pages"?"pages":kind==="secrets"?"secrets":"variables");
+      const d=await invoke(kind==="deploy"?"runs":kind==="ci"?"runs":kind==="branches"?"branches":kind==="commits"?"commits":kind==="issues"?"issues":kind==="prs"?"prs":kind==="ci"?"runs":kind==="workflows"?"workflows":kind==="deployments"?"deployments":kind==="pages"?"pages":kind==="secrets"?"secrets":"variables");
       setData(x=>({...x,[kind]:d})); if(kind==="branches"){const names=(d||[]).map(x=>x.name);if(names.length&&!base)setBase(names[0]);if(names.length&&!head)setHead(names[0]);}
     }catch(e){onError?.(e)}finally{setLoading(false)}
   };
-  useEffect(()=>{if(site){setPrBase(site.default_branch||"main");load("branches")}},[site?.id]);
+  useEffect(()=>{if(site){setPrBase(site.default_branch||"main");setDeployRef(site.default_branch||"main");load("branches");load("workflows");load("deployments");load("pages");load("ci")}},[site?.id]);
   useEffect(()=>{if(site)load(tab)},[tab,site?.id]);
 
   const branches=data.branches||[], commits=data.commits||[], issues=data.issues||[], prs=data.prs||[], runs=data.ci||[];
