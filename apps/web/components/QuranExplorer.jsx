@@ -17,6 +17,7 @@ export default function QuranExplorer({ compact = false, readerId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [autoplay, setAutoplay] = useState(false);
+  const [preferredReaderId, setPreferredReaderId] = useState(readerId || "");
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function QuranExplorer({ compact = false, readerId }) {
         const initialSurah = Math.min(114, Math.max(1, Number(settings?.default_surah) || 1));
         setSelected(initialSurah);
         setAutoplay(Boolean(settings?.autoplay));
+        setPreferredReaderId(settings?.default_reader_id || readerId || "");
         setSurahs(s || []);
         setReaders(r || []);
         const preferred = readerId || settings?.default_reader_id;
@@ -49,9 +51,7 @@ export default function QuranExplorer({ compact = false, readerId }) {
         if (!row) return;
         setSelected(Math.min(114, Math.max(1, Number(row.default_surah) || 1)));
         setAutoplay(Boolean(row.autoplay));
-        if (row.default_reader_id && readers.length) {
-          setReader(readers.find((x) => String(x.id) === String(row.default_reader_id)) || null);
-        }
+        setPreferredReaderId(row.default_reader_id || "");
       })
       .subscribe();
 
@@ -60,6 +60,11 @@ export default function QuranExplorer({ compact = false, readerId }) {
       supabase.removeChannel(channel);
     };
   }, [readerId]);
+
+  useEffect(() => {
+    if (!readers.length || !preferredReaderId) return;
+    setReader(readers.find((x) => String(x.id) === String(preferredReaderId)) || null);
+  }, [readers, preferredReaderId]);
 
   useEffect(() => {
     if (!reader) return;
