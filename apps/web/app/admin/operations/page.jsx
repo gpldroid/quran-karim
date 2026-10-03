@@ -2,7 +2,7 @@
 
 import {useEffect,useMemo,useState} from "react";
 import Link from "next/link";
-import {supabase,islamway} from "../../../lib/supabase";
+import {supabase} from "../../../lib/supabase";
 import RepositoryEditor from "./RepositoryEditor";
 
 const roleNames=["Super Admin","Content Manager","Release Manager"];
@@ -17,9 +17,8 @@ export default function Operations(){
   const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],loading:false}),[selectedRun,setSelectedRun]=useState(null);
   const [hadith,setHadith]=useState([]),[hadithDraft,setHadithDraft]=useState({id:null,collection:"bukhari",book_number:"",hadith_number:"",title:"",body:"",source:"",grade:"",published:true}),[hadithSearch,setHadithSearch]=useState("");
   const [users,setUsers]=useState([]),[cache,setCache]=useState([]),[settings,setSettings]=useState([]),[preview,setPreview]=useState("");
-  const [quranReaders,setQuranReaders]=useState([]),[quranSurahs,setQuranSurahs]=useState([]);
 
-  const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["github","GitHub"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["cache","Islamway والكاش"],["preview","Live Preview"],["android","Android والإعدادات"]];
+  const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["github","GitHub"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["android","Android والإعدادات"]];
 
   function flash(x){setMessage(x);setTimeout(()=>setMessage(""),2800)}
   function fail(x){setError(x?.message||String(x));setTimeout(()=>setError(""),5000)}
@@ -35,19 +34,12 @@ export default function Operations(){
       const {data:s,error:se}=await supabase.from("managed_sites").select("*").order("created_at",{ascending:true});
       if(se)throw se; setSites(s||[]);
       if((s||[]).length)setSite(s[0]);
-      await Promise.all([loadHadith(),loadUsers(),loadCache(),loadSettings(),loadIslamway()]);
+      await Promise.all([loadHadith(),loadUsers(),loadSettings()]);
     }catch(e){fail(e)}
     finally{setLoading(false)}
   }
 
   useEffect(()=>{boot()},[]);
-
-  async function loadIslamway(){
-    try{
-      const [r,s]=await Promise.all([islamway("readers"),islamway("surahs")]);
-      setQuranReaders(r.readers||[]);setQuranSurahs(s.surahs||[]);
-    }catch(e){/* public API may be temporarily unavailable */}
-  }
 
   async function loadHadith(){
     const {data,error}=await supabase.from("hadith_entries").select("*").order("updated_at",{ascending:false}).limit(100);
@@ -139,12 +131,6 @@ export default function Operations(){
   }
   async function removeRole(userId){if(!confirm("إزالة الدور الإداري؟"))return;const {data,error}=await supabase.functions.invoke("admin-users",{body:{action:"remove_role",user_id:userId}});if(error)fail(error);else if(data?.error)fail(data.error);else loadUsers()}
 
-  async function clearCache(){
-    if(role==="Release Manager")return fail("هذه العملية متاحة لإدارة المحتوى.");
-    if(!confirm("حذف كل كاش Islamway؟"))return;
-    const {error}=await supabase.from("islamway_cache").delete().neq("cache_key","__never__");
-    if(error)fail(error);else{flash("تم مسح الكاش.");loadCache()}
-  }
   async function saveSetting(key,value){
     let parsed=value; try{parsed=typeof value==="string"?JSON.parse(value):value}catch{parsed=value}
     const {error}=await supabase.from("quran_app_settings").upsert({key,value:parsed,updated_by:user.id},{onConflict:"key"});
@@ -182,11 +168,9 @@ export default function Operations(){
 
       {tab==="users"&&<section className="panel"><div className="panel-head"><div><h2>المستخدمون والأدوار</h2><p className="muted">Super Admin / Content Manager / Release Manager.</p></div><button className="btn" onClick={loadUsers}>تحديث</button></div><div className="table-wrap"><table><thead><tr><th>البريد</th><th>الحالة</th><th>الدور</th><th>آخر دخول</th><th>إجراء</th></tr></thead><tbody>{users.map(u=><tr key={u.id}><td>{u.email||"—"}</td><td>{u.banned_until?"محظور":"نشط"}</td><td><select value={roleNames.includes(u.role)?u.role:""} onChange={e=>setRole(u.id,e.target.value)}><option value="">غير معيّن</option>{roleNames.map(r=><option key={r} value={r}>{r}</option>)}</select></td><td>{u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString("ar-MA"):"لم يسجل بعد"}</td><td><button className="danger-btn" onClick={()=>removeRole(u.id)}>إزالة الدور</button></td></tr>)}</tbody></table></div></section>}
 
-      {tab==="cache"&&<section className="panel"><div className="panel-head"><div><h2>Islamway والكاش</h2><p className="muted">عدد القراء: {quranReaders.length} · السور: {quranSurahs.length} · Cache rows: {cache.length}</p></div><div className="actions"><button className="btn alt" onClick={()=>{loadIslamway();loadCache()}}>تحديث</button><button className="btn" onClick={clearCache}>مسح الكاش</button></div></div><div className="table-wrap"><table><thead><tr><th>Cache Key</th><th>الانتهاء</th><th>آخر تحديث</th></tr></thead><tbody>{cache.map(c=><tr key={c.cache_key}><td>{c.cache_key}</td><td>{new Date(c.expires_at).toLocaleString("ar-MA")}</td><td>{new Date(c.updated_at).toLocaleString("ar-MA")}</td></tr>)}</tbody></table></div></section>}
-
       {tab==="preview"&&<section className="panel"><div className="panel-head"><div><h2>Live Preview</h2><p className="muted">معاينة الموقع المحدد من نفس مركز التحكم.</p></div></div><Field label="رابط المعاينة"><input type="url" value={preview} onChange={e=>setPreview(e.target.value)} placeholder="https://example.github.io/site/"/></Field>{preview?<iframe title="Live Preview" src={preview} style={{width:"100%",height:"70vh",border:"1px solid #dce7e0",borderRadius:16}}/>:<p className="muted">اختر موقعاً وأضف deployment URL.</p>}</section>}
 
-      {tab==="android"&&<section className="panel"><div className="panel-head"><div><h2>Android وإعدادات التطبيق</h2><p className="muted">الإعدادات المركزية التي يمكن للتطبيق والمواقع قراءتها.</p></div></div><div className="grid-two"><section className="panel"><h3>إعدادات التطبيق</h3>{settings.map(s=><div className="row" key={s.key}><div><strong>{s.key}</strong><div className="muted small">{JSON.stringify(s.value)}</div></div><button className="link-btn" onClick={()=>saveSetting(s.key,prompt("قيمة JSON",JSON.stringify(s.value))||JSON.stringify(s.value))}>تعديل</button></div>)}</section><section className="panel"><h3>آخر Android Releases</h3>{gh.releases.slice(0,5).map(r=><div className="row" key={r.id}><div><strong>{r.name||r.tag_name}</strong><div className="muted small">{r.tag_name}</div></div><button className="link-btn" onClick={syncReleases}>مزامنة</button></div>)}</section></div></section>}
+      {tab==="android"&&<section className="panel"><div className="panel-head"><div><h2>Android وإعدادات التطبيق</h2><p className="muted">الإعدادات المركزية التي يمكن للتطبيق والمواقع قراءتها.</p></div></div><div className="grid-two"><section className="panel"><h3>إعدادات التطبيق</h3>{settings.map(s=><div className="row" key={s.key}><div><strong>{s.key}</strong><div className="muted small">{JSON.stringify(s.value)}</div></div><button className="link-btn" onClick={()=>saveSetting(s.key,prompt("قيمة JSON",JSON.stringify(s.value))||JSON.stringify(s.value))}>تعديل</button></div>)}</section><section className="panel"><h3>حالة تكامل القرآن</h3><p className="muted">غير مفعّل حالياً. سيتم ربط API Islamway بعد اكتمال موقع القرآن للقراءة والاستماع.</p></section><section className="panel"><h3>آخر Android Releases</h3>{gh.releases.slice(0,5).map(r=><div className="row" key={r.id}><div><strong>{r.name||r.tag_name}</strong><div className="muted small">{r.tag_name}</div></div><button className="link-btn" onClick={syncReleases}>مزامنة</button></div>)}</section></div></section>}
     </section>
   </main>
 }
