@@ -14,9 +14,9 @@ const books=[
 export default function Operations(){
   const [tab,setTab]=useState("sites"),[user,setUser]=useState(null),[role,setCurrentRole]=useState(""),[loading,setLoading]=useState(true),[error,setError]=useState(""),[message,setMessage]=useState("");
   const [sites,setSites]=useState([]),[site,setSite]=useState(null),[siteDraft,setSiteDraft]=useState({name:"",repo_full_name:"",default_branch:"main",base_path:"/",deployment_url:"",supabase_project_ref:"",enabled:true});
-  const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],loading:false}),[selectedRun,setSelectedRun]=useState(null);
+  const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],loading:false});
   const [hadith,setHadith]=useState([]),[hadithDraft,setHadithDraft]=useState({id:null,collection:"bukhari",book_number:"",hadith_number:"",title:"",body:"",source:"",grade:"",published:true}),[hadithSearch,setHadithSearch]=useState("");
-  const [users,setUsers]=useState([]),[cache,setCache]=useState([]),[settings,setSettings]=useState([]),[preview,setPreview]=useState("");
+  const [users,setUsers]=useState([]),[settings,setSettings]=useState([]),[preview,setPreview]=useState("");
 
   const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["github","GitHub"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["android","Android والإعدادات"]];
 
