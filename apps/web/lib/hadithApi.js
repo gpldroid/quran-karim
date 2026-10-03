@@ -10,5 +10,4 @@ async function invoke(body) {
 export const hadithApi = {
   one: (book, number) => invoke({ action: "one", book, number }),
   range: (book, from = 1, to = 10) => invoke({ action: "range", book, from, to }),
-  random: (book = "bukhari") => invoke({ action: "random", book }),
 };
