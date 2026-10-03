@@ -14,6 +14,7 @@ const books=[
 
 export default function Operations(){
   const [tab,setTab]=useState("sites"),[user,setUser]=useState(null),[role,setCurrentRole]=useState(""),[loading,setLoading]=useState(true),[error,setError]=useState(""),[message,setMessage]=useState("");
+  const [direction,setDirection]=useState(()=>typeof window!=="undefined"&&localStorage.getItem("admin-direction")||"rtl");
   const [sites,setSites]=useState([]),[site,setSite]=useState(null),[siteDraft,setSiteDraft]=useState({name:"",repo_full_name:"",default_branch:"main",base_path:"/",deployment_url:"",supabase_project_ref:"",enabled:true});
   const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],deployments:[],pages:null,loading:false});
   const [hadith,setHadith]=useState([]),[hadithDraft,setHadithDraft]=useState({id:null,collection:"bukhari",book_number:"",hadith_number:"",title:"",body:"",source:"",grade:"",published:true}),[hadithSearch,setHadithSearch]=useState("");
@@ -21,6 +22,7 @@ export default function Operations(){
 
   const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["control","GitHub Control Center"],["github","GitHub"],["deployments","Deployments"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["android","Android والإعدادات"]];
 
+  function toggleDirection(){const d=direction==="rtl"?"ltr":"rtl";setDirection(d);try{localStorage.setItem("admin-direction",d)}catch{}}
   function flash(x){setMessage(x);setTimeout(()=>setMessage(""),2800)}
   function fail(x){setError(x?.message||String(x));setTimeout(()=>setError(""),5000)}
 
@@ -136,7 +138,7 @@ export default function Operations(){
 
   const filteredHadith=useMemo(()=>hadith.filter(x=>(x.title+" "+x.body+" "+x.collection).toLowerCase().includes(hadithSearch.toLowerCase())),[hadith,hadithSearch]);
 
-  if(loading)return <main className="admin-shell"><div className="loading">جارٍ تحميل مركز التشغيل...</div></main>;
+  if(loading)return <main className="admin-shell" dir={direction}><div className="loading">جارٍ تحميل مركز التشغيل...</div></main>;
 
   return <main className="admin-shell">
     <aside className="sidebar">
@@ -145,7 +147,7 @@ export default function Operations(){
       <div className="sidebar-foot"><Link href="/admin/dashboard/">← لوحة التحكم الأساسية</Link></div>
     </aside>
     <section className="admin-main">
-      <header className="admin-head"><div><p className="eyebrow">Operations Center</p><h1>{tabs.find(x=>x[0]===tab)?.[1]}</h1><p className="muted">{user?.email}</p></div><Link className="btn alt" href="/admin/dashboard/">لوحة التحكم</Link></header>
+      <header className="admin-head"><div><p className="eyebrow">Operations Center</p><h1>{tabs.find(x=>x[0]===tab)?.[1]}</h1><p className="muted">{user?.email}</p></div><div className="actions"><button className="btn alt" onClick={toggleDirection}>{direction==="rtl"?"LTR":"RTL"}</button><Link className="btn alt" href="/admin/dashboard/">لوحة التحكم</Link></div></header>
       {message&&<div className="success">{message}</div>}{error&&<div className="error">{error}</div>}
 
       {tab==="sites"&&<section className="panel">
