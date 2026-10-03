@@ -2,7 +2,7 @@
 
 ## Current architecture
 
-- React 19 + Vite dashboard on GitHub Pages.
+- Next.js 15 + React 19 static dashboard on GitHub Pages.
 - Supabase Postgres, Auth, Realtime and Edge Functions.
 - Islamway is accessed through the Supabase Edge Function, not directly from the browser.
 - The browser uses IndexedDB with a 15-minute fresh TTL and up to 24 hours of stale fallback.
@@ -13,9 +13,10 @@
 
 Set these under Settings → Secrets and variables → Actions:
 
-- VITE_SUPABASE_URL
-- VITE_SUPABASE_PUBLISHABLE_KEY
-- VITE_SUPABASE_FUNCTIONS_URL
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_ANON_KEY
+- NEXT_PUBLIC_ISLAMWAY_API_URL
+- NEXT_PUBLIC_SITE_URL
 - SUPABASE_SECRET_KEY
 - SUPABASE_RELEASE_SYNC_URL
 - SUPABASE_RELEASE_SYNC_SECRET
@@ -42,7 +43,7 @@ Never put any of these secrets in .env.example, source code, SQL committed to th
 2. A Supabase Database Webhook sends the row-change payload to github-dispatch.
 3. github-dispatch validates x-webhook-secret.
 4. The Edge Function calls GitHub repository_dispatch with event_type=supabase_content_changed.
-5. deploy-and-build.yml receives repository_dispatch and rebuilds/deploys the dashboard.
+5. deploy-dashboard.yml receives repository_dispatch and rebuilds/deploys the dashboard.
 6. The Android job is skipped for repository_dispatch.
 
 The workflow file must exist on the default branch for repository_dispatch to trigger it.
@@ -97,7 +98,7 @@ GitHub Release assets are not deleted by this workflow. They are outside the Sup
 
 1. Open the failed workflow run.
 2. Check npm install and npm run build output.
-3. Confirm VITE_SUPABASE_URL, VITE_SUPABASE_PUBLISHABLE_KEY and VITE_SUPABASE_FUNCTIONS_URL.
+3. Confirm NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY and NEXT_PUBLIC_SITE_URL.
 4. Run npm run build locally.
 5. Check TypeScript errors before rerunning the deployment.
 6. If repository_dispatch is involved, verify the workflow exists on main and that the GitHub token has Actions: write.
