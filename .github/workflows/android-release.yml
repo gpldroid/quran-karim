@@ -86,6 +86,10 @@ jobs:
         run: |
           set -euo pipefail
           TAG="v${{ steps.version.outputs.name }}"
+          if [ -z "$RELEASE_SYNC_SECRET" ]; then
+            echo "SUPABASE_RELEASE_SYNC_SECRET is not configured; skipping Supabase release sync."
+            exit 0
+          fi
           curl --fail-with-body --retry 4 --retry-delay 2 --max-time 30 \
             -X POST "$RELEASE_SYNC_URL" \
             -H "content-type: application/json" \
