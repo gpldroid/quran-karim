@@ -7,17 +7,11 @@ import RepositoryEditor from "./RepositoryEditor";
 import GitHubControlCenter from "./GitHubControlCenter";
 
 const roleNames=["Super Admin","Content Manager","Release Manager"];
-const books=[
-  ["bukhari","صحيح البخاري"],["muslim","صحيح مسلم"],["abu-dawud","سنن أبي داود"],
-  ["tirmidzi","جامع الترمذي"],["nasai","سنن النسائي"],["ibnu-majah","سنن ابن ماجه"]
-];
-
 export default function Operations(){
   const [tab,setTab]=useState("sites"),[user,setUser]=useState(null),[role,setCurrentRole]=useState(""),[loading,setLoading]=useState(true),[error,setError]=useState(""),[message,setMessage]=useState("");
   const [direction,setDirection]=useState(()=>typeof window!=="undefined"&&localStorage.getItem("admin-direction")||"rtl");
   const [sites,setSites]=useState([]),[site,setSite]=useState(null),[siteDraft,setSiteDraft]=useState({name:"",repo_full_name:"",default_branch:"main",base_path:"/",deployment_url:"",supabase_project_ref:"",enabled:true});
   const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],deployments:[],pages:null,loading:false});
-  const [hadith,setHadith]=useState([]),[hadithDraft,setHadithDraft]=useState({id:null,collection:"bukhari",book_number:"",hadith_number:"",title:"",body:"",source:"",grade:"",published:true}),[hadithSearch,setHadithSearch]=useState("");
   const [users,setUsers]=useState([]),[settings,setSettings]=useState([]),[preview,setPreview]=useState("");
 
   const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["control","GitHub Control Center"],["github","GitHub"],["deployments","Deployments"],["actions","Actions"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["settings","إعدادات المشروع"]];
@@ -37,25 +31,12 @@ export default function Operations(){
       const {data:s,error:se}=await supabase.from("managed_sites").select("*").order("created_at",{ascending:true});
       if(se)throw se; setSites(s||[]);
       if((s||[]).length)setSite(s[0]);
-      await Promise.all([loadHadith(),loadUsers(),loadSettings()]);
+      await loadUsers();
     }catch(e){fail(e)}
     finally{setLoading(false)}
   }
 
   useEffect(()=>{boot()},[]);
-
-  async function loadHadith(){
-    const {data,error}=await supabase.from("hadith_entries").select("*").order("updated_at",{ascending:false}).limit(100);
-    if(error)fail(error); else setHadith(data||[]);
-  }
-  async function loadUsers(){
-    const {data,error}=await supabase.functions.invoke("admin-users",{body:{action:"list"}});
-    if(error)fail(error); else setUsers(data?.users||[]);
-  }
-  async function loadSettings(){
-    const {data,error}=await supabase.from("quran_app_settings").select("*").order("key");
-    if(error)fail(error); else setSettings(data||[]);
-  }
 
   async function saveSite(e){
     e.preventDefault();
@@ -105,25 +86,6 @@ export default function Operations(){
     flash("تمت مزامنة GitHub Releases."); 
   }
 
-  async function saveHadith(e){
-    e.preventDefault();
-    const payload={collection:hadithDraft.collection,book_number:hadithDraft.book_number||null,hadith_number:hadithDraft.hadith_number||null,title:hadithDraft.title.trim(),body:hadithDraft.body,source:hadithDraft.source||null,grade:hadithDraft.grade||null,published:hadithDraft.published,created_by:user.id};
-    const q=hadithDraft.id?supabase.from("hadith_entries").update(payload).eq("id",hadithDraft.id):supabase.from("hadith_entries").insert(payload);
-    const {error}=await q;if(error)fail(error);else{flash("تم حفظ الحديث.");setHadithDraft({id:null,collection:"bukhari",book_number:"",hadith_number:"",title:"",body:"",source:"",grade:"",published:true});loadHadith()}
-  }
-  async function deleteHadith(id){if(!confirm("حذف الحديث؟"))return;const {error}=await supabase.from("hadith_entries").delete().eq("id",id);if(error)fail(error);else loadHadith()}
-  async function fetchHadithApi(){
-    try{
-      const {data,error}=await supabase.functions.invoke("hadith",{body:{action:"range",book:hadithDraft.collection,from:1,to:10}});
-      if(error)throw error;
-      const list=data?.items||data?.data||[];
-      if(Array.isArray(list)&&list.length){
-        const x=list[0];setHadithDraft(d=>({...d,title:x.arab?.text||x.text||"حديث من API",body:x.arab?.text||x.text||"",source:"Hadith API",hadith_number:String(x.number||"")}));
-        flash("تم جلب عينة من API.");
-      }else flash("استجاب API دون عناصر قابلة للتحرير.");
-    }catch(e){fail(e)}
-  }
-
   async function setRole(userId,newRole){
     const {data,error}=await supabase.functions.invoke("admin-users",{body:{action:"set_role",user_id:userId,role:newRole}});
     if(error)fail(error);else if(data?.error)fail(data.error);else{flash("تم تحديث الدور.");loadUsers()}
@@ -135,8 +97,6 @@ export default function Operations(){
     const {error}=await supabase.from("managed_sites").update(patch).eq("id",site.id);
     if(error)fail(error);else{flash("تم حفظ إعدادات المشروع.");boot()}
   }
-
-  const filteredHadith=useMemo(()=>hadith.filter(x=>(x.title+" "+x.body+" "+x.collection).toLowerCase().includes(hadithSearch.toLowerCase())),[hadith,hadithSearch]);
 
   if(loading)return <main className="admin-shell" dir={direction}><div className="loading">جارٍ تحميل مركز التشغيل...</div></main>;
 
@@ -192,8 +152,6 @@ export default function Operations(){
       </section>}
 
       {tab==="actions"&&<section className="panel"><div className="panel-head"><div><h2>حالة GitHub Actions</h2><p className="muted">تشغيل workflows ومراقبة آخر runs.</p></div><button className="btn" onClick={()=>loadGithub()} disabled={!site}>تحديث</button></div>{gh.workflows.map(w=><div className="row" key={w.id}><div><strong>{w.name}</strong><div className="muted small">{w.path}</div></div><button className="btn alt" onClick={()=>dispatch(w.id)}>تشغيل</button></div>)}<div className="table-wrap"><table><thead><tr><th>Workflow</th><th>Status</th><th>Conclusion</th><th>الوقت</th></tr></thead><tbody>{gh.runs.map(r=><tr key={r.id}><td>{r.name}</td><td>{r.status}</td><td>{r.conclusion||"—"}</td><td>{new Date(r.created_at).toLocaleString("ar-MA")}</td></tr>)}</tbody></table></div></section>}
-
-      {tab==="hadith"&&<section className="panel"><div className="panel-head"><div><h2>إدارة الحديث الشريف</h2><p className="muted">البخاري، مسلم، أبي داود، الترمذي، النسائي، ابن ماجه.</p></div><button className="btn alt" onClick={fetchHadithApi}>جلب من API</button></div><form className="editor" onSubmit={saveHadith}><div className="form-grid"><Field label="المجموعة"><select value={hadithDraft.collection} onChange={e=>setHadithDraft({...hadithDraft,collection:e.target.value})}>{books.map(b=><option key={b[0]} value={b[0]}>{b[1]}</option>)}</select></Field><Field label="رقم الحديث"><input value={hadithDraft.hadith_number} onChange={e=>setHadithDraft({...hadithDraft,hadith_number:e.target.value})}/></Field><Field label="العنوان"><input required value={hadithDraft.title} onChange={e=>setHadithDraft({...hadithDraft,title:e.target.value})}/></Field><Field label="المصدر"><input value={hadithDraft.source} onChange={e=>setHadithDraft({...hadithDraft,source:e.target.value})}/></Field><Field label="الدرجة"><input value={hadithDraft.grade} onChange={e=>setHadithDraft({...hadithDraft,grade:e.target.value})}/></Field></div><Field label="النص"><textarea rows="8" value={hadithDraft.body} onChange={e=>setHadithDraft({...hadithDraft,body:e.target.value})}/></Field><button className="btn">حفظ الحديث</button></form><Field label="بحث"><input value={hadithSearch} onChange={e=>setHadithSearch(e.target.value)} placeholder="بحث في الأحاديث المحلية"/></Field><div className="table-wrap"><table><thead><tr><th>المجموعة</th><th>العنوان</th><th>الرقم</th><th>الحالة</th><th>إجراء</th></tr></thead><tbody>{filteredHadith.map(x=><tr key={x.id}><td>{x.collection}</td><td>{x.title}</td><td>{x.hadith_number||"—"}</td><td>{x.published?"منشور":"مسودة"}</td><td><button className="link-btn" onClick={()=>setHadithDraft(x)}>تعديل</button> <button className="danger-btn" onClick={()=>deleteHadith(x.id)}>حذف</button></td></tr>)}</tbody></table></div></section>}
 
       {tab==="users"&&<section className="panel"><div className="panel-head"><div><h2>المستخدمون والأدوار</h2><p className="muted">Super Admin / Content Manager / Release Manager.</p></div><button className="btn" onClick={loadUsers}>تحديث</button></div><div className="table-wrap"><table><thead><tr><th>البريد</th><th>الحالة</th><th>الدور</th><th>آخر دخول</th><th>إجراء</th></tr></thead><tbody>{users.map(u=><tr key={u.id}><td>{u.email||"—"}</td><td>{u.banned_until?"محظور":"نشط"}</td><td><select value={roleNames.includes(u.role)?u.role:""} onChange={e=>setRole(u.id,e.target.value)}><option value="">غير معيّن</option>{roleNames.map(r=><option key={r} value={r}>{r}</option>)}</select></td><td>{u.last_sign_in_at?new Date(u.last_sign_in_at).toLocaleString("ar-MA"):"لم يسجل بعد"}</td><td><button className="danger-btn" onClick={()=>removeRole(u.id)}>إزالة الدور</button></td></tr>)}</tbody></table></div></section>}
 
