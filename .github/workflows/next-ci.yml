@@ -3,7 +3,7 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [next-dashboard-quran-app]
+    branches: [main]
 permissions:
   contents: read
 jobs:
