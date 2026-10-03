@@ -10,14 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - name: Check Supabase REST API
+      - name: Check Supabase health endpoint
         env:
-          SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_FUNCTIONS_URL: ${{ secrets.VITE_SUPABASE_FUNCTIONS_URL }}
         run: |
           set -euo pipefail
-          curl --fail-with-body --silent --show-error --retry 3 --retry-delay 2 --max-time 20 -H "apikey: $SUPABASE_KEY" -H "Authorization: Bearer $SUPABASE_KEY" "$SUPABASE_URL/rest/v1/quran_settings?select=id&limit=1" -o /tmp/supabase.json
-          test -s /tmp/supabase.json
+          test -n "$SUPABASE_FUNCTIONS_URL"
+          curl --fail-with-body --silent --show-error --retry 3 --retry-delay 2 --max-time 20 "$SUPABASE_FUNCTIONS_URL/health" -o /tmp/supabase-health.json
+          test -s /tmp/supabase-health.json
+          jq -e '.ok == true' /tmp/supabase-health.json
       - name: Check Islamway API
         run: |
           set -euo pipefail
