@@ -63,17 +63,10 @@ jobs:
           else
             gh release create "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --title "Quran Karim $TAG" --generate-notes
           fi
-      - name: Get GitHub OIDC token
-        id: oidc
-        uses: actions/github-script@v8
-        with:
-          script: |
-            const token = await core.getIDToken()
-            core.setOutput("token", token)
       - name: Sync release to Supabase
         env:
-          RELEASE_SYNC_URL: https://tqmjueqdfdyhiukhbant.supabase.co/functions/v1/release-sync
-          OIDC_TOKEN: ${{ steps.oidc.outputs.token }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         shell: bash
         run: |
           set -euo pipefail
@@ -81,4 +74,8 @@ jobs:
           ASSET="${{ steps.apk.outputs.name }}"
           RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
           DOWNLOAD_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/$ASSET"
-          curl --fail-with-body --retry 4 --retry-delay 2 --max-time 30             -X POST "$RELEASE_SYNC_URL"             -H "content-type: application/json"             -H "Authorization: Bearer $OIDC_TOKEN"             -d "{"version_code":${{ steps.version.outputs.code }},"version_name":"${{ steps.version.outputs.name }}","release_tag":"$TAG","release_url":"$RELEASE_URL","download_url":"$DOWNLOAD_URL","artifact_url":"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID","github_run_id":$GITHUB_RUN_ID,"status":"published"}"
+          PAYLOAD=$(cat <<JSON
+          {"version_code":${{ steps.version.outputs.code }},"version_name":"${{ steps.version.outputs.name }}","release_tag":"$TAG","release_url":"$RELEASE_URL","download_url":"$DOWNLOAD_URL","artifact_url":"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID","github_run_id":$GITHUB_RUN_ID,"status":"published"}
+JSON
+          )
+          curl --fail-with-body --retry 4 --retry-delay 2 --max-time 30             -X POST "$SUPABASE_URL/rest/v1/app_releases?on_conflict=version_code"             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY"             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"             -H "Content-Type: application/json"             -H "Prefer: resolution=merge-duplicates,return=representation"             -d "$PAYLOAD"
