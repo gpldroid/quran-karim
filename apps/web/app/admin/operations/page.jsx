@@ -15,11 +15,11 @@ const books=[
 export default function Operations(){
   const [tab,setTab]=useState("sites"),[user,setUser]=useState(null),[role,setCurrentRole]=useState(""),[loading,setLoading]=useState(true),[error,setError]=useState(""),[message,setMessage]=useState("");
   const [sites,setSites]=useState([]),[site,setSite]=useState(null),[siteDraft,setSiteDraft]=useState({name:"",repo_full_name:"",default_branch:"main",base_path:"/",deployment_url:"",supabase_project_ref:"",enabled:true});
-  const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],loading:false});
+  const [gh,setGh]=useState({summary:null,releases:[],runs:[],artifacts:[],workflows:[],deployments:[],pages:null,loading:false});
   const [hadith,setHadith]=useState([]),[hadithDraft,setHadithDraft]=useState({id:null,collection:"bukhari",book_number:"",hadith_number:"",title:"",body:"",source:"",grade:"",published:true}),[hadithSearch,setHadithSearch]=useState("");
   const [users,setUsers]=useState([]),[settings,setSettings]=useState([]),[preview,setPreview]=useState("");
 
-  const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["control","GitHub Control Center"],["github","GitHub"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["android","Android والإعدادات"]];
+  const tabs=[["sites","المواقع"],["editor","محرر الملفات"],["control","GitHub Control Center"],["github","GitHub"],["deployments","Deployments"],["actions","Actions"],["hadith","الحديث"],["users","المستخدمون والأدوار"],["preview","Live Preview"],["android","Android والإعدادات"]];
 
   function flash(x){setMessage(x);setTimeout(()=>setMessage(""),2800)}
   function fail(x){setError(x?.message||String(x));setTimeout(()=>setError(""),5000)}
@@ -73,14 +73,14 @@ export default function Operations(){
     if(!s)return;
     setGh(x=>({...x,loading:true}));
     try{
-      const calls=["summary","releases","runs","artifacts","workflows"];
+      const calls=["summary","releases","runs","artifacts","workflows","deployments","pages"];
       const out={};
       for(const action of calls){
         const {data,error}=await supabase.functions.invoke("github-ops",{body:{action,repo:s.repo_full_name}});
         if(error)throw error; if(data?.error)throw new Error(data.error+(data.details?.message?": "+data.details.message:""));
         out[action]=data.data;
       }
-      setGh({summary:out.summary,releases:out.releases?.map(x=>x)||[],runs:out.runs?.workflow_runs||[],artifacts:out.artifacts?.artifacts||[],workflows:out.workflows?.workflows||[],loading:false});
+      setGh({summary:out.summary,releases:out.releases?.map(x=>x)||[],runs:out.runs?.workflow_runs||[],artifacts:out.artifacts?.artifacts||[],workflows:out.workflows?.workflows||[],deployments:out.deployments||[],pages:out.pages||null,loading:false});
     }catch(e){setGh(x=>({...x,loading:false}));fail(e)}
   }
 
@@ -157,6 +157,32 @@ export default function Operations(){
       {tab==="editor"&&<RepositoryEditor site={site} role={role} onMessage={flash} onError={fail}/>}\n\n      {tab==="control"&&<GitHubControlCenter site={site} role={role} onMessage={flash} onError={fail}/>}\n\n      {tab==="github"&&<section className="panel">
         <div className="panel-head"><div><h2>GitHub Releases / Artifacts</h2><p className="muted">{site?.repo_full_name||"اختر مستودعاً من تبويب المواقع."}</p></div><button className="btn" disabled={!site||gh.loading} onClick={()=>loadGithub()}>{gh.loading?"جارٍ...":"تحديث GitHub"}</button></div>
         {site?<><div className="stats"><div className="stat"><span>Repository</span><strong>{gh.summary?.stargazers_count??"—"}</strong><small>Stars</small></div><div className="stat"><span>Releases</span><strong>{gh.releases.length}</strong><small>آخر 20</small></div><div className="stat"><span>Artifacts</span><strong>{gh.artifacts.length}</strong><small>آخر 20</small></div><div className="stat"><span>Workflows</span><strong>{gh.workflows.length}</strong><small>متاحة</small></div></div><div className="grid-two"><section className="panel"><h3>Releases</h3>{gh.releases.map(r=><div className="row" key={r.id}><div><strong>{r.name||r.tag_name}</strong><div className="muted small">{r.tag_name}</div></div><a className="link-btn" href={r.html_url} target="_blank" rel="noreferrer">فتح</a></div>)}<button className="btn" onClick={syncReleases}>مزامنة Releases إلى Supabase</button></section><section className="panel"><h3>Artifacts</h3>{gh.artifacts.map(a=><div className="row" key={a.id}><div><strong>{a.name}</strong><div className="muted small">{a.expired?"منتهي":"صالح"} · {Math.round((a.size_in_bytes||0)/1024)} KB</div></div></div>)}</section></div></>:<p className="muted">أضف مستودعاً أولاً.</p>}
+      </section>}
+
+      {tab==="deployments"&&<section className="panel">
+        <div className="panel-head"><div><h2>Deployment Center</h2><p className="muted">النشر لكل مستودع: GitHub Pages / Actions / Deployments.</p></div><button className="btn" onClick={()=>loadGithub()} disabled={!site}>تحديث الحالة</button></div>
+        {!site?<p className="muted">اختر مستودعاً أولاً.</p>:<>
+          <div className="stats">
+            <div className="stat"><span>Pages</span><strong>{gh.pages?.enabled===false?"غير متاح":gh.pages?.status||"—"}</strong><small>{gh.pages?.html_url||"لم يتم ضبطه"}</small></div>
+            <div className="stat"><span>Deployments</span><strong>{(gh.deployments||[]).length}</strong><small>آخر 30</small></div>
+            <div className="stat"><span>Runs</span><strong>{gh.runs.length}</strong><small>آخر 30</small></div>
+            <div className="stat"><span>Workflows</span><strong>{gh.workflows.length}</strong><small>متاحة</small></div>
+          </div>
+          <div className="grid-two">
+            <section className="panel"><h3>النشر الحالي</h3>
+              {(gh.deployments||[]).length?(gh.deployments||[]).map(d=><div className="row" key={d.id}>
+                <div><strong>{d.environment||d.description||"Deployment"}</strong><div className="muted small">{d.ref||"—"} · {d.created_at?new Date(d.created_at).toLocaleString("ar-MA"):"—"}</div></div>
+                <div className="actions"><button className="link-btn" onClick={async()=>{try{const {data,error}=await supabase.functions.invoke("github-ops",{body:{action:"deployment_statuses",repo:site.repo_full_name,deployment_id:d.id}});if(error)throw error;const x=data?.data||[];flash(x[0]?.state?("الحالة: "+x[0].state):"لا توجد حالة نشر.");}catch(e){fail(e)}}}>الحالة</button></div>
+              </div>)):<p className="muted">لا توجد GitHub Deployments مسجلة.</p>}
+            </section>
+            <section className="panel"><h3>Production / Preview</h3>
+              <Field label="Deployment URL"><input value={preview} onChange={e=>setPreview(e.target.value)} placeholder="https://example.github.io/project/"/></Field>
+              <div className="actions"><button className="btn" onClick={()=>preview&&window.open(preview,"_blank","noopener,noreferrer")} disabled={!preview}>فتح Production</button><button className="btn alt" onClick={()=>site&&dispatch((gh.workflows||[]).find(w=>/deploy|pages|production/i.test(w.name+" "+w.path))?.id||"")}>Deploy</button></div>
+              <p className="muted small">زر Deploy يستخدم Workflow نشر المستودع؛ لا يتم تنفيذ نشر عشوائي خارج GitHub Actions.</p>
+            </section>
+          </div>
+          <section className="panel"><h3>آخر عمليات النشر عبر Actions</h3><div className="table-wrap"><table><thead><tr><th>Workflow</th><th>Branch</th><th>Status</th><th>Conclusion</th><th>Commit</th><th>إجراء</th></tr></thead><tbody>{gh.runs.map(r=><tr key={r.id}><td>{r.name}</td><td>{r.head_branch}</td><td>{r.status}</td><td>{r.conclusion||"—"}</td><td>{String(r.head_sha||"").slice(0,8)}</td><td><div className="actions"><a className="link-btn" href={r.html_url} target="_blank" rel="noreferrer">فتح</a>{r.conclusion==="failure"&&<button className="btn alt" disabled={role==="Content Manager"} onClick={async()=>{try{const {data,error}=await supabase.functions.invoke("github-ops",{body:{action:"rerun_failed",repo:site.repo_full_name,run_id:r.id}});if(error)throw error;if(data?.error)throw new Error(data.error);flash("تمت إعادة تشغيل المهام الفاشلة.");loadGithub()}catch(e){fail(e)}}}>Retry failed</button>}</div></td></tr>)}</tbody></table></div></section>
+        </>}
       </section>}
 
       {tab==="actions"&&<section className="panel"><div className="panel-head"><div><h2>حالة GitHub Actions</h2><p className="muted">تشغيل workflows ومراقبة آخر runs.</p></div><button className="btn" onClick={()=>loadGithub()} disabled={!site}>تحديث</button></div>{gh.workflows.map(w=><div className="row" key={w.id}><div><strong>{w.name}</strong><div className="muted small">{w.path}</div></div><button className="btn alt" onClick={()=>dispatch(w.id)}>تشغيل</button></div>)}<div className="table-wrap"><table><thead><tr><th>Workflow</th><th>Status</th><th>Conclusion</th><th>الوقت</th></tr></thead><tbody>{gh.runs.map(r=><tr key={r.id}><td>{r.name}</td><td>{r.status}</td><td>{r.conclusion||"—"}</td><td>{new Date(r.created_at).toLocaleString("ar-MA")}</td></tr>)}</tbody></table></div></section>}
