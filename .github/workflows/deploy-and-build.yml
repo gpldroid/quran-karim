@@ -28,7 +28,6 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 22
-          cache: npm
       - run: npm install --no-audit --no-fund
       - name: Build dashboard
         run: npm run build
@@ -86,4 +85,4 @@ jobs:
           TAG="v${{ steps.version.outputs.name }}"
           RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG"
           DOWNLOAD_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/app-release.apk"
-          curl --fail-with-body -X POST "$RELEASE_SYNC_URL" -H "content-type: application/json" -H "x-release-secret: $RELEASE_SYNC_SECRET" -d "{"version_code":${{ steps.version.outputs.code }},"version_name":"${{ steps.version.outputs.name }}","release_tag":"$TAG","release_url":"$RELEASE_URL","download_url":"$DOWNLOAD_URL","artifact_url":"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID","github_run_id":$GITHUB_RUN_ID,"status":"published"}"
+          curl --fail-with-body -X POST "$RELEASE_SYNC_URL" -H "content-type: application/json" -H "x-release-secret: $RELEASE_SYNC_SECRET" -d "{\"version_code\":${{ steps.version.outputs.code }},\"version_name\":\"${{ steps.version.outputs.name }}\",\"release_tag\":\"$TAG\",\"release_url\":\"$RELEASE_URL\",\"download_url\":\"$DOWNLOAD_URL\",\"artifact_url\":\"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\",\"github_run_id\":$GITHUB_RUN_ID,\"status\":\"published\"}"
