@@ -1,4 +1,0 @@
-plugins { id "com.android.application" }
-def releaseCode=(project.findProperty("versionCode") ?: "1").toInteger()
-def releaseName=(project.findProperty("versionName") ?: "1.0.0").toString()
-android { namespace "com.gpldroid.qurankareem"; compileSdk 35; defaultConfig { applicationId "com.gpldroid.qurankareem"; minSdk 23; targetSdk 35; versionCode releaseCode; versionName releaseName }; buildTypes { release { minifyEnabled false } }; compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 } }
