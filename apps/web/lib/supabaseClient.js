@@ -27,37 +27,31 @@ export async function checkAdmin() {
   } = await supabase.auth.getUser();
 
   if (userError || !user) {
-    return { isAdmin: false, error: userError || new Error("لا توجد جلسة مصادق عليها.") };
+    return {
+      isAdmin: false,
+      error: userError || new Error("لا توجد جلسة مصادق عليها."),
+    };
   }
 
-  const { data, error } = await supabase.rpc("is_admin");
+  // Browser authorization deliberately uses the authenticated user's own
+  // admin_users row instead of depending on PostgREST's RPC schema cache.
+  // This avoids blocking login when the database function exists but the
+  // REST schema cache is stale.
+  const { data: adminRow, error: adminError } = await supabase
+    .from("admin_users")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-  if (!error) {
-    return { isAdmin: data === true, error: null, user };
+  if (adminError) {
+    return { isAdmin: false, error: adminError, user };
   }
 
-  // PGRST202 means PostgREST's schema cache cannot currently see the RPC.
-  // Keep RPC as the primary authorization path, but use the user's own
-  // admin row as a temporary compatibility fallback instead of blocking
-  // an otherwise valid login while the schema cache catches up.
-  if (error.code === "PGRST202") {
-    const { data: adminRow, error: adminError } = await supabase
-      .from("admin_users")
-      .select("user_id")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (!adminError && adminRow?.user_id === user.id) {
-      return {
-        isAdmin: true,
-        error: null,
-        user,
-        warning: "RPC schema cache unavailable; authorization verified from admin_users.",
-      };
-    }
-  }
-
-  return { isAdmin: false, error, user };
+  return {
+    isAdmin: adminRow?.user_id === user.id,
+    error: null,
+    user,
+  };
 }
 
 export function subscribeToTable(table, callback) {
