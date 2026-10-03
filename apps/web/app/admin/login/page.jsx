@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AlertCircle, KeyRound, LogIn, ShieldCheck } from "lucide-react";
 import { supabase } from "../../../lib/supabaseClient";
 
-const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
+const base = process.env.NEXT_PUBLIC_BASE_PATH || (process.env.GITHUB_ACTIONS === "true" ? "/quran-karim" : "");
 
 export default function Login() {
   const [email, setEmail] = useState("");
