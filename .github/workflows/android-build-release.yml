@@ -35,6 +35,8 @@ jobs:
           distribution: temurin
           java-version: "17"
           cache: gradle
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
       - name: Configure Android SDK
         shell: bash
         run: |
@@ -108,20 +110,4 @@ jobs:
           RELEASE_URL="https://github.com/$GITHUB_REPOSITORY/releases/tag/$RELEASE_TAG"
           DOWNLOAD_URL="https://github.com/$GITHUB_REPOSITORY/releases/download/$RELEASE_TAG/$APK_FILENAME"
           RELEASE_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
-          curl --fail-with-body --retry 4 --retry-delay 3 --max-time 30 \
-            --request POST \
-            --url "$SUPABASE_URL/rest/v1/app_builds?on_conflict=version_code" \
-            --header "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            --header "Content-Type: application/json" \
-            --header "Prefer: resolution=merge-duplicates,return=minimal" \
-            --data "$(jq -n \
-              --argjson version_code "$VERSION_CODE" \
-              --arg version_name "$VERSION_NAME" \
-              --arg release_tag "$RELEASE_TAG" \
-              --arg release_url "$RELEASE_URL" \
-              --arg download_url "$DOWNLOAD_URL" \
-              --arg release_date "$RELEASE_DATE" \
-              --argjson github_release_id "$GITHUB_RELEASE_ID" \
-              --argjson github_run_id "$GITHUB_RUN_ID" \
-              '{version_code:$version_code,version_name:$version_name,release_tag:$release_tag,release_url:$release_url,download_url:$download_url,release_date:$release_date,github_release_id:$github_release_id,github_run_id:$github_run_id}')"
+          curl --fail-with-body --retry 4 --retry-delay 3 --max-time 30             --request POST             --url "$SUPABASE_URL/rest/v1/app_builds?on_conflict=version_code"             --header "apikey: $SUPABASE_SERVICE_ROLE_KEY"             --header "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY"             --header "Content-Type: application/json"             --header "Prefer: resolution=merge-duplicates,return=minimal"             --data "$(jq -n               --argjson version_code "$VERSION_CODE"               --arg version_name "$VERSION_NAME"               --arg release_tag "$RELEASE_TAG"               --arg release_url "$RELEASE_URL"               --arg download_url "$DOWNLOAD_URL"               --arg release_date "$RELEASE_DATE"               --argjson github_release_id "$GITHUB_RELEASE_ID"               --argjson github_run_id "$GITHUB_RUN_ID"               '{version_code:$version_code,version_name:$version_name,release_tag:$release_tag,release_url:$release_url,download_url:$download_url,release_date:$release_date,github_release_id:$github_release_id,github_run_id:$github_run_id}')"
