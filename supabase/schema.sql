@@ -398,3 +398,33 @@ for each row execute function public.touch_updated_at();
 
 create index if not exists audit_logs_created_at_idx on public.audit_logs(created_at desc);
 create index if not exists audit_logs_table_record_idx on public.audit_logs(table_name, record_id);
+
+
+-- Android release metadata consumed by GitHub Actions through Supabase REST.
+create table if not exists public.app_builds (
+  id uuid primary key default gen_random_uuid(),
+  version_code integer not null unique,
+  version_name text not null,
+  release_tag text not null unique,
+  release_url text not null,
+  download_url text not null,
+  release_date timestamptz not null,
+  github_release_id bigint,
+  github_run_id bigint,
+  created_at timestamptz not null default now()
+);
+
+alter table public.app_builds enable row level security;
+
+revoke all on public.app_builds from public;
+grant select on public.app_builds to anon, authenticated;
+
+drop policy if exists app_builds_public_read on public.app_builds;
+create policy app_builds_public_read
+on public.app_builds
+for select
+to anon, authenticated
+using (true);
+
+create index if not exists app_builds_release_date_idx
+on public.app_builds(release_date desc);
