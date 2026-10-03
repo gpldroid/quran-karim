@@ -29,6 +29,7 @@ jobs:
           gradle-version: "8.11.1"
       - name: Resolve version
         id: version
+        shell: bash
         run: |
           CODE="${{ inputs.version_code }}"
           NAME="${{ inputs.version_name }}"
@@ -40,6 +41,7 @@ jobs:
         run: gradle -p apps/android/android :app:assembleRelease -PversionName="${{ steps.version.outputs.name }}" -PversionCode="${{ steps.version.outputs.code }}"
       - name: Locate APK
         id: apk
+        shell: bash
         run: |
           APK="$(find apps/android/android/app/build/outputs/apk/release -type f -name "*.apk" | head -n 1)"
           test -n "$APK"
@@ -57,12 +59,17 @@ jobs:
         run: |
           TAG="v${{ steps.version.outputs.name }}"
           APK="${{ steps.apk.outputs.path }}"
-          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then gh release upload "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber; else gh release create "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --title "Quran Karim $TAG" --generate-notes; fi
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "$APK" --repo "$GITHUB_REPOSITORY" --title "Quran Karim $TAG" --generate-notes
+          fi
       - name: Sync release to Supabase
         env:
           RELEASE_SYNC_URL: https://tqmjueqdfdyhiukhbant.supabase.co/functions/v1/release-sync
           RELEASE_SYNC_SECRET: ${{ secrets.SUPABASE_RELEASE_SYNC_SECRET }}
+        shell: bash
         run: |
           if [ -z "$RELEASE_SYNC_SECRET" ]; then exit 0; fi
           TAG="v${{ steps.version.outputs.name }}"
-          curl --fail-with-body --retry 4 --retry-delay 2 --max-time 30 -X POST "$RELEASE_SYNC_URL" -H "content-type: application/json" -H "x-release-secret: $RELEASE_SYNC_SECRET" -d "{"version_code":${{ steps.version.outputs.code }},"version_name":"${{ steps.version.outputs.name }}","release_tag":"$TAG","release_url":"https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG","download_url":"https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/${{ steps.apk.outputs.name }}","artifact_url":"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID","status":"published","github_run_id":$GITHUB_RUN_ID}"
+          curl --fail-with-body --retry 4 --retry-delay 2 --max-time 30             -X POST "$RELEASE_SYNC_URL"             -H "content-type: application/json"             -H "x-release-secret: $RELEASE_SYNC_SECRET"             --data "{\"version_code\":${{ steps.version.outputs.code }},\"version_name\":\"${{ steps.version.outputs.name }}\",\"release_tag\":\"$TAG\",\"release_url\":\"https://github.com/$GITHUB_REPOSITORY/releases/tag/$TAG\",\"download_url\":\"https://github.com/$GITHUB_REPOSITORY/releases/download/$TAG/${{ steps.apk.outputs.name }}\",\"artifact_url\":\"https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID\",\"status\":\"published\",\"github_run_id\":$GITHUB_RUN_ID}";
