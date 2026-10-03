@@ -106,4 +106,4 @@ export default function Dashboard(){
 
       {tab==="overview"&&<Overview quran={quran} releases={releases} builds={builds} content={content} onTab={setTab}/>}
       {tab==="quran"&&<section className="panel">
-        <div className="panel-head"><div><h2>إعدادات المصحف</h2><p className="muted">إعدادات محلية فقط. لم يتم تفعيل اتصال Islamway في هذه المرحلة.</p></div><button className="btn" onClick={saveQuran} disabled={saving}>{saving?"حفظ...":"حفظ الإعدادات"}</button></div>
+        <div className="panel-head"><div><h2>إعدادات المصحف</h2><p className="muted">إعدادات محلية للمشروع. مصادر القرآن الخارجية تُدار لاحقاً داخل موقع القرآن المتخصص فقط.</p></div><button className="btn" onClick={saveQuran} disabled={saving}>{saving?"حفظ...":"حفظ الإعدادات"}</button></div>
