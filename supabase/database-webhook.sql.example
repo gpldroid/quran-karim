@@ -1,0 +1,35 @@
+-- Configure the secret in the Supabase Dashboard instead of committing a real secret.
+-- Database Webhook URL:
+-- https://tqmjueqdfdyhiukhbant.supabase.co/functions/v1/github-dispatch
+--
+-- Recommended Dashboard setup:
+-- Table: public.quran_settings
+-- Events: UPDATE (and INSERT/DELETE if required)
+-- Method: POST
+-- Header: x-webhook-secret = <SUPABASE_GITHUB_WEBHOOK_SECRET>
+-- Header: Content-Type = application/json
+--
+-- Repeat for public.site_config if site configuration changes must rebuild Pages.
+--
+-- If you prefer SQL-managed webhooks, replace the placeholders below:
+create trigger "quran_settings_github_dispatch"
+after update on public.quran_settings
+for each row
+execute function supabase_functions.http_request(
+  'https://tqmjueqdfdyhiukhbant.supabase.co/functions/v1/github-dispatch',
+  'POST',
+  '{"Content-Type":"application/json","x-webhook-secret":"REPLACE_WITH_SECRET"}',
+  '{}',
+  '1000'
+);
+
+create trigger "site_config_github_dispatch"
+after insert or update or delete on public.site_config
+for each row
+execute function supabase_functions.http_request(
+  'https://tqmjueqdfdyhiukhbant.supabase.co/functions/v1/github-dispatch',
+  'POST',
+  '{"Content-Type":"application/json","x-webhook-secret":"REPLACE_WITH_SECRET"}',
+  '{}',
+  '1000'
+);
