@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { supabase } from "../../lib/supabaseClient";
+import { checkAdmin, supabase } from "../../lib/supabaseClient";
 
 const base =
   process.env.NEXT_PUBLIC_BASE_PATH ||
@@ -12,22 +12,11 @@ export default function AdminIndex() {
     let active = true;
 
     (async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
+      const result = await checkAdmin();
 
       if (!active) return;
 
-      if (!session) {
-        window.location.replace(base + "/admin/login/");
-        return;
-      }
-
-      const { data: isAdmin, error } = await supabase.rpc("is_admin");
-
-      if (!active) return;
-
-      if (!error && isAdmin === true) {
+      if (result.isAdmin) {
         window.location.replace(base + "/admin/dashboard/");
         return;
       }
