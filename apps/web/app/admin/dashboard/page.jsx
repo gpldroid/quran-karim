@@ -2,7 +2,7 @@
 
 import {useEffect,useMemo,useState} from "react";
 import Link from "next/link";
-import {isAdmin,supabase,islamway} from "../../../lib/supabase";
+import {isAdmin,supabase} from "../../../lib/supabase";
 
 const tabs=[
   ["overview","نظرة عامة","▦"],
@@ -18,7 +18,7 @@ const emptySite={site_name:"القرآن الكريم",description:"منصة ا�
 
 export default function Dashboard(){
   const [user,setUser]=useState(null),[tab,setTab]=useState("overview"),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false),[message,setMessage]=useState(""),[error,setError]=useState("");
-  const [quran,setQuran]=useState(emptyQuran),[site,setSite]=useState(emptySite),[releases,setReleases]=useState([]),[builds,setBuilds]=useState([]),[content,setContent]=useState([]),[audit,setAudit]=useState([]),[readers,setReaders]=useState([]),[surahs,setSurahs]=useState([]);
+  const [quran,setQuran]=useState(emptyQuran),[site,setSite]=useState(emptySite),[releases,setReleases]=useState([]),[builds,setBuilds]=useState([]),[content,setContent]=useState([]),[audit,setAudit]=useState([]);
   const [readerSearch,setReaderSearch]=useState(""),[surahSearch,setSurahSearch]=useState(""),[contentDraft,setContentDraft]=useState({id:null,kind:"site",title:"",body:"",source:"",published:true});
   const [releaseDraft,setReleaseDraft]=useState({version_code:"",version_name:"",release_tag:"",release_url:"",download_url:"",artifact_url:"",changelog:"",status:"draft"});
 
@@ -41,8 +41,6 @@ export default function Dashboard(){
       if(qs.data)setQuran({...emptyQuran,...qs.data});
       if(sc.data)setSite({...emptySite,...(sc.data.value||{})});
       setReleases(rel.data||[]);setBuilds(bld.data||[]);setContent(ct.data||[]);setAudit(lg.data||[]);
-      const [rr,ss]=await Promise.all([islamway("readers"),islamway("surahs")]);
-      setReaders(rr.readers||[]);setSurahs(ss.surahs||[]);
     }catch(e){setError(e?.message||"تعذر تحميل لوحة التحكم.");}
     finally{setLoading(false);}
   }
@@ -111,42 +109,4 @@ export default function Dashboard(){
 
       {tab==="overview"&&<Overview quran={quran} releases={releases} builds={builds} content={content} readers={readers} onTab={setTab}/>}
       {tab==="quran"&&<section className="panel">
-        <div className="panel-head"><div><h2>إعدادات المصحف</h2><p className="muted">Islamway API + المشغل + السورة والقارئ الافتراضي.</p></div><button className="btn" onClick={saveQuran} disabled={saving}>{saving?"حفظ...":"حفظ الإعدادات"}</button></div>
-        <div className="form-grid">
-          <Field label="البحث عن قارئ"><input value={readerSearch} onChange={e=>setReaderSearch(e.target.value)} placeholder="اكتب اسم القارئ"/></Field>
-          <Field label="القارئ الافتراضي"><select value={quran.default_reader_id} onChange={e=>{const r=readers.find(x=>x.id===e.target.value);setQuran({...quran,default_reader_id:e.target.value,default_reader_name:r?.name||""})}}><option value="">اختر قارئاً</option>{filteredReaders.map(r=><option key={r.id} value={r.id}>{r.name}</option>)}</select></Field>
-          <Field label="البحث عن سورة"><input value={surahSearch} onChange={e=>setSurahSearch(e.target.value)} placeholder="رقم أو اسم السورة"/></Field>
-          <Field label="السورة الافتراضية"><select value={quran.default_surah} onChange={e=>setQuran({...quran,default_surah:Number(e.target.value)})}>{filteredSurahs.map(s=><option key={s.id} value={s.number}>{s.number} — {s.name}</option>)}</select></Field>
-          <Field label="نوع التفسير"><select value={quran.tafsir_type} onChange={e=>setQuran({...quran,tafsir_type:e.target.value})}><option value="default">الافتراضي</option><option value="muyassar">التفسير الميسر</option><option value="jalalayn">الجلالين</option></select></Field>
-          <label className="check"><input type="checkbox" checked={quran.autoplay} onChange={e=>setQuran({...quran,autoplay:e.target.checked})}/><span>تشغيل الصوت تلقائياً</span></label>
-        </div>
-        <div className="subpanel"><h3>القراء المتاحون</h3><div className="chips">{filteredReaders.slice(0,24).map(r=><button className="chip" key={r.id} onClick={()=>setQuran({...quran,default_reader_id:r.id,default_reader_name:r.name})}>{r.name}</button>)}</div></div>
-      </section>}
-
-      {tab==="site"&&<section className="panel"><div className="panel-head"><div><h2>إعدادات الموقع</h2><p className="muted">الهوية واللغة والمظهر والوصف.</p></div><button className="btn" onClick={saveSite} disabled={saving}>حفظ</button></div><div className="form-grid">
-        <Field label="اسم الموقع"><input value={site.site_name} onChange={e=>setSite({...site,site_name:e.target.value})}/></Field>
-        <Field label="اللغة"><select value={site.locale} onChange={e=>setSite({...site,locale:e.target.value})}><option value="ar">العربية</option><option value="en">English</option></select></Field>
-        <Field label="المظهر"><select value={site.theme} onChange={e=>setSite({...site,theme:e.target.value})}><option value="light">فاتح</option><option value="dark">داكن</option><option value="auto">تلقائي</option></select></Field>
-        <Field label="الوصف"><textarea rows="4" value={site.description} onChange={e=>setSite({...site,description:e.target.value})}/></Field>
-      </div></section>}
-
-      {tab==="content"&&<section className="panel"><div className="panel-head"><div><h2>إدارة المحتوى</h2><p className="muted">مقالات ومحتوى القرآن والحديث وصفحات الموقع.</p></div></div>
-        <form className="editor" onSubmit={saveContent}><div className="form-grid"><Field label="النوع"><select value={contentDraft.kind} onChange={e=>setContentDraft({...contentDraft,kind:e.target.value})}><option value="site">الموقع</option><option value="quran">القرآن</option><option value="hadith">الحديث</option></select></Field><Field label="العنوان"><input required value={contentDraft.title} onChange={e=>setContentDraft({...contentDraft,title:e.target.value})}/></Field><Field label="المصدر"><input value={contentDraft.source} onChange={e=>setContentDraft({...contentDraft,source:e.target.value})}/></Field><Field label="النشر"><select value={String(contentDraft.published)} onChange={e=>setContentDraft({...contentDraft,published:e.target.value==="true"})}><option value="true">منشور</option><option value="false">مسودة</option></select></Field></div><Field label="النص"><textarea rows="7" value={contentDraft.body} onChange={e=>setContentDraft({...contentDraft,body:e.target.value})}/></Field><div className="actions"><button className="btn" disabled={saving}>{contentDraft.id?"تحديث المحتوى":"إضافة المحتوى"}</button>{contentDraft.id&&<button type="button" className="btn alt" onClick={()=>setContentDraft({id:null,kind:"site",title:"",body:"",source:"",published:true})}>إلغاء</button>}</div></form>
-        <div className="table-wrap"><table><thead><tr><th>العنوان</th><th>النوع</th><th>الحالة</th><th>المصدر</th><th>إجراء</th></tr></thead><tbody>{content.map(x=><tr key={x.id}><td>{x.title}</td><td>{x.kind}</td><td>{x.published?"منشور":"مسودة"}</td><td>{x.source||"—"}</td><td><button className="link-btn" onClick={()=>setContentDraft(x)}>تعديل</button> <button className="danger-btn" onClick={()=>deleteContent(x.id)}>حذف</button></td></tr>)}</tbody></table></div>
-      </section>}
-
-      {tab==="releases"&&<section className="panel"><div className="panel-head"><div><h2>إصدارات Android</h2><p className="muted">version code/name، GitHub Release، Artifact وChangelog.</p></div></div>
-        <form className="editor" onSubmit={saveRelease}><div className="form-grid"><Field label="Version Code"><input required type="number" value={releaseDraft.version_code} onChange={e=>setReleaseDraft({...releaseDraft,version_code:e.target.value})}/></Field><Field label="Version Name"><input required value={releaseDraft.version_name} onChange={e=>setReleaseDraft({...releaseDraft,version_name:e.target.value})}/></Field><Field label="Release Tag"><input value={releaseDraft.release_tag} onChange={e=>setReleaseDraft({...releaseDraft,release_tag:e.target.value})}/></Field><Field label="الحالة"><select value={releaseDraft.status} onChange={e=>setReleaseDraft({...releaseDraft,status:e.target.value})}><option value="draft">مسودة</option><option value="building">قيد البناء</option><option value="published">منشور</option><option value="failed">فشل</option></select></Field><Field label="رابط GitHub Release"><input type="url" value={releaseDraft.release_url} onChange={e=>setReleaseDraft({...releaseDraft,release_url:e.target.value})}/></Field><Field label="رابط APK"><input type="url" value={releaseDraft.download_url} onChange={e=>setReleaseDraft({...releaseDraft,download_url:e.target.value})}/></Field><Field label="رابط Artifact"><input type="url" value={releaseDraft.artifact_url} onChange={e=>setReleaseDraft({...releaseDraft,artifact_url:e.target.value})}/></Field></div><Field label="Changelog"><textarea rows="5" value={releaseDraft.changelog} onChange={e=>setReleaseDraft({...releaseDraft,changelog:e.target.value})}/></Field><button className="btn" disabled={saving}>حفظ الإصدار</button></form>
-        <div className="table-wrap"><table><thead><tr><th>الإصدار</th><th>الحالة</th><th>Release</th><th>APK</th><th>التاريخ</th></tr></thead><tbody>{releases.map(x=><tr key={x.id}><td><strong>{x.version_name}</strong><div className="muted small">#{x.version_code}</div></td><td><span className={"status "+x.status}>{x.status}</span></td><td>{x.release_url?<a className="link-btn" href={x.release_url} target="_blank" rel="noreferrer">فتح</a>:"—"}</td><td>{x.download_url?<a className="link-btn" href={x.download_url} target="_blank" rel="noreferrer">تحميل</a>:"—"}</td><td>{new Date(x.created_at).toLocaleDateString("ar-MA")}</td></tr>)}</tbody></table></div>
-      </section>}
-
-      {tab==="audit"&&<section className="panel"><div className="panel-head"><div><h2>سجل النشاط</h2><p className="muted">تغييرات الإعدادات والإصدارات المسجلة آلياً.</p></div></div><div className="table-wrap"><table><thead><tr><th>الوقت</th><th>الجدول</th><th>العملية</th><th>المعرف</th></tr></thead><tbody>{audit.map(x=><tr key={x.id}><td>{new Date(x.created_at).toLocaleString("ar-MA")}</td><td>{x.table_name}</td><td>{x.operation}</td><td className="small">{x.record_id||"—"}</td></tr>)}</tbody></table></div></section>}
-    </section>
-  </main>;
-}
-
-function Field({label,children}){return <label className="field"><span>{label}</span>{children}</label>}
-function Overview({quran,releases,builds,content,readers,onTab}){
-  const cards=[["القراء",readers.length,"مصدر Islamway"],["المحتوى",content.length,"سجل المحتوى"],["الإصدارات",releases.length,"أحدث 5 محفوظة"],["Builds",builds.length,"آخر عمليات البناء"]];
-  return <><div className="stats">{cards.map(([a,b,c])=><button className="stat" key={a} onClick={()=>onTab(a==="القراء"?"quran":a==="الإصدارات"?"releases":"content")}><span>{a}</span><strong>{b}</strong><small>{c}</small></button>)}</div><div className="grid-two"><section className="panel"><div className="panel-head"><div><h2>حالة القرآن</h2><p className="muted">الإعدادات الحالية من Supabase.</p></div><button className="link-btn" onClick={()=>onTab("quran")}>إدارة</button></div><div className="kv"><span>القارئ</span><b>{quran.default_reader_name||"غير محدد"}</b><span>السورة</span><b>{quran.default_surah||1}</b><span>التشغيل التلقائي</span><b>{quran.autoplay?"مفعّل":"متوقف"}</b></div></section><section className="panel"><div className="panel-head"><div><h2>آخر إصدار</h2><p className="muted">متابعة APK وGitHub.</p></div><button className="link-btn" onClick={()=>onTab("releases")}>الإصدارات</button></div>{releases[0]?<div className="release-card"><strong>{releases[0].version_name}</strong><span className={"status "+releases[0].status}>{releases[0].status}</span><p>{releases[0].changelog||"لا يوجد changelog."}</p></div>:<p className="muted">لا توجد إصدارات.</p>}</section></div></>
-}
+        <div className="panel-head"><div><h2>إعدادات المصحف</h2><p className="muted">إعدادات محلية فقط. لم يتم تفعيل اتصال Islamway في هذه المرحلة.</p></div><button className="btn" onClick={saveQuran} disabled={saving}>{saving?"حفظ...":"حفظ الإعدادات"}</button></div>
