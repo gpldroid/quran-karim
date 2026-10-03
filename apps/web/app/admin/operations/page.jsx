@@ -178,7 +178,7 @@ export default function Operations(){
             <section className="panel"><h3>النشر الحالي</h3>
               {(gh.deployments||[]).length?(gh.deployments||[]).map(d=><div className="row" key={d.id}>
                 <div><strong>{d.environment||d.description||"Deployment"}</strong><div className="muted small">{d.ref||"—"} · {d.created_at?new Date(d.created_at).toLocaleString("ar-MA"):"—"}</div></div>
-                <div className="actions"><button className="link-btn" onClick={async()=>{try{const {data,error}=await supabase.functions.invoke("github-ops",{body:{action:"deployment_statuses",repo:site.repo_full_name,deployment_id:d.id}});if(error)throw error;const x=data?.data||[];flash(x[0]?.state?("الحالة: "+x[0].state):"لا توجد حالة نشر.");}catch(e){fail(e)}}}>الحالة</button></div>
+                <div className="actions"><a className="link-btn" href={"https://github.com/"+site.repo_full_name+"/deployments"} target="_blank" rel="noreferrer">حالة النشر ↗</a></div>
               </div>)):<p className="muted">لا توجد GitHub Deployments مسجلة.</p>}
             </section>
             <section className="panel"><h3>Production / Preview</h3>
