@@ -314,10 +314,19 @@ for select to authenticated
 using (user_id = (select auth.uid()) or (select public.is_admin()));
 
 drop policy if exists user_roles_admin_write on public.user_roles;
-create policy user_roles_admin_write on public.user_roles
-for all to authenticated
+drop policy if exists user_roles_admin_insert on public.user_roles;
+drop policy if exists user_roles_admin_update on public.user_roles;
+drop policy if exists user_roles_admin_delete on public.user_roles;
+create policy user_roles_admin_insert on public.user_roles
+for insert to authenticated
+with check ((select public.is_admin()));
+create policy user_roles_admin_update on public.user_roles
+for update to authenticated
 using ((select public.is_admin()))
 with check ((select public.is_admin()));
+create policy user_roles_admin_delete on public.user_roles
+for delete to authenticated
+using ((select public.is_admin()));
 
 create or replace function public.audit_row_change()
 returns trigger
@@ -358,6 +367,8 @@ drop trigger if exists app_releases_audit on public.app_releases;
 create trigger app_releases_audit after insert or update or delete on public.app_releases
 for each row execute function public.audit_row_change();
 
+revoke all on function public.audit_row_change() from public, anon, authenticated;
+
 create or replace function public.keep_latest_app_releases()
 returns trigger
 language plpgsql
@@ -376,6 +387,7 @@ end;
 $$;
 
 drop trigger if exists app_releases_keep_latest_5 on public.app_releases;
+revoke all on function public.keep_latest_app_releases() from public, anon, authenticated;
 create trigger app_releases_keep_latest_5
 after insert or update on public.app_releases
 for each statement execute function public.keep_latest_app_releases();
