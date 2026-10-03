@@ -124,7 +124,7 @@ export default function Login() {
         <ShieldCheck className="text-emerald-400" size={32} />
         <h1 className="mt-4 text-2xl font-bold">تسجيل دخول الإدارة</h1>
         <p className="mt-2 text-sm text-zinc-400">
-          تسجيل الدخول عبر Supabase ثم التحقق من صلاحية الإدارة عبر RPC is_admin().
+          تسجيل الدخول عبر Supabase ثم التحقق من حساب الإدارة في قاعدة البيانات.
         </p>
 
         <label className="mt-6 block text-sm text-zinc-300">
