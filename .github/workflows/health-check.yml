@@ -14,6 +14,7 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
       TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+      SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
       - name: Check GitHub Pages
         id: website
@@ -29,7 +30,7 @@ jobs:
         run: |
           set +e
           if [ -z "$SUPABASE_URL" ]; then echo "status=failed" >> "$GITHUB_OUTPUT"; exit 0; fi
-          HTTP_CODE="$(curl --silent --show-error --location --output /dev/null --write-out "%{http_code}" --max-time 30 "$SUPABASE_URL/rest/v1/app_builds?select=version_code&limit=1")"
+          HTTP_CODE="$(curl --silent --show-error --location --output /dev/null --write-out "%{http_code}" --max-time 30 --header "apikey: $SUPABASE_ANON_KEY" --header "Authorization: Bearer $SUPABASE_ANON_KEY" "$SUPABASE_URL/rest/v1/app_builds?select=version_code&limit=1")"
           CURL_STATUS=$?
           if [ "$CURL_STATUS" -eq 0 ] && [[ "$HTTP_CODE" =~ ^2[0-9][0-9]$ ]]; then echo "status=ok" >> "$GITHUB_OUTPUT"; else echo "status=failed" >> "$GITHUB_OUTPUT"; fi
       - name: Send Telegram notification on failure
