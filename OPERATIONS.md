@@ -17,7 +17,6 @@ Set these under Settings → Secrets and variables → Actions:
 - VITE_SUPABASE_PUBLISHABLE_KEY
 - VITE_SUPABASE_FUNCTIONS_URL
 - SUPABASE_SECRET_KEY
-- SUPABASE_RELEASE_SYNC_URL
 - SUPABASE_RELEASE_SYNC_SECRET
 - DISCORD_WEBHOOK_URL (optional)
 - TELEGRAM_BOT_TOKEN (optional)
@@ -33,6 +32,8 @@ Set these with the Supabase CLI or Dashboard:
 - GITHUB_REPOSITORY=gpldroid/quran-karim
 
 The GitHub token must be a fine-grained token with Actions: write for this repository because the GitHub dispatch endpoint requires Actions write permission.
+
+`SUPABASE_RELEASE_SYNC_URL` is not required: the Android workflow derives `/release-sync` from `VITE_SUPABASE_FUNCTIONS_URL`.
 
 Never put any of these secrets in .env.example, source code, SQL committed to the repository, or client-side VITE_ variables.
 
