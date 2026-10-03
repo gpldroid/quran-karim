@@ -47,6 +47,22 @@ jobs:
         run: npm install
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
+      - name: Verify Supabase target
+        env:
+          SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+          test -n "$SUPABASE_URL"
+          test -n "$SUPABASE_ANON_KEY"
+          EXPECTED_HOST="tqmjueqdfdyhiukhbant.supabase.co"
+          ACTUAL_HOST="$(node -e 'console.log(new URL(process.env.SUPABASE_URL).hostname)')"
+          test "$ACTUAL_HOST" = "$EXPECTED_HOST"
+          HTTP_STATUS="$(curl -sS -o /dev/null -w "%{http_code}" --max-time 30             --header "apikey: $SUPABASE_ANON_KEY"             --header "Authorization: Bearer $SUPABASE_ANON_KEY"             "$SUPABASE_URL/rest/v1/admin_users?select=user_id&limit=1")"
+          test "$HTTP_STATUS" -ge 200
+          test "$HTTP_STATUS" -lt 400
+          echo "Supabase target and public.admin_users endpoint verified."
+
       - name: Build static Next.js export
         working-directory: apps/web
         env:
