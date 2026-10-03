@@ -16,6 +16,8 @@ const BOOKS = [
 function normalize(data) {
   const item = data?.data ?? data;
   if (Array.isArray(item)) return item;
+  if (Array.isArray(item?.hadiths)) return item.hadiths;
+  if (item?.contents) return [item.contents];
   return item ? [item] : [];
 }
 
@@ -66,7 +68,7 @@ export default function HadithExplorer() {
       {!loading && !error && (
         <div className="mt-6 space-y-4">
           {items.map((item, index) => {
-            const hadith = item?.hadith ?? item;
+            const hadith = item?.hadith ?? item?.contents ?? item;
             const arabic = hadith?.arab ?? hadith?.arabic ?? hadith?.text ?? "لا يوجد نص عربي";
             const number = hadith?.number ?? item?.number ?? index + 1;
             return (
